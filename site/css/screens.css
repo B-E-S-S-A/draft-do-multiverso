@@ -1,0 +1,307 @@
+/* Telas: regras, leilão e resultado. As cores vêm dos tokens no index.html. */
+.loading { font-family: var(--label); padding-block: 40px }
+.note { font-size: 14px; color: var(--muted); margin: 0 }
+.linkish { background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; font-size: 14px; color: var(--ink) }
+
+/* ---------- capas nos quadros ---------- */
+.card.filme { padding-top: 16px }
+.band { position: absolute; top: 2px; left: 0; right: 0; text-align: center; font-family: var(--label); font-size: 8px; letter-spacing: .08em; color: #fff; line-height: 12px; white-space: nowrap; overflow: hidden }
+.card.serie { padding: 7px 7px 16px; background: #8d8a96; box-shadow: inset 0 -3px 0 #6c6977 }
+.card.serie .cv { border: 3px solid #2a2833 }
+.knobs { position: absolute; bottom: 3px; right: 8px; display: flex; gap: 4px }
+.knobs i { width: 7px; height: 7px; background: #2a2833; border: 1px solid #c9c6d0 }
+.corner { top: 7px; left: 7px }
+.corner b { font-size: 15px }
+
+/* ---------- regras ---------- */
+.setup, .auction, .result { grid-template-columns: minmax(0, 1fr) }
+.setup { padding-block: 26px 56px; display: grid; gap: 26px }
+.setup .wire-row { overflow: hidden }
+.setup .wire .hang { width: 86px }
+.setup-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 26px; align-items: start }
+.field { display: grid; gap: 10px; padding-block: 16px; border-top: 3px dashed #d9d4c4 }
+.rules h2 + .field { border-top: 0; padding-top: 0 }
+.modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+.mode { display: grid; gap: 4px; text-align: left; padding: 10px; background: #fff; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); transition: transform .08s steps(2) }
+.mode[aria-pressed="true"] { background: var(--sun); transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink) }
+.mode b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: .9 }
+.mode small { font-family: var(--label); font-size: 9px; letter-spacing: .03em; color: var(--muted) }
+.mode[aria-pressed="true"] small { color: var(--ink) }
+.stack { display: flex; height: 92px; margin-bottom: 6px }
+.stack .card { width: 50px; flex: 0 0 auto; padding: 2px; border-width: 2px }
+.stack .card + .card { margin-left: -20px }
+.stack .card:nth-child(1) { transform: rotate(-6deg) }
+.stack .card:nth-child(2) { transform: translateY(-4px) }
+.stack .card:nth-child(3) { transform: rotate(6deg) }
+.stack .corner, .stack .band, .stack .knobs { display: none }
+.stack .card.filme, .stack .card.serie { padding: 2px }
+.stepper { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+.step { width: 46px; height: 46px; padding: 0; font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1 }
+.count { font-family: var(--display); font-size: 58px; line-height: .8; min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums }
+.hint { font-family: var(--label); font-size: 11px; background: var(--ink); color: var(--paper); padding: 4px 8px }
+.presets { display: flex; gap: 6px; flex-wrap: wrap }
+.preset { font-family: var(--label); font-size: 11px; background: #fff; border: 2px solid var(--ink); padding: 5px 8px }
+.preset[aria-pressed="true"] { background: var(--ink); color: var(--paper) }
+.switch { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; width: fit-content }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px }
+.knob { width: 48px; height: 26px; border: 3px solid var(--ink); background: #e4e1d8; position: relative; flex: 0 0 auto }
+.knob::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--ink); transition: left .1s steps(3) }
+.switch input:checked + .knob { background: var(--banca) }
+.switch input:checked + .knob::after { left: 24px; background: var(--paper) }
+.switch input:focus-visible + .knob { outline: 3px dashed var(--ink); outline-offset: 3px }
+.classic { justify-self: start; margin: 4px 0 0; background: none; border: 2px dashed var(--ink); padding: 6px 10px }
+.classic.on { border-style: solid; background: var(--banca); color: #fff }
+
+.players { display: grid; gap: 14px }
+.players h2 { margin-bottom: 0 }
+.pname { display: grid; gap: 6px; padding-left: 12px; border-left: 8px solid var(--p1) }
+.pname.p1 { border-left-color: var(--p2) }
+.pname input { width: 100%; border: 3px solid var(--ink); background: #fff; padding: 8px 10px; font-size: 20px; font-weight: 600 }
+.scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; background: var(--ink); color: var(--paper); padding: 10px 14px; border: 3px solid var(--ink) }
+.scoreboard span { font-family: var(--label); font-size: 11px; overflow-wrap: anywhere }
+.scoreboard .sp0 { color: #ffb4a6 } .scoreboard .sp1 { color: #b7cbff; text-align: right }
+.scoreboard b { font-family: var(--display); font-weight: 400; font-size: 52px; line-height: .8; font-variant-numeric: tabular-nums; color: var(--sun) }
+.scoreboard b i { font-style: normal; color: var(--paper); margin: 0 8px; font-size: 32px; vertical-align: 6px }
+#score { display: grid; gap: 8px }
+.how { margin: 0; padding-left: 22px; display: grid; gap: 6px; font-size: 14px; color: var(--muted) }
+.go-row { display: flex; align-items: center; justify-content: flex-end; gap: 18px; flex-wrap: wrap }
+.go-row .lbl { margin: 0; background: var(--paper); border: 3px solid var(--ink); padding: 8px 12px }
+.resume { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 12px 18px; background: var(--sun) }
+.resume p { margin: 0 }
+
+/* ---------- leilão ---------- */
+.auction { padding-block: 16px 48px; display: grid; gap: 10px }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap }
+.topbar .lbl { margin: 0 }
+.topbar-btns { display: flex; gap: 8px; flex-wrap: wrap }
+.lots .hang { width: 60px }
+.stage-cover { max-width: 230px }
+/* no leilão o toldo encolhe para sobrar espaço */
+body[data-screen="auction"] .stripes { height: 22px }
+body[data-screen="auction"] .sign { padding-block: 8px 10px }
+body[data-screen="auction"] .sign h1 { font-size: 40px; text-shadow: 3px 3px 0 var(--ink) }
+body[data-screen="auction"] .sign p { display: none }
+.lot-mini .card { border-width: 2px }
+.lot-mini .corner, .lot-mini .band { display: none }
+.lot-mini .card.filme { padding-top: 4px }
+.lot-mini .card.serie { padding: 4px 4px 9px }
+.lot-mini .knobs { display: none }
+.lot-mini.sold .card { opacity: .55 }
+.lot-mini.now { animation: none }
+.lot-mini.now .card { outline: 4px solid var(--sun); outline-offset: 2px; transform: translateY(6px) }
+/* capa virada dos lotes que ainda não chegaram */
+.card.back { aspect-ratio: 2 / 3; display: grid; place-items: center; padding: 0; background-color: var(--banca);
+  background-image: repeating-linear-gradient(45deg, rgba(0,0,0,.14) 0 4px, transparent 4px 8px); box-shadow: inset 0 0 0 3px var(--banca-dk) }
+.card.back b { font-family: var(--display); font-weight: 400; font-size: 44px; line-height: 1; color: var(--sun); text-shadow: 3px 3px 0 var(--ink) }
+.next .card.back b { font-size: 26px; text-shadow: 2px 2px 0 var(--ink) }
+.lot-mini .num { position: absolute; top: 4px; right: 4px; font-family: var(--label); font-size: 9px; background: var(--paper); border: 2px solid var(--ink); padding: 1px 4px }
+.ribbon { position: absolute; left: -6px; right: -6px; bottom: 10px; font-family: var(--label); font-size: 8px; line-height: 1.2; text-align: center; color: #fff; background: var(--ink); border: 2px solid var(--ink); padding: 2px 2px 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.ribbon.p0 { background: var(--p1) } .ribbon.p1 { background: var(--p2) }
+.ribbon.now { background: var(--sun); color: var(--ink); bottom: 4px }
+
+.arena { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start }
+.arena .stage { grid-column: 1 / -1; order: -1 }
+@media (min-width: 760px) {
+  .arena { grid-template-columns: minmax(180px, 250px) minmax(0, 1fr) minmax(180px, 250px) }
+  .arena .stage { grid-column: auto; order: 0 }
+}
+.stage { position: relative; background: var(--banca); border: 4px solid var(--ink); box-shadow: var(--shadow); padding: 14px; display: grid; gap: 14px;
+  background-image: repeating-linear-gradient(90deg, transparent 0 22px, rgba(0,0,0,.08) 22px 24px) }
+.stage-card { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 18px; background: var(--paper); border: 3px solid var(--ink); padding: 14px; animation: deal .32s steps(4) }
+.stage-card.rest { grid-template-columns: 1fr; text-align: left; animation: none }
+@keyframes deal { from { transform: translateY(-14px) rotate(-1.5deg); opacity: .2 } to { transform: none; opacity: 1 } }
+.stage-info { min-width: 0; container-type: inline-size }
+.lotno { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap }
+.name { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 5vw, 62px); line-height: .84; margin: 8px 0 6px; text-wrap: balance; overflow-wrap: break-word }
+@container (min-width: 1px) { .stage-info .name { font-size: clamp(30px, 15cqi, 64px) } }
+.who { margin: 0 0 12px; color: var(--muted); font-size: 17px }
+.facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 7px 12px; margin: 0; font-size: 15px }
+.facts dt { font-family: var(--label); font-size: 10px; padding-top: 3px; color: var(--muted) }
+.facts dd { margin: 0; overflow-wrap: anywhere }
+.yr { color: var(--muted) }
+.meter { display: inline-flex; gap: 3px; vertical-align: -2px; margin-right: 8px }
+.meter i { width: 11px; height: 15px; border: 2px solid var(--ink); background: #fff }
+.meter i.on { background: var(--sun) }
+.meter.f4 i.on { background: #f08a3c }
+.meter.f5 i.on { background: var(--p1) }
+
+.stamp { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; pointer-events: none; z-index: 3 }
+.stamp b, .stamp span { background: var(--paper); border: 6px solid var(--p1); color: var(--p1); transform: rotate(-9deg) }
+.stamp.p1 b, .stamp.p1 span { border-color: var(--p2); color: var(--p2) }
+.stamp b { font-family: var(--display); font-weight: 400; font-size: clamp(60px, 10vw, 110px); line-height: .8; padding: 10px 22px 4px; text-transform: uppercase; animation: slam .3s steps(3) both; box-shadow: 6px 6px 0 var(--ink) }
+.stamp span { font-family: var(--label); font-size: 14px; padding: 6px 12px; margin-top: -4px; border-width: 4px; animation: slam .3s .12s steps(3) both }
+@keyframes slam { from { transform: rotate(-9deg) scale(2.2); opacity: 0 } to { transform: rotate(-9deg) scale(1); opacity: 1 } }
+
+/* próximo lote */
+.next { display: grid; grid-template-columns: 38px minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 10px; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 3px dashed #d9d4c4 }
+.next .lbl { grid-column: 1 / -1; margin-bottom: 6px; color: var(--muted) }
+.next .card { grid-row: 2 / 4; border-width: 2px; padding: 2px }
+.next .corner, .next .band, .next .knobs { display: none }
+.next .card.filme, .next .card.serie { padding: 2px }
+.next b { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: .9; align-self: end }
+.next small { font-family: var(--label); font-size: 9px; color: var(--muted); align-self: start }
+.next.last { display: block; color: var(--muted) }
+
+/* martelinho batendo */
+.mallet { width: 96px; height: 96px; margin-bottom: -18px; transform-origin: 85% 75%; animation: whack .45s steps(3) both; filter: drop-shadow(4px 4px 0 var(--ink)) }
+@keyframes whack { 0% { transform: rotate(-55deg) translate(-10px, -20px) } 70% { transform: rotate(8deg) } 100% { transform: rotate(0) } }
+@media (prefers-reduced-motion: reduce) { .mallet { animation: none } }
+
+.gavel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: stretch }
+.bidbox { display: grid; gap: 4px; align-content: center; background: var(--ink); color: var(--paper); border: 3px solid var(--ink); padding: 10px 14px; min-width: 0 }
+.bidbox.p0 { background: var(--p1) } .bidbox.p1 { background: var(--p2) }
+.bidbox.wait { background: var(--paper); color: var(--ink); border-left-width: 12px }
+.bidbox.wait.p0 { border-left-color: var(--p1) } .bidbox.wait.p1 { border-left-color: var(--p2) }
+.bidbox.wait b { font-size: 44px; overflow-wrap: anywhere }
+.bidbox.wait span:last-child { color: var(--muted) }
+.log { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px }
+.log i { font-style: normal; font-family: var(--label); font-size: 9px; padding: 2px 5px 1px; border: 2px solid var(--ink); background: var(--paper); color: var(--ink) }
+.log i.p0 { box-shadow: inset 0 -3px 0 var(--p1) } .log i.p1 { box-shadow: inset 0 -3px 0 var(--p2) }
+.log i:last-child { background: var(--sun) }
+.bidbox b { font-family: var(--display); font-weight: 400; font-size: 70px; line-height: .8; font-variant-numeric: tabular-nums }
+.bidbox span:last-child { font-size: 15px; overflow-wrap: anywhere }
+.hammer-col { display: grid; gap: 10px; align-content: start }
+.hammer-col .btn.big { font-size: 40px }
+.countdown { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; color: var(--paper) }
+.pips { display: flex; gap: 6px; flex: 1 }
+.pips i { flex: 1; height: 14px; border: 3px solid var(--ink); background: var(--banca-dk) }
+.pips i.on { background: var(--sun) }
+.gavel > .btn.big { justify-self: start }
+
+.player { position: relative; display: grid; gap: 10px; padding: 14px; background: var(--paper); border: 4px solid var(--ink); border-top-width: 16px; box-shadow: var(--shadow) }
+.player.p0 { border-top-color: var(--p1) } .player.p1 { border-top-color: var(--p2) }
+.player.leading.p0 { background: var(--p1-tint) } .player.leading.p1 { background: var(--p2-tint) }
+.ph { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 22px }
+.flag { font-family: var(--label); font-size: 10px; background: var(--sun); border: 2px solid var(--ink); padding: 2px 6px; animation: blink 1s steps(2) infinite }
+@keyframes blink { 50% { background: var(--paper) } }
+@media (prefers-reduced-motion: reduce) { .flag, .stage-card, .stamp b, .stamp span { animation: none } }
+.player h3, .side h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 40px; line-height: .85; overflow-wrap: anywhere }
+.cap { margin: 0; font-size: 14px }
+.bids { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+.bids .btn { display: grid; justify-items: center; gap: 2px; padding: 7px 4px 8px; position: relative }
+.bids .btn > span { font-family: var(--display); font-weight: 400; font-size: 30px; line-height: .9 }
+.bids .btn small { font-family: var(--label); font-size: 10px; font-weight: 400 }
+.bids .btn kbd { position: absolute; top: 4px; right: 6px; margin: 0 }
+.bids .btn.wide { grid-column: 1 / -1; font-size: 20px; padding: 12px 6px }
+/* valor livre */
+.custom { display: grid; gap: 6px; padding: 10px; border: 3px dashed #c9c4b4; background: #fff }
+.custom-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 8px; align-items: center }
+.rng { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0 }
+.rng::-webkit-slider-runnable-track { height: 10px; background: #e4e1d8; border: 3px solid var(--ink) }
+.rng::-moz-range-track { height: 4px; background: #e4e1d8; border: 3px solid var(--ink) }
+.rng::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 24px; margin-top: -10px; background: var(--p1); border: 3px solid var(--ink); border-radius: 0 }
+.rng::-moz-range-thumb { width: 14px; height: 20px; background: var(--p1); border: 3px solid var(--ink); border-radius: 0 }
+.rng.blue::-webkit-slider-thumb { background: var(--p2) }
+.rng.blue::-moz-range-thumb { background: var(--p2) }
+.rng:focus-visible { outline: 3px dashed var(--ink); outline-offset: 2px }
+.num { width: 100%; border: 3px solid var(--ink); background: var(--paper); padding: 4px 6px; font-family: var(--display); font-size: 26px; line-height: 1; text-align: center; -moz-appearance: textfield }
+.num::-webkit-inner-spin-button, .num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0 }
+.num.bad { background: var(--p1-tint); border-color: var(--p1) }
+.give { font-size: 18px; padding: 8px 10px }
+.team-lbl { margin: 4px 0 0 }
+.slots { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px }
+.slot { position: relative; aspect-ratio: 2 / 3; border: 3px dashed #bdb8a8; display: grid; place-items: center; font-family: var(--display); font-size: 24px; color: #bdb8a8 }
+.slot.filled { border: 0; display: block; aspect-ratio: auto; animation: deal .3s steps(3) }
+.slot .card { border-width: 2px; padding: 2px }
+.slot .corner, .slot .band, .slot .knobs { display: none }
+.slot .price { position: absolute; left: -3px; bottom: -6px; font-family: var(--label); font-size: 9px; background: var(--sun); border: 2px solid var(--ink); padding: 1px 3px }
+@media (hover: none) { kbd { display: none } }
+
+/* ---------- resultado ---------- */
+.result { padding-block: 26px 56px; display: grid; gap: 26px }
+.vs { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; align-items: start }
+.vs-mark { align-self: center; font-family: var(--display); font-size: 110px; line-height: .8; color: var(--sun); text-shadow: 5px 5px 0 var(--ink); -webkit-text-stroke: 2px var(--ink) }
+.side { position: relative; display: grid; gap: 10px; padding: 16px; background: var(--paper); border: 4px solid var(--ink); border-top-width: 16px; box-shadow: var(--shadow) }
+.side.p0 { border-top-color: var(--p1) } .side.p1 { border-top-color: var(--p2) }
+.side.won { outline: 6px solid var(--sun); outline-offset: 4px }
+.stats { display: flex; flex-wrap: wrap; gap: 8px }
+.stats span { font-family: var(--label); font-size: 10px; border: 2px solid var(--ink); padding: 4px 8px; background: #fff }
+.stats b { font-family: var(--display); font-weight: 400; font-size: 20px; margin-left: 4px }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 14px 12px }
+.tcard { margin: 0; display: grid; gap: 6px; align-content: start }
+.tcard figcaption { display: grid; gap: 2px }
+.tcard figcaption b { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: .9 }
+.tcard figcaption span { font-family: var(--label); font-size: 9px; color: var(--muted) }
+.verdict { display: grid; gap: 14px }
+.verdict h2 { margin: 0 }
+.verdict-btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.verdict-btns .btn[aria-pressed="true"] { outline: 4px solid var(--sun); outline-offset: 2px }
+.verdict-btns.end { padding-top: 6px; border-top: 3px dashed #d9d4c4 }
+.copybox { width: 100%; font-family: var(--label); font-size: 12px; border: 3px solid var(--ink); padding: 8px }
+
+/* ---------- telas menores ---------- */
+@media (max-width: 759px) {
+  .stage-card { grid-template-columns: minmax(0, 150px) minmax(0, 1fr) }
+}
+@media (max-width: 820px) {
+  .setup-grid { grid-template-columns: minmax(0, 1fr) }
+  .vs { grid-template-columns: minmax(0, 1fr) }
+  .vs-mark { justify-self: center; font-size: 72px }
+}
+@media (max-width: 560px) {
+  .sign h1 { font-size: 46px }
+  .stage { padding: 10px }
+  .stage-card { grid-template-columns: minmax(0, 116px) minmax(0, 1fr); gap: 12px; padding: 10px }
+  .stage-card .corner { display: none }
+  .who { font-size: 15px }
+  .facts { grid-template-columns: minmax(0, 1fr); gap: 2px }
+  .facts dd { margin-bottom: 6px }
+  .gavel { grid-template-columns: minmax(0, 1fr) }
+  .bidbox b { font-size: 54px }
+  .hammer-col { grid-template-columns: 1fr auto }
+  .hammer-col .btn.big { font-size: 32px }
+  .arena { gap: 10px }
+  .player { padding: 10px; gap: 8px; border-top-width: 12px }
+  .player h3 { font-size: 30px }
+  .bill { min-width: 0; padding: 4px 8px 3px }
+  .bill b { font-size: 36px }
+  .bill i { font-size: 7px }
+  .bids { gap: 6px }
+  .bids .btn > span { font-size: 24px }
+  .modes { gap: 8px }
+  .mode { padding: 8px }
+  .mode b { font-size: 28px }
+  .stack { height: 70px }
+  .stack .card { width: 38px }
+  .stack .card + .card { margin-left: -16px }
+  .panel { padding: 14px }
+  .team-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)) }
+}
+
+/* ---------- tipo de leilão ---------- */
+.styles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
+.style { display: grid; gap: 4px; align-content: start; text-align: left; padding: 10px; background: #fff; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink) }
+.style b { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: .95 }
+.style small { font-size: 12px; color: var(--muted); line-height: 1.3 }
+.style[aria-pressed="true"] { background: var(--sun); transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink) }
+.style[aria-pressed="true"] small { color: var(--ink) }
+@media (max-width: 560px) { .styles { grid-template-columns: minmax(0, 1fr) } }
+.rules.locked { opacity: .75 }
+.rules.locked::after { content: 'Só quem criou a sala muda as regras'; display: block; margin-top: 10px; font-family: var(--label); font-size: 10px; color: var(--muted) }
+
+/* ---------- sala online ---------- */
+.online { display: grid; gap: 8px; padding: 12px; border: 3px solid var(--ink); background: #fff }
+.online.on { background: #dff1e6; border-color: var(--banca) }
+.online p { margin: 0 }
+.online-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
+.online-row input { width: 7.5em; border: 3px solid var(--ink); padding: 7px 8px; font-family: var(--display); font-size: 24px; line-height: 1; text-transform: uppercase; letter-spacing: .12em; background: var(--paper) }
+.code { font-family: var(--display); font-weight: 400; font-size: 64px; line-height: .8; letter-spacing: .14em; background: var(--ink); color: var(--sun); padding: 10px 14px 6px; justify-self: start; user-select: all }
+.neterr { color: var(--p1-dk); font-size: 14px }
+.wait-host { margin: 0; font-family: var(--display); font-size: 30px; background: var(--paper); border: 3px solid var(--ink); padding: 8px 14px }
+.online-chip { background: var(--banca); color: #fff }
+
+/* ---------- painéis: sem dinheiro, outro computador ---------- */
+.broke { margin: 0; padding: 10px; border: 3px dashed var(--p1); background: var(--p1-tint); font-size: 14px; text-align: center }
+.remote { margin: 0; padding: 10px; border: 3px dashed #c9c4b4; color: var(--muted); font-size: 14px; text-align: center }
+.autonote { margin-top: 6px; font-family: var(--label); font-size: 10px; background: var(--sun); color: var(--ink); border: 2px solid var(--ink); padding: 3px 6px; justify-self: start }
+
+/* ---------- preço caindo ---------- */
+.bidbox.drop { background: var(--sun); color: var(--ink) }
+.bidbox.drop b { font-size: 78px }
+.bidbox.drop.ready b { opacity: .45 }
+.dropbar { display: block; height: 14px; border: 3px solid var(--ink); background: var(--paper); margin-top: 6px }
+.dropbar i { display: block; height: 100%; background: var(--p1); transition: width .2s steps(2) }
+.btn.grab { width: 100%; display: grid; justify-items: center; gap: 2px; padding: 14px 6px; position: relative }
+.btn.grab > span { font-family: var(--display); font-weight: 400; font-size: 44px; line-height: .85 }
+.btn.grab small { font-family: var(--label); font-size: 12px; font-weight: 400 }
+.btn.grab kbd { position: absolute; top: 6px; right: 8px; margin: 0 }
