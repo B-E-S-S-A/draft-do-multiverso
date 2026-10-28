@@ -305,3 +305,20 @@ body[data-screen="auction"] .sign p { display: none }
 .btn.grab > span { font-family: var(--display); font-weight: 400; font-size: 44px; line-height: .85 }
 .btn.grab small { font-family: var(--label); font-size: 12px; font-weight: 400 }
 .btn.grab kbd { position: absolute; top: 6px; right: 8px; margin: 0 }
+
+/* ---------- cara ou coroa ---------- */
+.coinbox { display: grid; justify-items: center; gap: 10px; padding: 14px; border: 3px dashed #d9d4c4; perspective: 600px }
+.coin { position: relative; width: 140px; height: 140px; transform-style: preserve-3d }
+.coin .face { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; border-radius: 50%; backface-visibility: hidden;
+  background: radial-gradient(circle, #d9dde3 0 46%, #8d939c 46% 50%, #f2c94c 50% 92%, #9a7417 92%); box-shadow: 0 0 0 4px var(--ink), 6px 6px 0 4px var(--ink) }
+.coin .face b { font-family: var(--display); font-weight: 400; font-size: 30px; line-height: .9 }
+.coin .face small { font-family: var(--label); font-size: 9px; max-width: 70px; overflow-wrap: anywhere }
+.coin .f0 b { color: var(--p1-dk) } .coin .f1 b { color: var(--p2-dk) }
+.coin .f1 { transform: rotateY(180deg) }
+.coin.spin { animation: flip 1.6s steps(16) both }
+.coin.land0 { transform: rotateY(0) } .coin.land1 { transform: rotateY(180deg) }
+@keyframes flip { from { transform: rotateY(0) translateY(0) } 50% { transform: rotateY(1440deg) translateY(-40px) } to { transform: rotateY(2880deg) translateY(0) } }
+@media (prefers-reduced-motion: reduce) { .coin.spin { animation: none } }
+.coin-msg { margin: 0; font-family: var(--display); font-size: 30px; text-align: center }
+.coin.spin.s1 { animation-name: flip1 }
+@keyframes flip1 { from { transform: rotateY(0) translateY(0) } 50% { transform: rotateY(1440deg) translateY(-40px) } to { transform: rotateY(2700deg) translateY(0) } }

@@ -270,6 +270,17 @@
       </div>`
   }
 
+  // moeda de R$1 (anel dourado, miolo prateado): cara = jogador 1, coroa = jogador 2
+  function coin(S) {
+    const c = S.coin
+    if (!c) return ''
+    const face = (p) => `<span class="face f${p}"><b>${p ? 'Coroa' : 'Cara'}</b><small>${name(S, p)}</small></span>`
+    return `<div class="coinbox" data-n="${c.n}">
+      <div class="coin${c.spinning ? ' spin s' + c.v : ' land' + c.v}">${face(0)}${face(1)}</div>
+      <p class="coin-msg" role="status">${c.spinning ? 'Girando…' : `Deu ${c.v ? 'coroa' : 'cara'}! ${name(S, c.v)} venceu.`}</p>
+    </div>`
+  }
+
   function verdict(S) {
     const g = S.game
     const pick = (v, label, cls) => `<button class="btn ${cls}" type="button" data-act="win" data-v="${v}" aria-pressed="${g.result === v}">${label}</button>`
@@ -278,7 +289,9 @@
       <p class="note">Discutam e marquem. O placar fica salvo neste aparelho.</p>
       <div class="verdict-btns">
         ${pick(0, name(S, 0) + ' venceu', 'red')}${pick(2, 'Empate', 'paper')}${pick(1, name(S, 1) + ' venceu', 'blue')}
+        <button class="btn" type="button" data-act="coin" ${S.coin && S.coin.spinning ? 'disabled' : ''}>Não sabemos · cara ou coroa</button>
       </div>
+      ${coin(S)}
       <div id="score">${V.score(S)}</div>
       <div class="verdict-btns end">
         ${S.me === 1 ? `<p class="note">Esperando ${name(S, 0)} começar outro draft.</p>` : '<button class="btn big" type="button" data-act="again">Novo draft</button>'}
@@ -309,3 +322,4 @@
 
   Object.assign(window.View, { auction, topButtons, lots, stageCard, stamp, gavel, player, result, verdict, shareText })
 })()
+

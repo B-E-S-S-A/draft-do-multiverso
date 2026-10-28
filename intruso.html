@@ -1,0 +1,233 @@
+<title>Multiverse Impostor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Pixelify+Sans:wght@400;600&display=swap">
+<style>
+/* Mesa de jogo: uma carta por jogador (3 a 10, quebram em linhas), ações embaixo. Papel de gibi + tinta + amarelo. */
+:root {
+  --papel: #FBF6E8; --suave: #ECE2C8; --tinta: #1D1B2C; --fraca: #6F6A5E;
+  --amarelo: #FFCD3C; --j1: #DE3A2C; --j2: #2C62DA; --j3: #23744F; --j4: #8C52CE;
+  --j5: #D9731A; --j6: #148C8C; --j7: #C73C7E; --j8: #7A5A3A;
+  --display: 'Jersey 10', 'Courier New', monospace; --corpo: 'Pixelify Sans', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --papel: #1C1A26; --suave: #2C2938; --tinta: #F3EEDF; --fraca: #A9A394; --j1: #F05A4A; --j2: #5B8CF2; --j3: #3FAE7C;
+  --j4: #A97CE8; --j5: #EE8F3C; --j6: #2FB3B3; --j7: #E2619E; --j8: #A8835C; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --papel: #1C1A26; --suave: #2C2938; --tinta: #F3EEDF; --fraca: #A9A394; --j1: #F05A4A; --j2: #5B8CF2; --j3: #3FAE7C;
+  --j4: #A97CE8; --j5: #EE8F3C; --j6: #2FB3B3; --j7: #E2619E; --j8: #A8835C; color-scheme: dark }
+body { background: var(--papel); color: var(--tinta); font-family: var(--corpo); font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px }
+main { max-width: 900px; margin: 0 auto; display: grid; gap: 24px }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(44px, 9vw, 72px); line-height: .9; margin: 0; text-wrap: balance }
+h1 span { color: var(--j1) }
+.lead { margin: 6px 0 0; color: var(--fraca); max-width: 60ch }
+.mesa { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); gap: 14px }
+.carta { --cor: var(--j1); border: 3px solid var(--tinta); background: var(--suave); border-radius: 10px; min-height: 200px;
+  display: grid; grid-template-rows: auto 1fr auto; gap: 8px; padding: 14px; cursor: pointer; color: var(--tinta);
+  font: inherit; text-align: center; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
+  box-shadow: 0 5px 0 var(--tinta); transition: transform .08s }
+.carta:nth-child(8n+2) { --cor: var(--j2) } .carta:nth-child(8n+3) { --cor: var(--j3) } .carta:nth-child(8n+4) { --cor: var(--j4) }
+.carta:nth-child(8n+5) { --cor: var(--j5) } .carta:nth-child(8n+6) { --cor: var(--j6) } .carta:nth-child(8n+7) { --cor: var(--j7) }
+.carta:nth-child(8n+8) { --cor: var(--j8) }
+.carta:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 3px }
+.carta .quem { background: var(--cor); color: #fff; font-family: var(--display); font-size: 26px; border-radius: 6px; padding: 2px 0 4px }
+.carta .meio { display: grid; place-items: center; font-family: var(--display); line-height: 1 }
+.carta .q { font-size: 84px; color: var(--cor) }
+.carta .nome { font-size: clamp(30px, 5vw, 40px); text-wrap: balance; overflow-wrap: anywhere }
+.jogadores { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+.jogadores .rot { font-family: var(--display); font-size: 26px }
+.passo { display: flex; align-items: center; border: 3px solid var(--tinta); border-radius: 8px; background: var(--papel); box-shadow: 0 4px 0 var(--tinta) }
+.passo button { font-family: var(--display); font-size: 30px; line-height: 1; width: 48px; height: 44px; border: 0; background: none; color: var(--tinta); cursor: pointer }
+.passo button:disabled { opacity: .3; cursor: default }
+.passo button:focus-visible { outline: 3px solid var(--amarelo); outline-offset: -3px }
+.passo output { font-family: var(--display); font-size: 34px; min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums }
+.carta .dica { font-size: 13px; color: var(--fraca) }
+.carta.aberta { background: var(--amarelo); color: #1D1B2C; transform: translateY(3px); box-shadow: 0 2px 0 var(--tinta) }
+.carta.aberta .dica { color: #1D1B2C }
+.carta.vista:not(.aberta) .q { opacity: .35 }
+.acoes { display: flex; flex-wrap: wrap; gap: 12px }
+button.btn { font-family: var(--display); font-size: 26px; padding: 6px 22px 8px; border-radius: 8px; border: 3px solid var(--tinta);
+  background: var(--papel); color: var(--tinta); cursor: pointer; box-shadow: 0 4px 0 var(--tinta) }
+button.btn.principal { background: var(--amarelo); color: #1D1B2C }
+button.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--tinta) }
+button.btn:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 3px }
+#resultado { margin: 0; font-size: 18px; min-height: 1.6em }
+#resultado b { font-family: var(--display); font-size: 28px; font-weight: 400 }
+details { color: var(--fraca); max-width: 65ch }
+summary { cursor: pointer; color: var(--tinta) }
+ol { padding-left: 20px; display: grid; gap: 4px }
+@media (prefers-reduced-motion: reduce) { .carta, button.btn { transition: none } }
+</style>
+
+<main>
+  <header>
+    <h1>Multiverse <span>Impostor</span></h1>
+    <p class="lead">Everyone gets the same Marvel character except one player, who gets a similar one. That's the impostor.</p>
+  </header>
+
+  <div class="jogadores">
+    <span class="rot" id="rot-jogadores">Players</span>
+    <div class="passo" role="group" aria-labelledby="rot-jogadores">
+      <button type="button" id="menos" aria-label="One less player">−</button>
+      <output id="qtd" aria-live="polite">3</output>
+      <button type="button" id="mais" aria-label="One more player">+</button>
+    </div>
+  </div>
+
+  <section class="mesa" id="mesa" aria-label="Player cards"></section>
+
+  <div class="acoes">
+    <button class="btn principal" type="button" id="revelar">Reveal the impostor</button>
+    <button class="btn" type="button" id="nova">New round</button>
+  </div>
+  <p id="resultado" aria-live="polite"></p>
+
+  <details>
+    <summary>How to play</summary>
+    <ol>
+      <li>Pick how many players (3 to 10). Each one holds their own card, peeks at their character without the others seeing, and lets go.</li>
+      <li>On your turn, give one clue about your character without saying the name.</li>
+      <li>The impostor doesn't know they're the impostor. They have to figure it out from the clues and blend in.</li>
+      <li>After a few rounds of clues, everyone votes for the impostor and taps Reveal.</li>
+    </ol>
+  </details>
+</main>
+
+<script>
+const PARES = [
+  ['Thor', 'Loki'], ['Iron Man', 'War Machine'], ['Captain America', 'Winter Soldier'],
+  ['Hulk', 'Abomination'], ['Spider-Man', 'Miles Morales'], ['Black Widow', 'Yelena Belova'],
+  ['Doctor Strange', 'Wong'], ['Black Panther', 'Killmonger'], ['Hawkeye', 'Kate Bishop'],
+  ['Scarlet Witch', 'Vision'], ['Star-Lord', 'Gamora'], ['Groot', 'Rocket'], ['Thanos', 'Galactus'],
+  ['Wolverine', 'Sabretooth'], ['Deadpool', 'Cable'], ['Venom', 'Carnage'], ['Captain Marvel', 'Monica Rambeau'],
+  ['Ant-Man', 'Wasp'], ['Magneto', 'Professor X'], ['Storm', 'Jean Grey'], ['Daredevil', 'Punisher'],
+  ['Nick Fury', 'Maria Hill'], ['Okoye', 'Shuri'], ['Drax', 'Mantis'], ['Nebula', 'Gamora'], ['Kang', 'Doctor Doom'],
+  ['Ultron', 'Vision'], ['Falcon', 'Winter Soldier'], ['Moon Knight', 'Blade'], ['Shang-Chi', 'Iron Fist'],
+  ['Mystique', 'Rogue'], ['Cyclops', 'Gambit'], ['The Thing', 'Human Torch'], ['Mister Fantastic', 'Invisible Woman'],
+  ['Hela', 'Loki'], ['She-Hulk', 'Hulk'], ['Ms. Marvel', 'Captain Marvel'], ['Agatha Harkness', 'Scarlet Witch'],
+  ['Spider-Man', 'Spider-Gwen'], ['Miles Morales', 'Spider-Man 2099'], ['Doctor Octopus', 'Green Goblin'],
+  ['Vulture', 'Mysterio'], ['Electro', 'Rhino'], ['Kraven', 'Lizard'], ['Morbius', 'Venom'],
+  ['Valkyrie', 'Sif'], ['Heimdall', 'Odin'], ['Gorr', 'Thanos'], ['Adam Warlock', 'Silver Surfer'],
+  ['Yondu', 'Star-Lord'], ['Rocket', 'Cosmo'], ['Quicksilver', 'Scarlet Witch'],
+  ['Beast', 'Nightcrawler'], ['Colossus', 'Juggernaut'], ['Psylocke', 'Kitty Pryde'], ['Apocalypse', 'Mister Sinister'],
+  ['X-23', 'Wolverine'], ['Domino', 'Deadpool'], ['Luke Cage', 'Iron Fist'], ['Jessica Jones', 'Spider-Woman'],
+  ['Elektra', 'Black Widow'], ['Kingpin', 'Bullseye'], ['Ghost Rider', 'Blade'],
+  ['Mephisto', 'Dormammu'], ['Baron Mordo', 'Doctor Strange'], ['Red Skull', 'Baron Zemo'],
+  ['Crossbones', 'Taskmaster'], ['Namor', "M'Baku"], ['Ant-Man', 'Yellowjacket'],
+  ['Wasp', 'Cassie Lang'], ['Echo', 'Daredevil'], ['She-Hulk', 'Titania'], ['Doctor Doom', 'Mister Fantastic'],
+  ['Iron Man', 'Ironheart'], ['War Machine', 'Iron Patriot'], ['Captain America', 'U.S. Agent'], ['Peggy Carter', 'Sharon Carter'],
+  ['Thor', 'Beta Ray Bill'], ['Mighty Thor', 'Valkyrie'], ['Loki', 'Sylvie'], ['Hercules', 'Thor'], ['Enchantress', 'Hela'],
+  ['Hulk', 'Red Hulk'], ['Abomination', 'The Leader'], ['Spider-Man', 'Scarlet Spider'], ['Silk', 'Spider-Woman'],
+  ['Black Cat', 'Silver Sable'], ['Sandman', 'Hydro-Man'], ['Scorpion', 'Shocker'], ['Hobgoblin', 'Green Goblin'],
+  ['Spider-Ham', 'Spider-Punk'], ['Black Panther', 'White Wolf'], ['Shuri', 'Riri Williams'], ['Nakia', 'Okoye'],
+  ['Ancient One', 'Wong'], ['Doctor Strange', 'Doctor Voodoo'], ['Nova', 'Quasar'], ['Collector', 'Grandmaster'],
+  ['Ego', 'High Evolutionary'], ['Korg', 'Miek'], ['Ebony Maw', 'Corvus Glaive'], ['Nebula', 'Proxima Midnight'],
+  ['Professor X', 'Legion'], ['Magneto', 'Polaris'], ['Iceman', 'Human Torch'], ['Emma Frost', 'Jean Grey'],
+  ['Bishop', 'Cable'], ['Havok', 'Cyclops'], ['Jubilee', 'Kitty Pryde'], ['Lady Deathstrike', 'X-23'],
+  ['Moon Knight', 'Ghost Rider'], ['Werewolf by Night', 'Man-Thing'], ['Black Bolt', 'Medusa'],
+  ['Squirrel Girl', 'Ms. Marvel'], ['America Chavez', 'Wiccan'], ['Kid Loki', 'Loki'], ['Talos', 'Super-Skrull'],
+  ['Howard the Duck', 'Rocket'], ['Arnim Zola', 'MODOK'], ['Taskmaster', 'Bullseye'], ['Phil Coulson', 'Nick Fury'],
+  ['Captain America', 'Captain Britain'], ['Ultron', 'Sentinel'], ['Vision', 'Jocasta'], ['Venom', 'Anti-Venom'],
+  ['Carnage', 'Toxin'], ['Prowler', 'Miles Morales'], ['Madame Web', 'Spider-Woman'], ['Chameleon', 'Mystique'],
+  ['Mister Negative', 'Kingpin'], ['Sersi', 'Ikaris'], ['Thena', 'Gilgamesh'], ['Kingo', 'Druig'], ['Black Knight', 'Valkyrie'],
+  ['Red Guardian', 'Captain America'], ['Ghost', 'Ant-Man'], ['Hank Pym', 'Scott Lang'], ['Rescue', 'Iron Man'],
+  ['Wolverine', 'Old Man Logan'], ['Deadpool', 'Lady Deadpool'], ['Gwenpool', 'Deadpool'], ['Gambit', 'Rogue'],
+  ['Magneto', 'Quicksilver'], ['Cable', 'Hope Summers'], ['Banshee', 'Siryn'], ['Sunfire', 'Human Torch'],
+  ['Cannonball', 'Sunspot'], ['Forge', 'Bishop'], ['Mojo', 'Arcade'], ['Magik', 'Colossus'], ['Storm', 'Black Panther'],
+  ['Thanos', 'Annihilus'], ['Eternity', 'Living Tribunal'], ['Knull', 'Venom'], ['Dracula', 'Blade'],
+  ['Doctor Strange', 'Clea'], ['Shang-Chi', 'Wenwu'], ['Daredevil', 'Bullseye'], ['Jessica Jones', 'Kilgrave'],
+  ['Groot', 'Baby Groot'], ['Mantis', 'Nebula'], ['Captain Marvel', 'Mar-Vell'], ['Ant-Man', 'Giant-Man'],
+  ['Hulk', 'Skaar'], ['Loki', 'Mobius'], ['Kang', 'He Who Remains'], ['Agatha Harkness', 'Rio Vidal'],
+  ['Wiccan', 'Speed'], ['Moon Knight', 'Mr. Knight'], ['Khonshu', 'Ammit'], ['Ironheart', 'The Hood'],
+  ['Sentry', 'The Void'], ['Squirrel Girl', 'Gwenpool']
+]
+const MIN = 3, MAX = 10
+let rodada, ultimo = -1, confirmar = false
+let jogadores = 3
+try { jogadores = Math.min(MAX, Math.max(MIN, Number(localStorage.getItem('impostor-players')) || 3)) } catch (e) {}
+const $ = (id) => document.getElementById(id)
+
+function montarMesa() {
+  const mesa = $('mesa')
+  mesa.innerHTML = ''
+  for (let p = 0; p < jogadores; p++) {
+    const c = document.createElement('button')
+    c.className = 'carta'
+    c.type = 'button'
+    c.id = 'c' + p
+    c.innerHTML = `<span class="quem">Player ${p + 1}</span><span class="meio"><span class="q">?</span></span><span class="dica">Hold to see</span>`
+    c.addEventListener('pointerdown', (e) => { e.preventDefault(); abrir(p) })
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) c.addEventListener(ev, () => fechar(p))
+    c.addEventListener('contextmenu', (e) => e.preventDefault())
+    c.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); abrir(p) } })
+    c.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') fechar(p) })
+    c.addEventListener('blur', () => fechar(p))
+    mesa.appendChild(c)
+  }
+  $('qtd').textContent = jogadores
+  $('menos').disabled = jogadores <= MIN
+  $('mais').disabled = jogadores >= MAX
+}
+
+function mudarJogadores(d) {
+  const novo = Math.min(MAX, Math.max(MIN, jogadores + d))
+  if (novo === jogadores) return
+  jogadores = novo
+  try { localStorage.setItem('impostor-players', String(jogadores)) } catch (e) {}
+  montarMesa()
+  sortear()
+}
+
+function sortear() {
+  let k
+  do { k = Math.floor(Math.random() * PARES.length) } while (k === ultimo)
+  ultimo = k
+  const par = Math.random() < 0.5 ? PARES[k] : [PARES[k][1], PARES[k][0]]
+  rodada = { comum: par[0], diferente: par[1], intruso: Math.floor(Math.random() * jogadores), vistos: Array(jogadores).fill(false) }
+  confirmar = false
+  $('revelar').textContent = 'Reveal the impostor'
+  $('resultado').textContent = ''
+  for (let p = 0; p < jogadores; p++) fechar(p, true)
+}
+
+function personagem(p) { return p === rodada.intruso ? rodada.diferente : rodada.comum }
+
+function abrir(p) {
+  const c = $('c' + p)
+  c.classList.add('aberta')
+  c.querySelector('.meio').innerHTML = `<span class="nome"></span>`
+  c.querySelector('.nome').textContent = personagem(p)
+  c.querySelector('.dica').textContent = 'Let go to hide'
+  rodada.vistos[p] = true
+}
+
+function fechar(p, novo) {
+  const c = $('c' + p)
+  if (!novo && !c.classList.contains('aberta')) return
+  c.classList.remove('aberta')
+  c.classList.toggle('vista', !novo && rodada.vistos[p])
+  c.querySelector('.meio').innerHTML = '<span class="q">?</span>'
+  c.querySelector('.dica').textContent = rodada.vistos[p] && !novo ? 'Seen · hold to look again' : 'Hold to see'
+}
+
+$('revelar').addEventListener('click', () => {
+  if (!confirmar) {
+    confirmar = true
+    $('revelar').textContent = 'Tap again to reveal'
+    return
+  }
+  const r = $('resultado')
+  r.innerHTML = 'The impostor was <b></b> with <b></b>. The others had <b></b>.'
+  const [a, b, c] = r.querySelectorAll('b')
+  a.textContent = 'Player ' + (rodada.intruso + 1)
+  b.textContent = rodada.diferente
+  c.textContent = rodada.comum
+  $('revelar').textContent = 'Revealed'
+})
+$('nova').addEventListener('click', sortear)
+$('menos').addEventListener('click', () => mudarJogadores(-1))
+$('mais').addEventListener('click', () => mudarJogadores(1))
+
+montarMesa()
+sortear()
+</script>

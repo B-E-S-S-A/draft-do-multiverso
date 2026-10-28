@@ -1,0 +1,101 @@
+// Impostor do Multiverso: os pares de personagens parecidos (pelas chaves do elenco de HQ, que têm capa)
+// e os textos do jogo em português e inglês.
+(function () {
+  const PARES = [
+    // Aranhaverso
+    ['spider-man', 'miles-morales'], ['spider-man', 'spider-man-2099'], ['miles-morales', 'spider-gwen'],
+    ['spider-gwen', 'spider-woman'], ['black-cat', 'spider-woman'], ['venom', 'carnage'], ['venom', 'knull'],
+    ['carnage', 'knull'], ['green-goblin', 'doctor-octopus'], ['vulture', 'mysterio'], ['electro', 'rhino'],
+    ['kraven', 'lizard'], ['sandman', 'rhino'], ['morbius', 'blade'], ['kingpin', 'bullseye'], ['black-cat', 'elektra'],
+    // Vingadores
+    ['iron-man', 'war-machine'], ['iron-man', 'ironheart'], ['war-machine', 'ironheart'], ['captain-america', 'us-agent'],
+    ['captain-america', 'winter-soldier'], ['captain-america', 'captain-britain'], ['winter-soldier', 'falcon'],
+    ['falcon', 'war-machine'], ['thor', 'beta-ray-bill'], ['thor', 'jane-foster'], ['thor', 'hercules'], ['thor', 'odin'],
+    ['loki', 'enchantress'], ['loki', 'hela'], ['hela', 'surtur'], ['valkyrie', 'jane-foster'], ['hulk', 'red-hulk'],
+    ['hulk', 'abomination'], ['she-hulk', 'hulk'], ['abomination', 'leader'], ['red-hulk', 'abomination'],
+    ['black-widow', 'yelena'], ['yelena', 'red-guardian'], ['red-guardian', 'us-agent'], ['hawkeye', 'kate-bishop'],
+    ['scarlet-witch', 'vision'], ['scarlet-witch', 'agatha'], ['quicksilver', 'scarlet-witch'], ['vision', 'ultron'],
+    ['wonder-man', 'vision'], ['ant-man', 'wasp'], ['captain-marvel', 'monica-rambeau'], ['captain-marvel', 'ms-marvel'],
+    ['ms-marvel', 'america-chavez'], ['wiccan', 'america-chavez'], ['sentry', 'gladiator'], ['nick-fury', 'watcher'],
+    // Místicos e Wakanda
+    ['doctor-strange', 'wong'], ['doctor-strange', 'ancient-one'], ['clea', 'ancient-one'], ['doctor-strange', 'clea'],
+    ['dormammu', 'mephisto'], ['shuma-gorath', 'dormammu'], ['agatha', 'enchantress'], ['black-panther', 'killmonger'],
+    ['black-panther', 'shuri'], ['okoye', 'shuri'], ['namor', 'black-panther'],
+    // Ruas e terror
+    ['daredevil', 'punisher'], ['daredevil', 'elektra'], ['luke-cage', 'iron-fist'], ['jessica-jones', 'spider-woman'],
+    ['moon-knight', 'ghost-rider'], ['moon-knight', 'blade'], ['ghost-rider', 'blade'], ['werewolf', 'man-thing'],
+    ['elsa-bloodstone', 'blade'], ['echo', 'daredevil'], ['shang-chi', 'iron-fist'], ['taskmaster', 'bullseye'],
+    // Cósmicos
+    ['thanos', 'galactus'], ['thanos', 'annihilus'], ['galactus', 'silver-surfer'], ['silver-surfer', 'nova'],
+    ['nova', 'adam-warlock'], ['adam-warlock', 'silver-surfer'], ['ronan', 'thanos'], ['sentry', 'molecule-man'],
+    ['beyonder', 'molecule-man'], ['high-evolutionary', 'ego'], ['ego', 'galactus'], ['star-lord', 'gamora'],
+    ['gamora', 'nebula'], ['drax', 'groot'], ['groot', 'rocket'], ['mantis', 'nebula'], ['drax', 'mantis'],
+    ['rocket', 'howard'], ['squirrel-girl', 'howard'], ['gorr', 'knull'], ['sersi', 'ikaris'], ['black-bolt', 'medusa'],
+    // Quarteto Fantástico
+    ['mister-fantastic', 'invisible-woman'], ['human-torch', 'thing'], ['mister-fantastic', 'doctor-doom'],
+    ['human-torch', 'iceman'], ['super-skrull', 'human-torch'],
+    // X-Men
+    ['wolverine', 'sabretooth'], ['wolverine', 'x-23'], ['x-23', 'domino'], ['cyclops', 'jean-grey'],
+    ['jean-grey', 'emma-frost'], ['storm', 'jean-grey'], ['professor-x', 'magneto'], ['professor-x', 'cassandra-nova'],
+    ['magneto', 'quicksilver'], ['beast', 'nightcrawler'], ['rogue', 'gambit'], ['mystique', 'rogue'],
+    ['colossus', 'juggernaut'], ['kitty-pryde', 'jubilee'], ['psylocke', 'kitty-pryde'], ['iceman', 'cyclops'],
+    ['cable', 'deadpool'], ['deadpool', 'domino'], ['apocalypse', 'mister-sinister'], ['onslaught', 'apocalypse'],
+    ['juggernaut', 'onslaught'], ['emma-frost', 'psylocke'],
+    // Vilões
+    ['kang', 'doctor-doom'], ['red-skull', 'zemo'], ['red-skull', 'arnim-zola'], ['modok', 'arnim-zola'],
+    ['mandarin', 'ultron'], ['hela', 'enchantress'],
+  ]
+
+  const TXT = {
+    pt: {
+      titulo: 'Impostor do <em>Multiverso</em>', sub: 'quem tem o personagem diferente?',
+      jogadores: 'Jogadores', jogador: (n) => `Jogador ${n}`, nomes: 'Digitar os nomes',
+      modo: 'O impostor', modos: [['um', '1 impostor', 'clássico'], ['dois', '2 impostores', 'precisa de 6+ jogadores'], ['cego', 'Sem personagem', 'só sabe que é impostor']],
+      extras: 'Opções', votar: 'Votação e placar', votarSub: 'cada um vota na tela e o jogo conta pontos',
+      tempo: 'Quem começa e tempo', tempoSub: 'sorteia quem dá a primeira dica e marca o tempo',
+      segundos: (s) => `${s} s`, lingua: 'Língua', placar: 'Placar', zerar: 'Zerar placar', zerarDeNovo: 'Toque de novo pra zerar',
+      distribuir: 'Distribuir cartas', regras: 'Regras', como: 'Como jogar',
+      passos: ['Cada um segura a própria carta, vê o personagem escondido dos outros e solta.',
+        'Na sua vez, dê uma dica sobre o personagem sem dizer o nome.',
+        'O impostor recebeu um personagem parecido (ou nenhum) e precisa disfarçar.',
+        'Depois de umas voltas de dicas, votem em quem é o impostor e revelem.'],
+      segure: 'Segure pra ver', solte: 'Solte pra esconder', jaViu: 'Já viu · segure de novo', voceImpostor: 'Você é o impostor',
+      descubra: 'Descubra o personagem pelas dicas', viram: (a, b) => `${a} de ${b} já viram a carta`,
+      paraDicas: 'Todo mundo viu: dicas', paraVotar: 'Votar', revelar: 'Revelar o impostor', revelarDeNovo: 'Toque de novo pra revelar',
+      quemComeca: 'Quem começa', sentido: 'e segue em volta da mesa', iniciar: 'Começar tempo', pausar: 'Pausar', continuar: 'Continuar',
+      acabou: 'Tempo!', vezDeVotar: (n) => `${n}, em quem você vota?`, passe: 'Passe o aparelho pro próximo sem mostrar o voto.',
+      votoDe: (a, b) => `voto ${a} de ${b}`, pularVoto: 'Revelar sem votar',
+      pegaram: 'Pegaram o impostor!', pegaramDois: 'Pegaram um impostor!', escapou: 'O impostor escapou!', escaparam: 'Os impostores escaparam!',
+      empate: 'Deu empate na votação. O impostor escapa.', era: 'O impostor era', eram: 'Os impostores eram',
+      comum: 'Personagem de todo mundo', diferente: 'Personagem do impostor', nenhum: 'nenhum',
+      votos: (v) => (v === 1 ? '1 voto' : `${v} votos`), adivinhou: 'O impostor adivinhou o personagem?', acertou: 'Acertou (+2)', errou: 'Errou',
+      pontos: (v) => `+${v}`, nova: 'Nova rodada', impostor: 'IMPOSTOR',
+    },
+    en: {
+      titulo: 'Multiverse <em>Impostor</em>', sub: 'who got the different character?',
+      jogadores: 'Players', jogador: (n) => `Player ${n}`, nomes: 'Type player names',
+      modo: 'The impostor', modos: [['um', '1 impostor', 'classic'], ['dois', '2 impostors', 'needs 6+ players'], ['cego', 'No character', 'only knows they are the impostor']],
+      extras: 'Options', votar: 'Voting and score', votarSub: 'everyone votes on screen and the game keeps points',
+      tempo: 'Who starts and timer', tempoSub: 'picks who gives the first clue and times the round',
+      segundos: (s) => `${s} s`, lingua: 'Language', placar: 'Score', zerar: 'Reset score', zerarDeNovo: 'Tap again to reset',
+      distribuir: 'Deal cards', regras: 'Setup', como: 'How to play',
+      passos: ['Each player holds their own card, peeks at the character without the others seeing, and lets go.',
+        'On your turn, give one clue about the character without saying the name.',
+        'The impostor got a similar character (or none) and has to blend in.',
+        'After a few rounds of clues, vote for the impostor and reveal.'],
+      segure: 'Hold to see', solte: 'Let go to hide', jaViu: 'Seen · hold to look again', voceImpostor: 'You are the impostor',
+      descubra: 'Figure out the character from the clues', viram: (a, b) => `${a} of ${b} have seen their card`,
+      paraDicas: 'Everyone saw it: clues', paraVotar: 'Vote', revelar: 'Reveal the impostor', revelarDeNovo: 'Tap again to reveal',
+      quemComeca: 'Who starts', sentido: 'then go around the table', iniciar: 'Start timer', pausar: 'Pause', continuar: 'Resume',
+      acabou: "Time's up!", vezDeVotar: (n) => `${n}, who do you vote for?`, passe: 'Pass the device to the next player without showing your vote.',
+      votoDe: (a, b) => `vote ${a} of ${b}`, pularVoto: 'Reveal without voting',
+      pegaram: 'You caught the impostor!', pegaramDois: 'You caught an impostor!', escapou: 'The impostor got away!', escaparam: 'The impostors got away!',
+      empate: 'The vote was a tie. The impostor gets away.', era: 'The impostor was', eram: 'The impostors were',
+      comum: "Everyone's character", diferente: "Impostor's character", nenhum: 'none',
+      votos: (v) => (v === 1 ? '1 vote' : `${v} votes`), adivinhou: 'Did the impostor guess the character?', acertou: 'Got it (+2)', errou: 'Missed',
+      pontos: (v) => `+${v}`, nova: 'New round', impostor: 'IMPOSTOR',
+    },
+  }
+
+  window.ImpostorDados = { PARES, TXT }
+})()

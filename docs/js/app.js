@@ -141,6 +141,7 @@
 
   function startGame() {
     clearTimers()
+    S.coin = null
     S.game = E.newGame(S.cfg)
     S.history = []
     S.busy = null
@@ -343,6 +344,17 @@
       S.score[v]++
       if (v !== 2) fx('win')
     },
+    coin: () => {
+      if (!S.game || (S.coin && S.coin.spinning)) return
+      const v = Math.random() < 0.5 ? 0 : 1
+      S.coin = { n: (S.coin ? S.coin.n : 0) + 1, v, spinning: true }
+      fx('draw')
+      setTimeout(() => {
+        S.coin = { ...S.coin, spinning: false }
+        actions.win({ v })
+        commit()
+      }, 1600)
+    },
     'reset-score': () => {
       if (S.confirm !== 'score') { S.confirm = 'score'; return }
       S.score = [0, 0, 0]
@@ -370,7 +382,7 @@
 
   // quem pode o quê no online
   const PLAYER_ACTS = new Set(['bid', 'bid-custom', 'grab', 'name'])
-  const GUEST_OK = new Set(['bid', 'bid-custom', 'grab', 'hammer', 'undo', 'rest', 'win', 'name'])
+  const GUEST_OK = new Set(['bid', 'bid-custom', 'grab', 'hammer', 'undo', 'rest', 'win', 'coin', 'name'])
 
   function run(act, data, who) {
     const fn = actions[act]
@@ -391,13 +403,13 @@
 
   // ---------- online ----------
   function pack() {
-    return { screen: S.screen, cfg: S.cfg, score: S.score, game: S.game, busy: S.busy, timer: S.timer, drop: S.drop, note: S.note, hist: S.history.length, ev: S.ev }
+    return { screen: S.screen, cfg: S.cfg, score: S.score, game: S.game, busy: S.busy, timer: S.timer, drop: S.drop, note: S.note, coin: S.coin, hist: S.history.length, ev: S.ev }
   }
   function broadcast() {
     if (S.me === 0 && Net.connected()) Net.send({ type: 'state', s: pack() })
   }
   function applyState(s) {
-    Object.assign(S, { screen: s.screen, cfg: s.cfg, score: s.score, game: s.game, busy: s.busy, timer: s.timer, drop: s.drop, note: s.note })
+    Object.assign(S, { screen: s.screen, cfg: s.cfg, score: s.score, game: s.game, busy: s.busy, timer: s.timer, drop: s.drop, note: s.note, coin: s.coin })
     S.history = { length: s.hist }
     if (s.ev && s.ev.n !== S.ev.n) { if (s.ev.n > 0) playFx(s.ev); S.ev = s.ev }
     render()
@@ -467,6 +479,7 @@
   // teclado: jogador 1 = A S D F, jogador 2 = J K L Ç (ou ;). Online, qualquer lado vale pra você.
   const KEYMAP = { a: [0, 1], s: [0, 2], d: [0, 5], f: [0, 'max'], j: [1, 1], k: [1, 2], l: [1, 5], 'ç': [1, 'max'], ';': [1, 'max'] }
   document.addEventListener('keydown', (ev) => {
+    if (document.body.dataset.jogo && document.body.dataset.jogo !== 'draft') return   // outro jogo da banca na tela
     if (S.screen !== 'auction' || ev.ctrlKey || ev.metaKey || ev.altKey) return
     const num = ev.target.id && ev.target.id.match(/^num([01])$/)
     if (num && ev.key === 'Enter') { dispatch('bid-custom', { p: num[1], value: ev.target.value }); ev.preventDefault(); return }

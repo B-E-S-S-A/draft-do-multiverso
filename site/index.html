@@ -118,6 +118,7 @@ button { cursor: pointer }
 .n20 { --note: #ffd25c } .n50 { --note: #f0b27a } .n100 { --note: #8fb8ea } .n200 { --note: #c9bfb2 }
 </style>
 <link rel="stylesheet" href="css/screens.css">
+<link rel="stylesheet" href="css/impostor.css">
 
 <header class="awning">
   <div class="stripes"></div>
@@ -128,11 +129,14 @@ button { cursor: pointer }
       <p>leilão de personagens · HQ e MCU</p>
     </div>
     <div class="sign-tools">
+      <button class="chip-btn" id="voltar" type="button" hidden>← Jogos</button>
       <button class="chip-btn" id="sound" type="button" aria-pressed="true">Som: ligado</button>
     </div>
   </div>
 </header>
-<main id="app" class="wrap"><p class="loading">Abrindo a banca…</p></main>
+<main id="home" class="wrap"><p class="loading">Abrindo a banca…</p></main>
+<main id="app" class="wrap" hidden></main>
+<main id="impostor" class="wrap" hidden></main>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="data.js"></script>
@@ -142,3 +146,7 @@ button { cursor: pointer }
 <script src="js/view-game.js"></script>
 <script src="js/net.js"></script>
 <script src="js/app.js"></script>
+<script src="js/impostor-nomes.js"></script>
+<script src="js/impostor-dados.js"></script>
+<script src="js/impostor.js"></script>
+<script src="js/hub.js"></script>
