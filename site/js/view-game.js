@@ -31,9 +31,12 @@
   function topButtons(S) {
     const g = S.game
     const online = S.me != null ? `<span class="chip-btn online-chip">Online · você é ${name(S, S.me)}</span>` : ''
-    if (S.me === 1) return online
+    const sair = S.me != null ? '<button class="chip-btn" type="button" data-act="net-leave">Sair da sala</button>' : ''
+    if (S.me === 1) return online + sair
     const reroll = !E.started(g) ? '<button class="chip-btn" type="button" data-act="reroll">Sortear outros lotes</button>' : ''
-    return `${online}${reroll}<button class="chip-btn" type="button" data-act="leave">Voltar às regras</button>`
+    const entrar = S.me == null ? '<button class="chip-btn" type="button" data-act="go-online">Jogar online</button>' : ''
+    const apagar = `<button class="chip-btn" type="button" data-act="wipe">${S.confirm === 'wipe' ? 'Toque de novo pra apagar' : 'Apagar leilão'}</button>`
+    return `${online}${reroll}${entrar}<button class="chip-btn" type="button" data-act="leave">Voltar às regras</button>${apagar}${sair}`
   }
 
   // capa virada: os próximos lotes ficam em segredo até chegar a vez deles
@@ -297,6 +300,7 @@
         ${S.me === 1 ? `<p class="note">Esperando ${name(S, 0)} começar outro draft.</p>` : '<button class="btn big" type="button" data-act="again">Novo draft</button>'}
         <button class="btn paper" type="button" data-act="copy">Copiar times</button>
         ${S.me === 1 ? '' : '<button class="btn paper" type="button" data-act="rules">Mudar regras</button>'}
+        ${S.me != null ? '<button class="btn paper" type="button" data-act="net-leave">Sair da sala</button>' : ''}
       </div>
       <p class="note" id="copied" role="status"></p>`
   }

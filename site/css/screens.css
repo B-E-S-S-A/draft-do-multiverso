@@ -18,6 +18,10 @@
 .setup { padding-block: 26px 56px; display: grid; gap: 26px }
 .setup .wire-row { overflow: hidden }
 .setup .wire .hang { width: 86px }
+.resume { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap }
+.resume p { margin: 0 }
+.resume-btns { display: flex; gap: 10px; flex-wrap: wrap }
+#resume:empty { display: none }
 .setup-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 26px; align-items: start }
 .field { display: grid; gap: 10px; padding-block: 16px; border-top: 3px dashed #d9d4c4 }
 .rules h2 + .field { border-top: 0; padding-top: 0 }

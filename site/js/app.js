@@ -69,6 +69,7 @@
       window.scrollTo({ top: 0 })
     }
     if (S.screen === 'setup') {
+      set('resume', V.resume(S))
       set('rules', V.rules(S))
       const rules = document.getElementById('rules')
       rules.toggleAttribute('inert', S.me === 1)
@@ -329,6 +330,11 @@
       S.screen = 'setup'
     },
     rules: () => { S.screen = 'setup' },
+    wipe: () => {
+      if (S.confirm !== 'wipe') { S.confirm = 'wipe'; return }
+      clearTimers()
+      Object.assign(S, { screen: 'setup', game: null, busy: null, history: [], coin: null, confirm: null })
+    },
     bid: (d) => placeBid(Number(d.p), d.inc === 'max' ? 'max' : Number(d.inc)),
     'bid-custom': (d) => placeValue(Number(d.p), Math.round(Number(d.value))),
     grab: (d) => grab(Number(d.p)),
@@ -378,6 +384,12 @@
     'net-host': () => Net.host(),
     'net-join': (d) => Net.join(d.code),
     'net-leave': () => Net.leave(),
+    // do meio do leilão pra parte da sala online (o leilão fica salvo pra continuar)
+    'go-online': () => {
+      run('leave', {}, S.me)
+      const box = document.getElementById('online')
+      if (box) box.scrollIntoView({ block: 'center' })
+    },
   }
 
   // quem pode o quê no online
@@ -390,7 +402,7 @@
     if (who === 1 && !GUEST_OK.has(act)) return
     if (who != null && PLAYER_ACTS.has(act) && Number(data.p) !== who) return
     if (who != null && act === 'hammer' && S.game && S.game.leader === who) return
-    if (act !== 'reset-score') S.confirm = null
+    if (act !== 'reset-score' && act !== 'wipe') S.confirm = null
     fn(data)
     commit()
   }

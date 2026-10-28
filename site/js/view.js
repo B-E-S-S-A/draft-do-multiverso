@@ -145,18 +145,26 @@
       <p class="note">${s[2] ? s[2] + (s[2] > 1 ? ' empates' : ' empate') + ' · ' : ''}${any ? `<button class="linkish" type="button" data-act="reset-score">${S.confirm === 'score' ? 'Toque de novo pra zerar' : 'Zerar placar'}</button>` : 'O placar fica salvo neste aparelho.'}</p>`
   }
 
+  // leilão salvo no meio: continuar ou apagar (o convidado só espera o anfitrião)
+  function resume(S) {
+    const g = S.game
+    if (!g || E.done(g)) return ''
+    if (S.me === 1) return `<div class="panel resume"><p><b>${name(S, 0)} tem um leilão no meio.</b> Esperando ele continuar…</p></div>`
+    return `<div class="panel resume">
+        <p><b>Tem um leilão no meio.</b> Lote ${g.cur + 1} de ${g.lots.length}.</p>
+        <div class="resume-btns">
+          <button class="btn green" type="button" data-act="resume">Continuar leilão</button>
+          <button class="btn paper" type="button" data-act="wipe">${S.confirm === 'wipe' ? 'Toque de novo pra apagar' : 'Apagar leilão'}</button>
+        </div>
+      </div>`
+  }
+
   function setup(S) {
     const c = S.cfg
-    const g = S.game
-    const resume = g && !E.done(g) ? `
-      <div class="panel resume">
-        <p><b>Tem um leilão no meio.</b> Lote ${g.cur + 1} de ${g.lots.length}.</p>
-        <button class="btn green" type="button" data-act="resume">Continuar leilão</button>
-      </div>` : ''
     return `
       <section class="setup">
         <div class="wire" aria-hidden="true"><div class="wire-row">${S.showcase.map((l) => `<div class="hang">${card(l)}</div>`).join('')}</div></div>
-        ${resume}
+        <div id="resume"></div>
         <div class="setup-grid">
           <div class="panel rules" id="rules">${rules(S)}</div>
           <div class="panel players">
@@ -191,7 +199,7 @@
   function online(S) {
     const n = S.net || { status: 'off' }
     const head = '<span class="lbl">Jogar online</span>'
-    if (n.status === 'hosting') return `<div class="online">${head}<p>Manda esse código pro seu amigo:</p><b class="code">${esc(n.code)}</b>
+    if (n.status === 'hosting') return `<div class="online">${head}${n.error ? `<p class="neterr">${esc(n.error)}</p>` : ''}<p>Manda esse código pro seu amigo:</p><b class="code">${esc(n.code)}</b>
       <p class="note">Esperando ele entrar…</p><button class="linkish" type="button" data-act="net-leave">Cancelar</button></div>`
     if (n.status === 'joining') return `<div class="online">${head}<p>Entrando na sala ${esc(n.code)}…</p><button class="linkish" type="button" data-act="net-leave">Cancelar</button></div>`
     if (n.status === 'connected') return `<div class="online on">${head}<p><b>Conectado!</b> ${S.me === 0 ? `${name(S, 1)} está na sua sala (${esc(n.code)}). Você é o Jogador 1.` : `Você está na sala de ${name(S, 0)}. Você é o Jogador 2.`}</p>
@@ -206,5 +214,5 @@
       </div></div>`
   }
 
-  window.View = { esc, load, card, cover, bill, meter, name, kindOf, frameOf, rules, score, setup, go, online }
+  window.View = { esc, load, card, cover, bill, meter, name, kindOf, frameOf, rules, score, resume, setup, go, online }
 })()
