@@ -124,3 +124,6 @@
 .imp-sala li.ok span::after { content: ' ✓'; color: var(--banca) }
 .imp-minha { --cor: var(--p1); border-left: 14px solid var(--cor) }
 .imp-minha-carta { width: min(240px, 70vw); margin: 0 auto }
+
+/* rodapé: aviso de projeto de fã */
+.rodape { padding-block: 10px 30px; font-family: var(--label); font-size: 10px; line-height: 1.5; color: var(--muted); text-align: center }
