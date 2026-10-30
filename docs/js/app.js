@@ -306,6 +306,11 @@
 
   // ---------- ações ----------
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
+  function apagarJogo() {
+    clearTimers()
+    Object.assign(S, { screen: 'setup', game: null, busy: null, history: [], coin: null, confirm: null })
+  }
+  const jogoNoMeio = () => !!(S.game && !E.done(S.game))
   const actions = {
     mode: (d) => { S.cfg.mode = d.v },
     money: (d) => { S.cfg.money = clamp(S.cfg.money + Number(d.v), 1, 200) },
@@ -332,8 +337,7 @@
     rules: () => { S.screen = 'setup' },
     wipe: () => {
       if (S.confirm !== 'wipe') { S.confirm = 'wipe'; return }
-      clearTimers()
-      Object.assign(S, { screen: 'setup', game: null, busy: null, history: [], coin: null, confirm: null })
+      apagarJogo()
     },
     bid: (d) => placeBid(Number(d.p), d.inc === 'max' ? 'max' : Number(d.inc)),
     'bid-custom': (d) => placeValue(Number(d.p), Math.round(Number(d.value))),
@@ -381,15 +385,36 @@
         navigator.clipboard.writeText(text).then(() => { out.textContent = 'Times copiados. É só colar no WhatsApp.' }, fallback)
       } catch (e) { fallback() }
     },
-    'net-host': () => Net.host(),
+    // com um leilão no meio, primeiro pergunta: continuar ele online ou apagar e começar outro
+    'net-host': () => {
+      if (S.me == null && jogoNoMeio()) { S.ask = 'host'; render(); return }
+      Net.host()
+    },
+    'host-keep': () => { S.ask = null; Net.host() },
+    'host-new': () => { S.ask = null; apagarJogo(); commit(); Net.host() },
+    'ask-cancel': () => { S.ask = null; render() },
     'net-join': (d) => Net.join(d.code),
     'net-leave': () => Net.leave(),
-    // do meio do leilão pra parte da sala online (o leilão fica salvo pra continuar)
-    'go-online': () => {
-      run('leave', {}, S.me)
-      const box = document.getElementById('online')
-      if (box) box.scrollIntoView({ block: 'center' })
+    // convite com o link do site que já entra na sala
+    invite: () => {
+      const link = location.origin + location.pathname + '#sala-' + S.net.code
+      const text = `Bora jogar o Draft do Multiverso! Abre esse link que você já entra na minha sala: ${link} (código ${S.net.code})`
+      const out = document.getElementById('invited')
+      const fallback = () => {
+        out.innerHTML = `<textarea class="copybox" readonly rows="3">${V.esc(text)}</textarea>`
+        out.querySelector('textarea').select()
+      }
+      try {
+        navigator.clipboard.writeText(text).then(() => { out.textContent = 'Convite copiado. É só colar no WhatsApp.' }, fallback)
+      } catch (e) { fallback() }
     },
+    // do meio do leilão pra parte da sala online (o leilão fica salvo pra continuar)
+    'go-online': () => irParaSala(),
+  }
+  function irParaSala() {
+    if (S.screen !== 'setup' && S.me == null) run('leave', {}, null)
+    const box = document.getElementById('online')
+    if (box) box.scrollIntoView({ block: 'center' })
   }
 
   // quem pode o quê no online
@@ -430,6 +455,7 @@
 
   Net.on('status', (n) => {
     const wasGuest = S.me === 1
+    S.ask = null
     S.net = { status: n.status, code: n.code, error: n.error }
     S.me = n.status === 'connected' ? (n.role === 'host' ? 0 : 1) : null
     if (wasGuest && S.me !== 1) {
@@ -538,6 +564,12 @@
       if (S.screen === 'auction' && S.game && style() === 'drop' && S.game.leader < 0) startDrop()
       render()
     })
+  }
+
+  // usado pela tela inicial: link de convite (#sala-XXXX) e botão "Jogar online"
+  window.Draft = {
+    entrarSala(code) { irParaSala(); dispatch('net-join', { code }) },
+    irParaSala,
   }
 
   const hot = window.claude && window.claude.hot

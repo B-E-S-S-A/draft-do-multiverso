@@ -48,7 +48,10 @@
           <p>Leilão pra 2 jogadores. Cada um começa com R$20, dá lances nos personagens que aparecem e monta o time mais forte.</p>
           <span class="lbl">2 jogadores · HQ e MCU · dá pra jogar online</span>
         </div>
-        <button class="btn big" type="button" data-ir="draft">Jogar Draft</button>
+        <div class="jogo-btns">
+          <button class="btn big" type="button" data-ir="draft">Jogar Draft</button>
+          <button class="btn green" type="button" data-ir="draft-online">Jogar online</button>
+        </div>
       </article>
       <article class="panel jogo">
         ${leque(v.impostor, true)}
@@ -64,7 +67,8 @@
 
   telas.home.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-ir]')
-    if (b) ir(b.dataset.ir)
+    if (!b) return
+    if (b.dataset.ir === 'draft-online') { ir('draft'); window.Draft.irParaSala() } else ir(b.dataset.ir)
   })
   voltar.addEventListener('click', () => ir('home'))
 
@@ -72,6 +76,9 @@
   V.load().then(() => {
     home()
     const pedido = location.hash.replace('#', '')
+    // link de convite: #sala-XXXX abre o Draft e já entra na sala
+    const sala = pedido.match(/^sala-([A-Za-z0-9]{4})$/)
+    if (sala) { ir('draft'); window.Draft.entrarSala(sala[1]); return }
     ir(telas[pedido] ? pedido : 'home')
   })
 })()

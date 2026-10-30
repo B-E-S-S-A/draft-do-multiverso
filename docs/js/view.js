@@ -199,19 +199,32 @@
   function online(S) {
     const n = S.net || { status: 'off' }
     const head = '<span class="lbl">Jogar online</span>'
-    if (n.status === 'hosting') return `<div class="online">${head}${n.error ? `<p class="neterr">${esc(n.error)}</p>` : ''}<p>Manda esse código pro seu amigo:</p><b class="code">${esc(n.code)}</b>
-      <p class="note">Esperando ele entrar…</p><button class="linkish" type="button" data-act="net-leave">Cancelar</button></div>`
+    const err = n.error ? `<p class="neterr">${esc(n.error)}</p>` : ''
+    const g = S.game
+    const noMeio = g && !E.done(g)
+    if (S.ask === 'host') return `<div class="online ask">${head}
+      <p><b>Você tem um leilão no meio</b> (lote ${g.cur + 1} de ${g.lots.length}). O que fazer com ele?</p>
+      <div class="online-row">
+        <button class="btn green" type="button" data-act="host-keep">Continuar ele online</button>
+        <button class="btn paper" type="button" data-act="host-new">Apagar e começar outro</button>
+      </div>
+      <button class="linkish" type="button" data-act="ask-cancel">Cancelar</button></div>`
+    if (n.status === 'creating') return `<div class="online">${head}<p>Criando a sala…</p><button class="linkish" type="button" data-act="net-leave">Cancelar</button></div>`
+    if (n.status === 'hosting') return `<div class="online">${head}${err}<p>Manda esse código pro seu amigo:</p><b class="code">${esc(n.code)}</b>
+      <div class="online-row"><button class="btn paper" type="button" data-act="invite">Copiar convite</button></div>
+      <p class="note" id="invited" role="status">O convite leva o link do site e já entra na sala, sem digitar nada.</p>
+      <p class="note">Esperando ele entrar…</p><button class="linkish" type="button" data-act="net-leave">Fechar a sala</button></div>`
     if (n.status === 'joining') return `<div class="online">${head}<p>Entrando na sala ${esc(n.code)}…</p><button class="linkish" type="button" data-act="net-leave">Cancelar</button></div>`
     if (n.status === 'connected') return `<div class="online on">${head}<p><b>Conectado!</b> ${S.me === 0 ? `${name(S, 1)} está na sua sala (${esc(n.code)}). Você é o Jogador 1.` : `Você está na sala de ${name(S, 0)}. Você é o Jogador 2.`}</p>
       <button class="linkish" type="button" data-act="net-leave">Sair da sala</button></div>`
-    const err = n.error ? `<p class="neterr">${esc(n.error)}</p>` : ''
+    const guardado = noMeio ? '<p class="note">Se você entrar na sala de alguém, seu leilão salvo fica guardado e volta quando você sair.</p>' : ''
     return `<div class="online">${head}<p class="note">Cada um no seu computador. Seu amigo não precisa de conta.</p>${err}
       <div class="online-row">
         <button class="btn green" type="button" data-act="net-host">Criar sala</button>
         <span class="lbl">ou</span>
-        <input id="joincode" maxlength="4" autocomplete="off" placeholder="CÓDIGO" aria-label="Código da sala">
+        <input id="joincode" maxlength="4" autocomplete="off" placeholder="CÓDIGO" aria-label="Código da sala" value="${esc(n.code || '')}">
         <button class="btn paper" type="button" data-act="net-join">Entrar</button>
-      </div></div>`
+      </div>${guardado}</div>`
   }
 
   window.View = { esc, load, card, cover, bill, meter, name, kindOf, frameOf, rules, score, resume, setup, go, online }

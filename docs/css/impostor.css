@@ -109,3 +109,4 @@
 .imp-votos { font-family: var(--label); font-size: 10px }
 .imp-ganho { position: absolute; top: -10px; right: -10px; background: var(--sun); border: 3px solid var(--ink); font-family: var(--display); font-size: 24px; line-height: 1; padding: 2px 6px }
 @media (prefers-reduced-motion: reduce) { .imp-selo, #imp-relogio.fim { animation: none } .imp-carta { transition: none } }
+.jogo-btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center }
