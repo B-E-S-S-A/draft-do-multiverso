@@ -1,0 +1,102 @@
+/* Joias do Infinito: a mesa da banca vira o espaço sideral do Thanos. Monte roxo com borda dourada, joias como
+   gemas facetadas em pixel, a Manopla de cada jogador com 6 encaixes, e o estalo que treme a mesa e vira pó. */
+.jo-jogo { padding-block: 22px 56px; display: grid; gap: 18px }
+
+/* gema facetada (losango com brilho) */
+.jo-gema { --g: #999; display: inline-block; width: 22px; height: 26px; background: var(--g); flex: 0 0 auto;
+  clip-path: polygon(50% 0, 100% 30%, 100% 70%, 50% 100%, 0 70%, 0 30%);
+  box-shadow: inset 6px 6px 0 rgba(255, 255, 255, .45), inset -5px -6px 0 rgba(0, 0, 0, .28) }
+.jo-gema.big { width: 40px; height: 48px; box-shadow: inset 10px 10px 0 rgba(255, 255, 255, .45), inset -8px -10px 0 rgba(0, 0, 0, .28) }
+.jo-gema.poeira { animation: some 1.4s steps(6) forwards }
+@keyframes some { 0% { opacity: 1 } 30% { opacity: .9; transform: translateX(2px) } 100% { opacity: 0; transform: translate(14px, -10px) } }
+.jo-po-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 50 }
+
+/* jogadores e a Manopla de cada um */
+.jo-jogadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 10px }
+.jo-jog { --cor: var(--p1); background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--cor); padding: 8px 10px; display: grid; gap: 6px; box-shadow: 3px 3px 0 var(--ink) }
+.jo-jog.vez { background: #fff6d6; outline: 3px solid var(--sun); outline-offset: 2px }
+.jo-jog-topo { display: flex; align-items: center; gap: 8px }
+.jo-jog-topo b { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1; overflow-wrap: anywhere }
+.jo-jog-topo small { font-family: var(--label); font-size: 9px; color: var(--muted) }
+.jo-total { margin-left: auto; font-family: var(--display); font-size: 30px; line-height: 1; background: var(--ink); color: var(--sun); padding: 0 8px 2px }
+.jo-escudo { color: var(--banca); font-size: 18px; line-height: 1 }
+.jo-manopla { display: flex; gap: 4px; flex-wrap: wrap }
+.jo-slot { position: relative; display: grid; place-items: center; width: 30px; height: 34px; background: #e9e4d4; border: 2px solid var(--ink) }
+.jo-slot .jo-gema { opacity: .18; filter: grayscale(1) }
+.jo-slot.tem { background: #fff }
+.jo-slot.tem .jo-gema { opacity: 1; filter: none }
+.jo-slot i { position: absolute; right: -6px; bottom: -6px; font-style: normal; font-family: var(--label); font-size: 9px; background: var(--ink); color: #fff; padding: 1px 3px }
+.jo-po { display: inline-flex; gap: 4px; margin-left: 6px }
+
+/* mesa: monte, carta virada e mão em risco */
+.jo-mesa { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start;
+  background: #1f1a33; border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); padding: 18px; color: #f3eedf;
+  background-image: radial-gradient(#3b3260 1.5px, transparent 1.6px); background-size: 14px 14px }
+@media (max-width: 760px) { .jo-mesa { grid-template-columns: minmax(0, 1fr) } }
+.jo-monte { display: grid; gap: 8px; justify-items: center }
+.jo-verso { width: 110px; aspect-ratio: 2 / 3; display: grid; place-content: center; justify-items: center; background: #5b2d8f;
+  border: 4px solid #e2b13c; box-shadow: 6px 6px 0 #000, inset 0 0 0 6px #3e1d66; color: #ffd76a }
+.jo-verso b { font-family: var(--display); font-weight: 400; font-size: 48px; line-height: .9 }
+.jo-verso small { font-family: var(--label); font-size: 9px }
+.jo-risco { margin: 0; font-family: var(--label); font-size: 10px; color: #ffb4a6; text-align: center }
+.jo-centro { display: grid; gap: 10px; justify-items: center; text-align: center }
+.jo-msg { margin: 0; font-size: 17px; min-height: 2.6em }
+.jo-msg b { font-family: var(--display); font-weight: 400; font-size: 34px; color: #ff6b5a; letter-spacing: .04em }
+.jo-mao { display: grid; gap: 10px; align-content: start }
+.jo-mao .lbl { color: #ffd76a }
+.jo-mao-gemas { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; align-items: center }
+.jo-mao-gemas small { color: #a9a3c4 }
+.jo-espiada { display: grid; gap: 6px; justify-items: start }
+.jo-espiada .jo-carta { width: 90px }
+
+/* cartas */
+.jo-carta { position: relative; width: 120px; aspect-ratio: 2 / 3; display: grid; place-content: center; justify-items: center; gap: 8px;
+  background: var(--paper); color: var(--ink); border: 4px solid var(--ink); box-shadow: 4px 4px 0 #000; text-align: center; overflow: hidden }
+.jo-carta.grande { width: 150px; animation: virar .28s steps(4) both }
+@keyframes virar { from { transform: rotateY(90deg) } to { transform: none } }
+.jo-carta.vazia { background: #5b2d8f; border-color: #e2b13c; color: #ffd76a; font-family: var(--display); font-size: 60px }
+.jo-carta.joia { background: color-mix(in srgb, var(--g) 22%, #fffdf6) }
+.jo-carta.joia .jo-gema.big { width: 54px; height: 64px }
+.jo-rotulo { font-family: var(--label); font-size: 9px; line-height: 1.3; padding: 0 6px }
+.jo-carta.esp { place-content: stretch; padding: 0 }
+.jo-carta.esp .cv { width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; aspect-ratio: auto }
+.jo-carta.esp .jo-rotulo { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ink); color: #fff; padding: 4px 4px 5px; display: grid; gap: 2px }
+.jo-carta.esp .jo-rotulo b { font-family: var(--display); font-weight: 400; font-size: 18px; line-height: 1 }
+.jo-carta.thanos { border-color: #9a4be0 }
+.jo-carta.thanos .jo-rotulo { background: #5b2d8f; color: #ffd76a }
+.jo-legenda { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px }
+.jo-legenda .jo-carta { width: 100% }
+
+/* botões da vez */
+.jo-acoes { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center }
+.jo-virar { --bg: #9a4be0; --bg-dk: #5b2d8f; --fg: #fff; font-size: 40px }
+.jo-alvos { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center }
+.jo-alvos .btn { --bg: var(--cor); --bg-dk: color-mix(in srgb, var(--cor) 70%, #000); --fg: #fff }
+.jo-final { border-top: 14px solid #9a4be0 }
+.jo-final h2 { font-size: clamp(40px, 7vw, 64px); margin: 0 0 6px }
+.jo-final p { margin: 0 }
+
+/* o estalo treme a mesa */
+.jo-jogo.tremendo .jo-mesa { animation: estalo .5s steps(8) }
+@keyframes estalo { 20% { transform: translate(-6px, 3px) } 40% { transform: translate(5px, -4px) } 60% { transform: translate(-4px, -2px) } 80% { transform: translate(3px, 3px) } }
+@media (prefers-reduced-motion: reduce) { .jo-carta.grande, .jo-gema.poeira, .jo-jogo.tremendo .jo-mesa { animation: none } }
+.leque.joias .card:nth-child(1) { outline: 4px solid #9a4be0; outline-offset: 2px }
+
+/* celular: jogadores em duas colunas, mesa compacta e os botões da vez sempre presos embaixo da tela */
+@media (max-width: 600px) {
+  .jo-jogadores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+  .jo-jog { padding: 6px 8px; gap: 4px }
+  .jo-jog-topo b { font-size: 18px }
+  .jo-total { font-size: 22px }
+  .jo-slot { width: 22px; height: 26px }
+  .jo-slot .jo-gema { width: 14px; height: 17px; box-shadow: inset 3px 3px 0 rgba(255, 255, 255, .45) }
+  .jo-mesa { grid-template-columns: auto minmax(0, 1fr); padding: 12px; gap: 12px }
+  .jo-mao { grid-column: 1 / -1 }
+  .jo-verso { width: 76px }
+  .jo-verso b { font-size: 34px }
+  .jo-carta.grande { width: 112px }
+  .jo-msg { font-size: 15px; min-height: 0 }
+  .jo-acoes { position: sticky; bottom: 0; z-index: 5; background: var(--sky); padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 3px solid var(--ink) }
+  .jo-virar { font-size: 30px }
+}
