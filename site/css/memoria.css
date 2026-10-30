@@ -1,0 +1,96 @@
+/* Memória do Multiverso (calminha, com cartas que giram de verdade) → o erro → Snap do Multiverso
+   (a tela inteira vira a mesa: cada jogador tem um canto colorido pra bater e as cartas trocam no meio). */
+.mm-jogo { padding-block: 22px 56px; display: grid; gap: 16px }
+.mm-placar { display: flex; flex-wrap: wrap; gap: 10px }
+.mm-placar span { --cor: var(--p1); font-family: var(--display); font-size: 24px; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--cor); padding: 2px 12px 4px 8px }
+.mm-placar span.vez { outline: 3px solid var(--sun); outline-offset: 2px }
+.mm-placar b { font-weight: 400; color: var(--cor) }
+.mm-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; justify-self: center;
+  max-width: max(280px, min(560px, calc((100svh - 270px) * .75 + 30px))) } /* as 4 fileiras cabem na tela sem rolar */
+.mm-carta { position: relative; aspect-ratio: 3 / 4; border: 0; padding: 0; background: none; perspective: 700px; cursor: pointer }
+.mm-face { position: absolute; inset: 0; display: grid; place-items: center; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+  backface-visibility: hidden; transition: transform .35s cubic-bezier(.3, 1.4, .5, 1) }
+.mm-verso { background: var(--banca); background-image: repeating-linear-gradient(135deg, transparent 0 8px, rgba(0, 0, 0, .12) 8px 16px) }
+.mm-verso b { font-family: var(--display); font-weight: 400; font-size: 44px; color: var(--sun); text-shadow: 3px 3px 0 var(--ink) }
+.mm-frente { transform: rotateY(180deg); background: var(--paper); padding: 4px; align-content: start; gap: 2px; overflow: hidden }
+.mm-frente .cv { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: 50% 15% }
+.mm-frente small { font-family: var(--label); font-size: 8px; line-height: 1.2; text-align: center; overflow-wrap: anywhere }
+.mm-carta.aberta .mm-verso { transform: rotateY(-180deg) }
+.mm-carta.aberta .mm-frente { transform: rotateY(0) }
+.mm-carta.achada .mm-frente { border-color: var(--cor); box-shadow: inset 0 0 0 3px var(--cor), 3px 3px 0 var(--ink) }
+
+/* o erro no multiverso */
+.mm-jogo.quebrando { animation: quebra .9s steps(9) both }
+@keyframes quebra {
+  0% { filter: none } 15% { transform: translate(-8px, 2px); filter: hue-rotate(90deg) }
+  30% { transform: translate(6px, -4px) skewX(6deg); filter: invert(1) } 45% { transform: translate(-3px, 5px); filter: hue-rotate(200deg) saturate(3) }
+  60% { clip-path: inset(10% 0 40% 0) } 75% { clip-path: inset(50% 0 5% 0); transform: translate(10px, 0) } 100% { opacity: 0; clip-path: inset(48% 0 48% 0) }
+}
+.mm-erro { position: fixed; inset: 0; z-index: 60; display: grid; place-content: center; justify-items: center; gap: 10px; background: #0b0a12; color: #fff; text-align: center;
+  animation: aparece .2s steps(2) .5s both; padding: 16px }
+.mm-erro b { position: relative; font-family: var(--display); font-weight: 400; font-size: clamp(44px, 11vw, 120px); line-height: .85; animation: treme .12s steps(2) infinite }
+.mm-erro b::before, .mm-erro b::after { content: attr(data-t); position: absolute; inset: 0 }
+.mm-erro b::before { color: #ff2d55; transform: translate(-4px, 0); clip-path: inset(0 0 55% 0) }
+.mm-erro b::after { color: #24e0ff; transform: translate(4px, 2px); clip-path: inset(50% 0 0 0) }
+.mm-erro small { font-family: var(--label); font-size: 12px; letter-spacing: .2em; color: #ff6b5a }
+@keyframes aparece { from { opacity: 0 } to { opacity: 1 } }
+@keyframes treme { 50% { transform: translate(2px, -1px) } }
+
+/* ---------- Snap: a tela inteira vira a mesa ---------- */
+body.sn-aberto { overflow: hidden }
+.sn-mesa { position: fixed; inset: 0; z-index: 55; display: grid; background: #0b0a12; touch-action: none; user-select: none; -webkit-user-select: none;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); gap: 4px }
+.sn-mesa.n2 { grid-template-areas: "c1" "c0"; grid-template-rows: 1fr 1fr }
+.sn-mesa.n3 { grid-template-areas: "c2 c1" "c0 c0"; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr }
+.sn-mesa.n4 { grid-template-areas: "c2 c1" "c0 c3"; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr }
+.sn-canto { --cor: var(--p1); position: relative; border: 0; background: var(--cor); color: #fff; display: grid; padding: 14px; cursor: pointer; overflow: hidden;
+  background-image: radial-gradient(rgba(255, 255, 255, .14) 2px, transparent 2.5px); background-size: 16px 16px; touch-action: none }
+.sn-canto.c0 { grid-area: c0 } .sn-canto.c1 { grid-area: c1 } .sn-canto.c2 { grid-area: c2 } .sn-canto.c3 { grid-area: c3 }
+/* quem está do outro lado da mesa lê de cabeça pra baixo */
+.sn-canto.c1 .sn-quem, .sn-canto.c2 .sn-quem, .sn-canto.c1 .sn-fx, .sn-canto.c2 .sn-fx { transform: rotate(180deg) }
+.sn-quem { align-self: end; justify-self: start; display: grid; gap: 4px; text-align: left; pointer-events: none }
+.sn-canto.c1 .sn-quem, .sn-canto.c2 .sn-quem { align-self: start; justify-self: end }
+.sn-quem b { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 6vw, 44px); line-height: .9; text-shadow: 3px 3px 0 rgba(0, 0, 0, .35) }
+.sn-pts { display: flex; align-items: center; gap: 4px }
+.sn-pts i { width: 12px; height: 12px; border: 2px solid #fff; background: rgba(0, 0, 0, .25) }
+.sn-pts i.on { background: var(--sun) }
+.sn-pts em { font-style: normal; font-family: var(--display); font-size: 30px; margin-left: 6px; line-height: 1 }
+.sn-escudos { font-size: 16px; letter-spacing: 3px; color: #c8ffd9; min-height: 1em }
+.sn-quem kbd { font-family: var(--label); font-size: 10px; opacity: .7 }
+@media (hover: none) { .sn-quem kbd { display: none } }
+.sn-canto.bateu { animation: bate .25s steps(3) }
+@keyframes bate { 40% { filter: brightness(1.6) } }
+.sn-canto.gelo { filter: grayscale(1) brightness(.6) }
+.sn-canto.gelo::after { content: 'congelado'; position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--label); font-size: 14px; color: #c8e9ff; letter-spacing: .1em }
+.sn-fx { position: absolute; left: 50%; top: 50%; translate: -50% -50%; font-family: var(--display); font-size: clamp(44px, 10vw, 90px); text-shadow: 4px 4px 0 var(--ink);
+  pointer-events: none; animation: sobe .9s ease-out forwards }
+.sn-fx.ruim { color: #ffd0c9 } .sn-fx.escudo { color: #c8ffd9 } .sn-fx.tarde { color: #fff; font-size: 32px }
+@keyframes sobe { from { opacity: 1; scale: .6 } 30% { scale: 1.1 } to { opacity: 0; scale: 1 } }
+
+.sn-centro { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: flex; gap: clamp(8px, 2vw, 18px); pointer-events: none; z-index: 2 }
+.sn-carta { width: clamp(92px, min(30vw, 22vh), 170px); background: var(--paper); border: 4px solid var(--ink); box-shadow: 6px 6px 0 #000; padding: 5px; display: grid; gap: 4px }
+.sn-carta .cv { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; object-position: 50% 15% }
+.sn-carta span { font-family: var(--label); font-size: 9px; text-align: center; color: var(--ink); line-height: 1.2 }
+.sn-carta.entra { animation: entra .18s cubic-bezier(.3, 1.6, .5, 1) }
+@keyframes entra { from { scale: .6; rotate: -6deg } to { scale: 1; rotate: 0deg } }
+.sn-carta.thanos { border-color: #9a4be0; background: #2a1840 }
+.sn-carta.thanos span { color: #ffd76a }
+.sn-regra { position: absolute; left: 50%; top: calc(50% + clamp(78px, 19vmin, 140px)); translate: -50% 0; z-index: 2; pointer-events: none; width: min(90vw, 420px);
+  text-align: center; font-family: var(--label); font-size: 10px; color: #fff; background: rgba(11, 10, 18, .75); padding: 4px 8px }
+.sn-aviso { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 3; pointer-events: none; font-family: var(--display); color: var(--sun);
+  font-size: clamp(90px, 26vmin, 220px); text-shadow: 6px 6px 0 #000; opacity: 0 }
+.sn-aviso.mostra { animation: pisca-aviso .75s ease-out forwards }
+.sn-aviso.rapido { font-size: clamp(30px, 8vmin, 64px); color: #ff6b5a; white-space: nowrap }
+@keyframes pisca-aviso { from { opacity: 1; scale: 1.3 } 70% { opacity: 1; scale: 1 } to { opacity: 0 } }
+.sn-sair { position: absolute; left: 50%; top: calc(8px + env(safe-area-inset-top, 0px)); translate: -50% 0; z-index: 4; font-family: var(--label); font-size: 10px;
+  background: rgba(11, 10, 18, .8); color: #fff; border: 2px solid #fff; padding: 4px 10px }
+.sn-fim { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(11, 10, 18, .85); padding: 16px }
+.sn-fim-box { background: var(--paper); border: 4px solid var(--ink); border-top: 14px solid var(--cor); box-shadow: 8px 8px 0 #000; padding: 18px 22px; display: grid; gap: 12px; width: min(100%, 420px) }
+.sn-fim-box h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(40px, 9vw, 60px); line-height: .9 }
+.sn-fim-box ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.sn-fim-box li { display: flex; justify-content: space-between; border-left: 10px solid var(--cor); background: #fff; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 2px 10px; font-weight: 700 }
+.sn-fim-box li b { font-family: var(--display); font-weight: 400; font-size: 26px }
+.sn-fim-btns { display: flex; flex-wrap: wrap; gap: 10px }
+@media (prefers-reduced-motion: reduce) {
+  .mm-face { transition: none } .mm-jogo.quebrando, .mm-erro b, .sn-carta.entra, .sn-fx, .sn-canto.bateu { animation: none }
+}

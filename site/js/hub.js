@@ -1,25 +1,26 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor e as Joias do Infinito. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft, o Impostor, as Joias do Infinito e a Memória. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), joias: document.getElementById('joias') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), joias: document.getElementById('joias'), memoria: document.getElementById('memoria') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
   const LETREIRO = {
-    home: ['Banca do <em>Multiverso</em>', 'três jogos de personagens da Marvel'],
+    home: ['Banca do <em>Multiverso</em>', 'quatro jogos de personagens da Marvel'],
     draft: ['Draft do <em>Multiverso</em>', 'leilão de personagens · HQ e MCU'],
   }
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'joias' ? window.Joias.letreiro() : LETREIRO[atual]
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'joias' ? window.Joias.letreiro() : atual === 'memoria' ? window.Memoria.letreiro() : LETREIRO[atual]
     h1.innerHTML = l[0]
     sub.textContent = l[1]
   }
 
   function ir(jogo) {
+    if (atual === 'memoria' && jogo !== 'memoria') window.Memoria.sair()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
     for (const [k, el] of Object.entries(telas)) el.hidden = k !== atual
@@ -27,6 +28,7 @@
     letreiro()
     if (atual === 'impostor') window.Impostor.abrir()
     if (atual === 'joias') window.Joias.abrir()
+    if (atual === 'memoria') window.Memoria.abrir()
     window.scrollTo(0, 0)
   }
 
@@ -35,7 +37,8 @@
   function vitrine() {
     const sorteio = E.shuffle(D.hq.map((_, i) => 'hq:' + i)).slice(0, 2).map(E.lotOf)
     const filme = E.shuffle(D.mcu.map((_, i) => 'mcu:' + i)).map(E.lotOf).find((l) => !D.works[l.w].tv)
-    return { draft: [sorteio[0], filme, sorteio[1]], impostor: [hq('thor'), hq('thor'), hq('loki')] }
+    const par = E.shuffle(D.hq.map((_, i) => 'hq:' + i)).slice(2, 4).map(E.lotOf)
+    return { draft: [sorteio[0], filme, sorteio[1]], impostor: [hq('thor'), hq('thor'), hq('loki')], memoria: [par[0], par[1], par[0]] }
   }
 
   function home() {
@@ -76,6 +79,17 @@
         <div class="jogo-btns">
           <button class="btn big jo-virar" type="button" data-ir="joias">Jogar Joias</button>
           <button class="btn green" type="button" data-ir="joias-online">Jogar online</button>
+        </div>
+      </article>
+      <article class="panel jogo">
+        ${leque(v.memoria)}
+        <div class="jogo-texto">
+          <h2>Memória do Multiverso</h2>
+          <p>O jogo da memória clássico, com os personagens. Vire duas cartas por vez, ache os pares e jogue de novo. Bem tranquilo, pra relaxar.</p>
+          <span class="lbl">2 a 4 jogadores · num aparelho só</span>
+        </div>
+        <div class="jogo-btns">
+          <button class="btn big blue" type="button" data-ir="memoria">Jogar Memória</button>
         </div>
       </article>
     </section>`
