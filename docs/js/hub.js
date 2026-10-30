@@ -1,34 +1,31 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor, as Joias do Infinito e a Memória. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft e o Impostor. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), joias: document.getElementById('joias'), memoria: document.getElementById('memoria') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
   const LETREIRO = {
-    home: ['Banca do <em>Multiverso</em>', 'quatro jogos de personagens da Marvel'],
+    home: ['Banca do <em>Multiverso</em>', 'dois jogos de personagens da Marvel'],
     draft: ['Draft do <em>Multiverso</em>', 'leilão de personagens · HQ e MCU'],
   }
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'joias' ? window.Joias.letreiro() : atual === 'memoria' ? window.Memoria.letreiro() : LETREIRO[atual]
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : LETREIRO[atual]
     h1.innerHTML = l[0]
     sub.textContent = l[1]
   }
 
   function ir(jogo) {
-    if (atual === 'memoria' && jogo !== 'memoria') window.Memoria.sair()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
     for (const [k, el] of Object.entries(telas)) el.hidden = k !== atual
     voltar.hidden = atual === 'home'
     letreiro()
     if (atual === 'impostor') window.Impostor.abrir()
-    if (atual === 'joias') window.Joias.abrir()
-    if (atual === 'memoria') window.Memoria.abrir()
     window.scrollTo(0, 0)
   }
 
@@ -37,8 +34,7 @@
   function vitrine() {
     const sorteio = E.shuffle(D.hq.map((_, i) => 'hq:' + i)).slice(0, 2).map(E.lotOf)
     const filme = E.shuffle(D.mcu.map((_, i) => 'mcu:' + i)).map(E.lotOf).find((l) => !D.works[l.w].tv)
-    const par = E.shuffle(D.hq.map((_, i) => 'hq:' + i)).slice(2, 4).map(E.lotOf)
-    return { draft: [sorteio[0], filme, sorteio[1]], impostor: [hq('thor'), hq('thor'), hq('loki')], memoria: [par[0], par[1], par[0]] }
+    return { draft: [sorteio[0], filme, sorteio[1]], impostor: [hq('thor'), hq('thor'), hq('loki')] }
   }
 
   function home() {
@@ -69,29 +65,6 @@
           <button class="btn green" type="button" data-ir="impostor-online">Jogar online</button>
         </div>
       </article>
-      <article class="panel jogo">
-        <div class="leque joias">${[hq('thanos'), hq('doctor-strange'), hq('loki')].map((l) => V.card(l)).join('')}</div>
-        <div class="jogo-texto">
-          <h2>Joias do Infinito</h2>
-          <p>Vire cartas pra juntar as 6 joias e pare quando quiser pra guardar na sua Manopla. Mas se vier o Thanos… ESTALO: metade vira pó.</p>
-          <span class="lbl">2 a 6 jogadores · num celular só ou online</span>
-        </div>
-        <div class="jogo-btns">
-          <button class="btn big jo-virar" type="button" data-ir="joias">Jogar Joias</button>
-          <button class="btn green" type="button" data-ir="joias-online">Jogar online</button>
-        </div>
-      </article>
-      <article class="panel jogo">
-        ${leque(v.memoria)}
-        <div class="jogo-texto">
-          <h2>Memória do Multiverso</h2>
-          <p>O jogo da memória clássico, com os personagens. Vire duas cartas por vez, ache os pares e jogue de novo. Bem tranquilo, pra relaxar.</p>
-          <span class="lbl">2 a 4 jogadores · num aparelho só</span>
-        </div>
-        <div class="jogo-btns">
-          <button class="btn big blue" type="button" data-ir="memoria">Jogar Memória</button>
-        </div>
-      </article>
     </section>`
   }
 
@@ -101,9 +74,6 @@
     if (b.dataset.ir === 'draft-online') { ir('draft'); window.Draft.irParaSala() } else if (b.dataset.ir === 'impostor-online') {
       ir('impostor')
       setTimeout(() => { const n = document.getElementById('imp-on-nome'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
-    } else if (b.dataset.ir === 'joias-online') {
-      ir('joias')
-      setTimeout(() => { const n = document.getElementById('jo-on-nome'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
     } else ir(b.dataset.ir)
   })
   voltar.addEventListener('click', () => ir('home'))
@@ -117,8 +87,6 @@
     if (sala) { ir('draft'); window.Draft.entrarSala(sala[1]); return }
     const salaImp = pedido.match(/^imp-([A-Za-z0-9]{4})$/)
     if (salaImp) { ir('impostor'); window.ImpostorOnline.entrar(salaImp[1]); return }
-    const salaJo = pedido.match(/^joias-([A-Za-z0-9]{4})$/)
-    if (salaJo) { ir('joias'); window.JoiasOnline.entrar(salaJo[1]); return }
     ir(telas[pedido] ? pedido : 'home')
   })
 })()
