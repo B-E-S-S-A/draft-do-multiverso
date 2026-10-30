@@ -1,20 +1,20 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor e o Adivinha. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft e o Impostor. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), adivinha: document.getElementById('adivinha') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
   const LETREIRO = {
-    home: ['Banca do <em>Multiverso</em>', 'três jogos de personagens da Marvel'],
+    home: ['Banca do <em>Multiverso</em>', 'dois jogos de personagens da Marvel'],
     draft: ['Draft do <em>Multiverso</em>', 'leilão de personagens · HQ e MCU'],
   }
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'adivinha' ? window.Adivinha.letreiro() : LETREIRO[atual]
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : LETREIRO[atual]
     h1.innerHTML = l[0]
     sub.textContent = l[1]
   }
@@ -26,7 +26,6 @@
     voltar.hidden = atual === 'home'
     letreiro()
     if (atual === 'impostor') window.Impostor.abrir()
-    if (atual === 'adivinha') window.Adivinha.abrir()
     window.scrollTo(0, 0)
   }
 
@@ -35,8 +34,7 @@
   function vitrine() {
     const sorteio = E.shuffle(D.hq.map((_, i) => 'hq:' + i)).slice(0, 2).map(E.lotOf)
     const filme = E.shuffle(D.mcu.map((_, i) => 'mcu:' + i)).map(E.lotOf).find((l) => !D.works[l.w].tv)
-    const mais = E.shuffle(D.hq.map((_, i) => 'hq:' + i)).slice(0, 3).map(E.lotOf)
-    return { draft: [sorteio[0], filme, sorteio[1]], impostor: [hq('thor'), hq('thor'), hq('loki')], adivinha: mais }
+    return { draft: [sorteio[0], filme, sorteio[1]], impostor: [hq('thor'), hq('thor'), hq('loki')] }
   }
 
   function home() {
@@ -65,17 +63,6 @@
         <div class="jogo-btns">
           <button class="btn big red" type="button" data-ir="impostor">Jogar Impostor</button>
           <button class="btn green" type="button" data-ir="impostor-online">Jogar online</button>
-        </div>
-      </article>
-      <article class="panel jogo">
-        <div class="leque adivinha">${v.adivinha.map((l) => V.card(l)).join('')}<b class="leque-q" aria-hidden="true">?</b></div>
-        <div class="jogo-texto">
-          <h2>Adivinha do Multiverso</h2>
-          <p>A capa aparece bem pixelada e vai clareando. Quem souber quem é, bate primeiro. Quanto mais cedo acertar, mais pontos.</p>
-          <span class="lbl">2 a 4 jogadores · num aparelho só · HQ e MCU</span>
-        </div>
-        <div class="jogo-btns">
-          <button class="btn big blue" type="button" data-ir="adivinha">Jogar Adivinha</button>
         </div>
       </article>
     </section>`
