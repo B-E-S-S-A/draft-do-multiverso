@@ -1,0 +1,174 @@
+/* Bolsa do Multiverso: no celular, uma lista de ações em papel com botões grandes de vender/comprar;
+   no telão, um painel escuro de bolsa com números em amarelo. O Clarim Diário entra como uma página de jornal. */
+body.bo-jogando .awning, body.bo-jogando .rodape { display: none }
+.bo-entrada, .bo-sala { padding-block: 22px 56px }
+.bo-chip { font-family: var(--label); font-weight: 400; font-size: 11px; letter-spacing: .04em; background: var(--ink); color: var(--sun); padding: 2px 5px 1px; white-space: nowrap }
+.sobe { color: #1c8a4a } .cai { color: var(--p1) }
+
+/* ---------- celular ---------- */
+.bo-jogo { max-width: 760px; margin: 0 auto; padding-block: 0 40px; display: grid; gap: 12px }
+.bo-topo { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; background: var(--ink); color: var(--paper);
+  margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: max(8px, env(safe-area-inset-top, 0px)) 16px 8px; font-family: var(--label); font-size: 11px }
+.bo-topo .linkish { color: var(--paper); font-size: 11px; margin-left: auto }
+.bo-rod b { font-family: var(--display); font-weight: 400; font-size: 22px; color: var(--sun) }
+.bo-fase { background: var(--sun); color: var(--ink); padding: 2px 6px }
+.bo-relogio { position: relative; flex: 1 1 60px; max-width: 160px; height: 18px; border: 2px solid var(--paper); background: rgba(255, 255, 255, .1) }
+.bo-relogio i { position: absolute; inset: 0 auto 0 0; background: var(--sun); transition: width .1s linear }
+.bo-relogio b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 400; font-size: 18px; color: #fff; text-shadow: 2px 0 0 var(--ink), -2px 0 0 var(--ink), 0 2px 0 var(--ink), 0 -2px 0 var(--ink) }
+.bo-relogio.acabando i { background: var(--p1); animation: bo-pulsa .5s steps(2) infinite }
+@keyframes bo-pulsa { 50% { opacity: .55 } }
+
+.bo-eu { --cor: var(--p1); display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap }
+.bo-eu > span { display: grid; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--cor); padding: 2px 12px 4px 8px; box-shadow: 3px 3px 0 var(--ink) }
+.bo-eu small { font-family: var(--label); font-size: 9px; color: var(--muted) }
+.bo-eu b { font-family: var(--display); font-weight: 400; font-size: 32px; line-height: .9 }
+.bo-eu .bo-quem { align-self: center; border: 0; background: none; box-shadow: none; font-weight: 700; margin-left: auto }
+
+.bo-segredo { background: #fff8d6; border: 3px dashed var(--ink); padding: 10px 12px }
+.bo-segredo ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 16px }
+.bo-segredo.skrull { background: #173b2a; color: #d6ffe6; border: 3px solid #2bb673 }
+.bo-segredo.skrull .lbl { color: #7dffb2 }
+.bo-segredo.skrull em { font-style: normal; font-family: var(--label); font-size: 11px; color: var(--sun); margin-left: 6px; white-space: nowrap }
+.bo-segredo.skrull small { display: block; margin-top: 6px; font-size: 13px; color: #9fd6b6 }
+
+.bo-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.bo-acao { display: grid; grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1fr) 54px; grid-template-areas: "capa nome preco minha" "capa vende compra minha";
+  gap: 6px 8px; align-items: center; background: var(--paper); border: 3px solid var(--ink); border-left-width: 8px; box-shadow: 3px 3px 0 var(--ink); padding: 6px 8px 6px 6px }
+.bo-acao.tenho { border-left-color: #1c8a4a } .bo-acao.queda { border-left-color: var(--p1) }
+.bo-capa { grid-area: capa; align-self: stretch; display: grid; align-content: center }
+.bo-capa .cv { width: 100%; border: 2px solid var(--ink) }
+.bo-nome { grid-area: nome; display: grid; justify-items: start; gap: 2px; min-width: 0 }
+.bo-nome small { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100% }
+.bo-preco { grid-area: preco; display: flex; align-items: baseline; gap: 6px; justify-content: flex-end }
+.bo-preco b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: .8 }
+.bo-preco small { font-family: var(--label); font-size: 11px }
+.bo-minha { grid-area: minha; display: grid; justify-items: center; align-self: stretch; align-content: center; background: #f1ede1; border: 2px solid var(--ink) }
+.bo-minha b { font-family: var(--display); font-weight: 400; font-size: 28px; line-height: .9 }
+.bo-minha small { font-family: var(--label); font-size: 8px; text-align: center }
+.bo-acao.tenho .bo-minha { background: #d9f5e3 } .bo-acao.queda .bo-minha { background: var(--p1-tint) }
+.bo-btn { --bg: #fff; --bg-dk: #ddd8c8; display: grid; justify-items: center; gap: 0; border: 3px solid var(--ink); background: var(--bg); color: var(--ink); padding: 4px 6px 6px;
+  box-shadow: inset 0 -4px 0 var(--bg-dk), 2px 2px 0 var(--ink); touch-action: manipulation; user-select: none; -webkit-user-select: none }
+.bo-btn small { font-family: var(--label); font-size: 9px }
+.bo-btn b { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: .9 }
+.bo-btn.vende { grid-area: vende; --bg: var(--p1-tint); --bg-dk: #f2b8ab }
+.bo-btn.compra { grid-area: compra; --bg: #d9f5e3; --bg-dk: #9fd9b5 }
+.bo-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: inset 0 -2px 0 var(--bg-dk), 0 0 0 var(--ink) }
+.bo-btn:disabled { --bg: #ebe7dc; --bg-dk: #d5d0c2; color: #9a9585; cursor: not-allowed }
+@media (min-width: 700px) {
+  .bo-acao { grid-template-columns: 52px minmax(0, 1.3fr) minmax(0, 1fr) 60px 100px 100px; grid-template-areas: "capa nome preco minha vende compra" }
+}
+.pisca-sobe { animation: bo-sobe .5s ease-out } .pisca-cai { animation: bo-cai .5s ease-out }
+@keyframes bo-sobe { from { background-color: #b7f0cb } }
+@keyframes bo-cai { from { background-color: #ffc9bf } }
+
+.bo-fita .lbl { color: var(--muted) }
+.bo-fita ol, .bo-fita-tl { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; font-size: 14px }
+.bo-fita li, .bo-fita-tl li { --cor: var(--p1); border-left: 6px solid var(--cor); padding-left: 6px }
+.bo-fita li span, .bo-fita-tl li span { font-family: var(--label); font-size: 11px }
+.bo-fita li:first-child, .bo-fita-tl li:first-child { animation: bo-entra .3s ease-out }
+.bo-fita li.vazia, .bo-fita-tl li.vazia { border: 0; color: var(--muted); padding: 0 }
+@keyframes bo-entra { from { opacity: 0; transform: translateX(-8px) } }
+.bo-extras { display: flex; flex-wrap: wrap; gap: 10px }
+.bo-painel { display: grid; gap: 10px }
+.bo-escolhe { display: flex; flex-wrap: wrap; gap: 6px }
+.bo-escolhe .preset { font-size: 13px; padding: 7px 10px }
+.bo-escolhe .preset[style] { border-left: 8px solid var(--cor) }
+
+.bo-sino { position: sticky; top: 46px; z-index: 4; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; background: var(--sun); border: 3px solid var(--ink);
+  padding: 6px 12px; box-shadow: 3px 3px 0 var(--ink); animation: bo-entra .3s ease-out; order: -1 }
+.bo-sino b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: .9 }
+.bo-sino span { font-family: var(--label); font-size: 11px }
+.bo-jogo .bo-topo { order: -2 }
+
+/* ---------- Clarim Diário ---------- */
+.bo-jornal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(11, 10, 18, .72); animation: bo-escurece .25s both; overflow-y: auto }
+@keyframes bo-escurece { from { background: rgba(11, 10, 18, 0) } }
+.bo-papel { width: min(100%, 620px); background: #f6f1e1; color: #1b1a17; border: 4px solid var(--ink); box-shadow: 8px 8px 0 #000; padding: 14px 18px 18px;
+  display: grid; gap: 12px; animation: bo-gira .45s cubic-bezier(.3, 1.4, .5, 1) both; background-image: radial-gradient(rgba(0, 0, 0, .05) 1px, transparent 1.2px); background-size: 5px 5px }
+@keyframes bo-gira { from { transform: rotate(-14deg) scale(.4); opacity: 0 } }
+.bo-papel header { display: grid; justify-items: center; border-bottom: 4px double #1b1a17; padding-bottom: 6px }
+.bo-papel header b { font-family: var(--display); font-weight: 400; font-size: clamp(44px, 11vw, 72px); line-height: .8; letter-spacing: .02em }
+.bo-papel header small { font-family: var(--label); font-size: 10px; letter-spacing: .14em; text-transform: uppercase }
+.bo-manchetes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
+.bo-fecha div { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px }
+.bo-manchetes li, .bo-fecha, .bo-boatos, .bo-murcha, .bo-meu, .bo-jr-rank { animation: bo-aparece .4s ease-out both; animation-delay: calc(.5s + var(--k) * .9s) }
+.bo-manchetes li { border-bottom: 2px solid #1b1a17; padding-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline }
+.bo-manchetes h3 { margin: 0; flex: 1 1 100%; font-family: var(--display); font-weight: 400; font-size: clamp(26px, 6vw, 36px); line-height: .95 }
+@keyframes bo-aparece { from { opacity: 0; transform: translateY(8px) } }
+.bo-muda { font-family: var(--label); font-size: 11px; background: #1b1a17; color: #fff; padding: 2px 6px 1px }
+.bo-muda.sobe { background: #1c8a4a; color: #fff } .bo-muda.cai { background: var(--p1); color: #fff }
+.bo-boatos p { margin: 2px 0 0; font-size: 15px }
+.bo-boatos b { color: var(--p1) }
+.bo-murcha { margin: 0; font-size: 13px; color: #5a5548 }
+.bo-meu { margin: 0; font-size: 18px; font-weight: 700; text-align: center; border: 3px solid #1b1a17; padding: 6px }
+.bo-meu b { font-family: var(--display); font-weight: 400; font-size: 36px }
+.bo-meu.sobe { background: #d9f5e3 } .bo-meu.cai { background: var(--p1-tint) }
+.bo-jornal.grande .bo-papel { width: min(100%, 900px) }
+
+/* ---------- telão ---------- */
+.bo-telao { position: fixed; inset: 0; z-index: 55; background: #0b0a12; color: #f3efe3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  grid-template-rows: auto minmax(0, 1fr); gap: 14px; padding: 14px; overflow: hidden }
+.bo-tl-topo { grid-column: 1 / -1; display: flex; align-items: center; gap: 18px; flex-wrap: wrap }
+.bo-tl-topo > b { font-family: var(--display); font-weight: 400; font-size: 44px; line-height: .8 }
+.bo-tl-topo em { font-style: normal; color: var(--sun) }
+.bo-tl-topo .bo-rod { font-family: var(--label); font-size: 12px }
+.bo-relogio.grande { flex: 1 1 200px; max-width: 420px; height: 30px }
+.bo-relogio.grande b { font-size: 28px }
+.bo-tl-sair { margin-left: auto; font-family: var(--label); font-size: 10px; background: none; color: #f3efe3; border: 2px solid #f3efe3; padding: 4px 10px }
+.bo-quadro { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 12px; min-height: 0 }
+.bo-tile { position: relative; display: grid; grid-template-columns: minmax(70px, 38%) minmax(0, 1fr); grid-template-rows: auto 1fr auto auto; gap: 4px 12px;
+  background: #17151f; border: 3px solid #3a3648; padding: 10px; min-height: 0; overflow: hidden }
+.bo-tile .bo-capa { grid-area: 1 / 1 / 5 / 2; align-self: center }
+.bo-tile-txt { grid-area: 1 / 2 } .bo-tile .bo-px { grid-area: 2 / 2 } .bo-tile .bo-var { grid-area: 3 / 2 } .bo-tile .bo-spark { grid-area: 4 / 2 }
+.bo-tile .bo-capa .cv { border-color: #f3efe3 }
+.bo-tile-txt { display: grid; justify-items: start; gap: 2px }
+.bo-tile-txt .bo-chip { font-size: 16px; background: var(--sun); color: var(--ink) }
+.bo-tile-txt small { font-size: 14px; color: #bdb8aa }
+.bo-px { font-family: var(--display); font-weight: 400; font-size: clamp(44px, 6vw, 92px); line-height: .8; color: var(--sun); align-self: end }
+.bo-var { font-family: var(--label); font-size: 14px }
+.bo-var.sobe { color: #4be38a } .bo-var.cai { color: #ff6b5a }
+.bo-spark { width: 100%; height: 30px; color: #8a84a0 }
+.bo-tile.pisca-sobe { animation: bo-tl-sobe .6s ease-out } .bo-tile.pisca-cai { animation: bo-tl-cai .6s ease-out }
+@keyframes bo-tl-sobe { from { background-color: #1d5a37; border-color: #4be38a } }
+@keyframes bo-tl-cai { from { background-color: #5a1d1d; border-color: #ff6b5a } }
+.bo-lado { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0 }
+.bo-lado > div { background: #17151f; border: 3px solid #3a3648; padding: 10px; overflow: hidden }
+.bo-lado .lbl { color: #bdb8aa }
+.bo-fita-tl { font-size: 16px }
+.bo-rank { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px }
+.bo-rank li { --cor: var(--p1); display: flex; justify-content: space-between; gap: 8px; border-left: 8px solid var(--cor); padding: 2px 8px; background: rgba(255, 255, 255, .06); font-weight: 700 }
+.bo-rank li b { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1 }
+.bo-rank em { font-style: normal; font-family: var(--label); font-size: 9px; color: #7dffb2 }
+.bo-papel .bo-rank li { background: rgba(0, 0, 0, .05) }
+.bo-telao .bo-sino { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; background: rgba(11, 10, 18, .7); border: 0; box-shadow: none; color: var(--sun) }
+.bo-telao .bo-sino b { font-size: clamp(80px, 14vw, 180px) }
+.bo-telao .bo-sino span { font-size: 16px; color: #f3efe3 }
+@media (max-width: 760px) {
+  .bo-telao { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; overflow-y: auto }
+  .bo-quadro { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .bo-lado { grid-template-rows: auto auto }
+}
+
+/* ---------- denúncia ---------- */
+.bo-denuncia { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(11, 10, 18, .8); animation: bo-escurece .2s both }
+.bo-denuncia > div { width: min(100%, 460px); background: var(--paper); border: 4px solid var(--ink); border-top: 14px solid var(--p1); box-shadow: 8px 8px 0 #000; padding: 16px 20px; display: grid; gap: 8px; text-align: center }
+.bo-denuncia p { margin: 0; font-size: 18px }
+.bo-denuncia h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(48px, 12vw, 72px); line-height: .85; animation: bo-revela .35s cubic-bezier(.3, 1.6, .5, 1) 1.6s both }
+.bo-denuncia small { font-size: 14px; animation: bo-aparece .3s 2s both }
+.bo-denuncia.certo h3 { color: #1c8a4a }
+@keyframes bo-revela { from { opacity: 0; transform: scale(2.2) } }
+
+/* ---------- fim ---------- */
+.bo-fim { padding-block: 22px 56px; display: grid; justify-items: center }
+.bo-fim-box { --cor: var(--p1); width: min(100%, 560px); border-top: 14px solid var(--cor); display: grid; gap: 12px }
+.bo-fim-box h2 { margin: 0; font-size: clamp(40px, 9vw, 56px); line-height: .9 }
+.bo-revela { margin: 0; font-size: 18px }
+.bo-evolucao { width: 100%; height: 130px; background: #17151f; border: 3px solid var(--ink) }
+.bo-fim .bo-rank li { background: #fff; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink) }
+.bo-premios { display: grid; gap: 4px }
+.bo-premios p { margin: 0; font-size: 15px }
+.bo-premios .lbl { background: var(--sun); border: 2px solid var(--ink); padding: 1px 6px; margin-right: 4px }
+.bo-premios small { color: var(--muted) }
+@media (prefers-reduced-motion: reduce) {
+  .bo-papel, .bo-manchetes li, .bo-boatos, .bo-murcha, .bo-meu, .bo-jr-rank, .bo-denuncia h3, .bo-denuncia small, .pisca-sobe, .pisca-cai, .bo-tile { animation: none }
+}
