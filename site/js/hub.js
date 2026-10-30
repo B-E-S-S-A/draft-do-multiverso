@@ -58,9 +58,12 @@
         <div class="jogo-texto">
           <h2>Impostor do Multiverso</h2>
           <p>Todo mundo recebe o mesmo personagem, menos o impostor, que recebe um parecido. Deem dicas e descubram quem é.</p>
-          <span class="lbl">3 a 10 jogadores · num celular só · PT / EN</span>
+          <span class="lbl">3 a 10 jogadores · num celular só ou online · PT / EN</span>
         </div>
-        <button class="btn big red" type="button" data-ir="impostor">Jogar Impostor</button>
+        <div class="jogo-btns">
+          <button class="btn big red" type="button" data-ir="impostor">Jogar Impostor</button>
+          <button class="btn green" type="button" data-ir="impostor-online">Jogar online</button>
+        </div>
       </article>
     </section>`
   }
@@ -68,7 +71,10 @@
   telas.home.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-ir]')
     if (!b) return
-    if (b.dataset.ir === 'draft-online') { ir('draft'); window.Draft.irParaSala() } else ir(b.dataset.ir)
+    if (b.dataset.ir === 'draft-online') { ir('draft'); window.Draft.irParaSala() } else if (b.dataset.ir === 'impostor-online') {
+      ir('impostor')
+      setTimeout(() => { const n = document.getElementById('imp-on-nome'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
+    } else ir(b.dataset.ir)
   })
   voltar.addEventListener('click', () => ir('home'))
 
@@ -79,6 +85,8 @@
     // link de convite: #sala-XXXX abre o Draft e já entra na sala
     const sala = pedido.match(/^sala-([A-Za-z0-9]{4})$/)
     if (sala) { ir('draft'); window.Draft.entrarSala(sala[1]); return }
+    const salaImp = pedido.match(/^imp-([A-Za-z0-9]{4})$/)
+    if (salaImp) { ir('impostor'); window.ImpostorOnline.entrar(salaImp[1]); return }
     ir(telas[pedido] ? pedido : 'home')
   })
 })()

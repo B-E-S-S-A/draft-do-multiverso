@@ -1,5 +1,6 @@
-// Impostor do Multiverso: de 3 a 10 jogadores no mesmo aparelho. Todo mundo recebe o mesmo personagem de HQ,
+// Impostor do Multiverso: de 3 a 10 jogadores. Todo mundo recebe o mesmo personagem de HQ,
 // menos o impostor, que recebe um parecido (ou nenhum). Telas: regras → cartas → dicas → votos → fim.
+// Este arquivo é o jogo num aparelho só; o online (impostor-online.js) usa as mesmas peças de tela.
 (function () {
   const E = window.Engine
   const V = window.View
@@ -26,6 +27,7 @@
   const T = () => TXT[C.lingua]
   const esc = V.esc
   const rand = (n) => Math.floor(Math.random() * n)
+  const online = () => window.ImpostorOnline && window.ImpostorOnline.ativo()
 
   try { Object.assign(C, JSON.parse(localStorage.getItem(SAVE) || '{}')) } catch (e) {}
   C.n = Math.min(MAX, Math.max(MIN, Number(C.n) || 3))
@@ -39,17 +41,37 @@
   const pers = (key) => (C.lingua === 'en' ? EN[key] : D.hq[IDX[key]].n)
   const capa = (key) => V.card(E.lotOf('hq:' + IDX[key]))
   const ehImpostor = (p) => R.impostores.includes(p)
-  const qtdImpostores = () => (C.modo === 'dois' && C.n >= 6 ? 2 : 1)
+  const qtdImpostores = (n) => (C.modo === 'dois' && n >= 6 ? 2 : 1)
 
-  // ---------- rodada ----------
-  function novaRodada() {
+  // sorteia um par parecido (nunca o mesmo da rodada anterior) e quem fica com qual lado
+  function sortearPar() {
     let k
     do { k = rand(PARES_OK.length) } while (PARES_OK.length > 1 && k === ultimo)
     ultimo = k
     const [a, b] = Math.random() < 0.5 ? PARES_OK[k] : [PARES_OK[k][1], PARES_OK[k][0]]
+    return { comum: a, diferente: C.modo === 'cego' ? null : b }
+  }
+
+  // conta os votos: quem leva mais votos sozinho é o "pego". Pontos só com a votação ligada.
+  function contar(n, votos, impostores, semVotos) {
+    const contagem = Array(n).fill(0)
+    if (!semVotos) votos.forEach((v) => { if (v != null) contagem[v] += 1 })
+    const max = Math.max(...contagem)
+    const topo = contagem.map((v, i) => (v === max ? i : -1)).filter((i) => i >= 0)
+    const pego = !semVotos && topo.length === 1 && impostores.includes(topo[0])
+    const ganhos = Array(n).fill(0)
+    if (C.votar && !semVotos) {
+      if (pego) votos.forEach((v, eleitor) => { if (impostores.includes(v) && !impostores.includes(eleitor)) ganhos[eleitor] += 1 })
+      else impostores.forEach((i) => { ganhos[i] += 2 })
+    }
+    return { contagem, pego, empate: !semVotos && topo.length > 1, semVotos: !!semVotos, ganhos, alvo: pego ? topo[0] : -1, adivinhou: null }
+  }
+
+  // ---------- rodada ----------
+  function novaRodada() {
     R = {
-      comum: a, diferente: C.modo === 'cego' ? null : b,
-      impostores: E.shuffle([...Array(C.n).keys()]).slice(0, qtdImpostores()),
+      ...sortearPar(),
+      impostores: E.shuffle([...Array(C.n).keys()]).slice(0, qtdImpostores(C.n)),
       vistos: Array(C.n).fill(false), comeca: rand(C.n), votos: [], votante: 0, fim: null,
     }
     confirmar = null
@@ -74,22 +96,14 @@
   }
 
   function resolver(semVotos) {
-    const contagem = Array(C.n).fill(0)
-    if (!semVotos) R.votos.forEach((v) => { contagem[v] += 1 })
-    const max = Math.max(...contagem)
-    const topo = contagem.map((v, i) => (v === max ? i : -1)).filter((i) => i >= 0)
-    const pego = !semVotos && topo.length === 1 && ehImpostor(topo[0])
-    const ganhos = Array(C.n).fill(0)
+    R.fim = contar(C.n, R.votos, R.impostores, semVotos)
     if (C.votar && !semVotos) {
-      if (pego) R.votos.forEach((v, eleitor) => { if (ehImpostor(v) && !ehImpostor(eleitor)) ganhos[eleitor] += 1 })
-      else R.impostores.forEach((i) => { ganhos[i] += 2 })
-      ganhos.forEach((g, i) => { C.placar[i] += g })
+      R.fim.ganhos.forEach((g, i) => { C.placar[i] += g })
       salvar()
     }
-    R.fim = { contagem, pego, empate: !semVotos && topo.length > 1, semVotos: !!semVotos, ganhos, alvo: pego ? topo[0] : -1, adivinhou: null }
     pararRelogio()
     tela = 'fim'
-    som(pego || semVotos ? 'win' : 'undo')
+    som(R.fim.pego || semVotos ? 'win' : 'undo')
     render()
   }
 
@@ -116,51 +130,114 @@
         if (s !== ultimoSeg && s <= 5 && s > 0) som('tick')
         ultimoSeg = s
         if (relogio.restante <= 0) { pararRelogio(); som('hammer') }
-        pintarRelogio()
+        pintarRelogio(relogio.restante)
       }, 200)
     }
     render()
   }
-  function textoRelogio() {
-    const s = Math.ceil((relogio ? relogio.restante : C.segs * 1000) / 1000)
+  function textoRelogio(ms) {
+    const s = Math.ceil(ms / 1000)
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
   }
-  function pintarRelogio() {
+  function pintarRelogio(ms) {
     const b = document.getElementById('imp-relogio')
     if (!b) return
-    b.textContent = relogio.restante <= 0 ? T().acabou : textoRelogio()
-    b.classList.toggle('fim', relogio.restante <= 0)
+    b.textContent = ms <= 0 ? T().acabou : textoRelogio(ms)
+    b.classList.toggle('fim', ms <= 0)
     const bt = document.getElementById('imp-relogio-bt')
-    if (bt && relogio.restante <= 0) bt.textContent = T().iniciar
+    if (bt && ms <= 0) bt.textContent = T().iniciar
   }
 
-  // ---------- telas ----------
+  // ---------- peças de tela (usadas também no online) ----------
   const cor = (p) => `--cor: var(--c${p % 10})`
   const toggle = (id, on, txt, sub) => `<label class="switch"><input type="checkbox" id="${id}"${on ? ' checked' : ''}><span class="knob"></span>
     <span class="imp-sw"><span>${txt}</span>${sub ? `<small>${sub}</small>` : ''}</span></label>`
 
+  function blocoLingua() {
+    return `<div class="presets" role="group" aria-label="${T().lingua}">
+      <button class="preset" type="button" data-a="lingua" data-v="pt" aria-pressed="${C.lingua === 'pt'}">PT</button>
+      <button class="preset" type="button" data-a="lingua" data-v="en" aria-pressed="${C.lingua === 'en'}">EN</button></div>`
+  }
+  function blocoModo(n) {
+    const t = T()
+    return `<div class="field"><span class="lbl">${t.modo}</span><div class="modes">${t.modos.map(([v, b, s]) =>
+      `<button class="mode" type="button" data-a="modo" data-v="${v}" aria-pressed="${C.modo === v}"${v === 'dois' && n < 6 ? ' disabled' : ''}><b>${b}</b><small>${s}</small></button>`).join('')}</div></div>`
+  }
+  function blocoOpcoes() {
+    const t = T()
+    const tempos = C.tempo ? `<div class="presets">${[60, 90, 120, 180].map((s) =>
+      `<button class="preset" type="button" data-a="segs" data-v="${s}" aria-pressed="${C.segs === s}">${t.segundos(s)}</button>`).join('')}</div>` : ''
+    return `<div class="field"><span class="lbl">${t.extras}</span>
+      ${toggle('imp-votar', C.votar, t.votar, t.votarSub)}
+      ${toggle('imp-tempo', C.tempo, t.tempo, t.tempoSub)}${tempos}</div>`
+  }
+  // lista de pontos: itens = [{ nome, lugar, pontos, ganho }]
+  function listaPontos(itens) {
+    return `<ol class="imp-placar">${[...itens].sort((a, b) => b.pontos - a.pontos).map((i) => `<li style="${cor(i.lugar)}"><span>${esc(i.nome)}</span>
+      ${i.ganho ? `<i>${T().pontos(i.ganho)}</i>` : ''}<b>${i.pontos}</b></li>`).join('')}</ol>`
+  }
+  // painel do relógio e de quem começa (o botão só aparece pra quem controla)
+  function painelDicas(nomeComeca, lugar, ms, rodando, botao) {
+    const t = T()
+    const fim = ms <= 0
+    const rotulo = rodando ? t.pausar : ms < C.segs * 1000 && !fim ? t.continuar : t.iniciar
+    return `<div class="panel imp-dicas" style="${cor(lugar)}">
+      <div><span class="lbl">${t.quemComeca}</span><b class="imp-grande">${esc(nomeComeca)}</b><p>${t.sentido}</p></div>
+      <div class="imp-tempo"><b id="imp-relogio" class="${fim ? 'fim' : ''}">${fim ? t.acabou : textoRelogio(ms)}</b>
+        ${botao ? `<button class="btn green" type="button" id="imp-relogio-bt" ${botao}>${rotulo}</button>` : ''}</div>
+    </div>`
+  }
+
+  // a revelação do fim, igual no local e no online. d = { nomes, impostores, comum, diferente, fim, chute, placar, botoes, topo }
+  function telaRevelacao(d) {
+    const t = T()
+    const f = d.fim
+    const muitos = d.impostores.length > 1
+    const imp = d.impostores.map((p) => esc(d.nomes[p])).join(' + ')
+    const titulo = f.semVotos ? (muitos ? t.eram : t.era) + ' ' + imp
+      : f.empate ? t.empate : f.pego ? (muitos ? t.pegaramDois : t.pegaram) : (muitos ? t.escaparam : t.escapou)
+    const quem = f.semVotos ? '' : `<p class="imp-quem-era">${muitos ? t.eram : t.era} <b>${imp}</b></p>`
+    const lado = (rotulo, key) => `<figure class="imp-lado"><span class="lbl">${rotulo}</span>
+      ${key ? capa(key) : '<span class="imp-verso grande"><b>?</b></span>'}<figcaption>${key ? esc(pers(key)) : t.nenhum}</figcaption></figure>`
+    const chute = d.chute ? `<div class="imp-chute"><p>${t.adivinhou}</p><div class="go-row">
+        <button class="btn green" type="button" ${d.chute}="chute" data-v="1">${t.acertou}</button>
+        <button class="btn paper" type="button" ${d.chute}="chute" data-v="0">${t.errou}</button></div></div>` : ''
+    const jogadores = d.nomes.map((n, p) => {
+      const imp = d.impostores.includes(p)
+      const key = imp ? d.diferente : d.comum
+      return `<li class="imp-rev${imp ? ' imp' : ''}" style="${cor(p)}">
+        <span class="imp-quem">${esc(n)}</span>
+        ${key ? capa(key) : '<span class="imp-verso"><b>?</b></span>'}
+        ${imp ? `<span class="imp-selo">${t.impostor}</span>` : ''}
+        ${f.semVotos ? '' : `<span class="imp-votos">${t.votos(f.contagem[p])}</span>`}
+        ${f.ganhos[p] ? `<span class="imp-ganho">${t.pontos(f.ganhos[p])}</span>` : ''}</li>`
+    }).join('')
+    return `<section class="imp-jogo">${d.topo || ''}
+      <div class="panel imp-veredito${f.pego || f.semVotos ? ' pego' : ''}">
+        <h2>${titulo}</h2>${quem}
+        <div class="imp-dupla">${lado(t.comum, d.comum)}${lado(t.diferente, d.diferente)}</div>
+        ${chute}
+      </div>
+      <ul class="imp-revelados">${jogadores}</ul>
+      ${d.placar ? `<div class="panel"><h2>${t.placar}</h2>${d.placar}</div>` : ''}
+      <div class="go-row">${d.botoes}</div>
+    </section>`
+  }
+
+  // ---------- telas do jogo num aparelho só ----------
   function telaRegras() {
     const t = T()
     const nomes = C.usarNomes ? `<div class="imp-nomes">${[...Array(C.n).keys()].map((p) =>
       `<label class="imp-nome" style="${cor(p)}"><span class="sr-only">${esc(t.jogador(p + 1))}</span>
         <input id="imp-nome-${p}" maxlength="14" autocomplete="off" placeholder="${esc(t.jogador(p + 1))}" value="${esc(C.nomes[p])}"></label>`).join('')}</div>` : ''
-    const modos = t.modos.map(([v, b, s]) => {
-      const off = v === 'dois' && C.n < 6
-      return `<button class="mode" type="button" data-a="modo" data-v="${v}" aria-pressed="${C.modo === v}"${off ? ' disabled' : ''}><b>${b}</b><small>${s}</small></button>`
-    }).join('')
-    const tempos = C.tempo ? `<div class="presets">${[60, 90, 120, 180].map((s) =>
-      `<button class="preset" type="button" data-a="segs" data-v="${s}" aria-pressed="${C.segs === s}">${t.segundos(s)}</button>`).join('')}</div>` : ''
     const temPontos = C.placar.slice(0, C.n).some((v) => v > 0)
     const placar = C.votar ? `<div class="field"><span class="lbl">${t.placar}</span>${listaPlacar()}
       ${temPontos ? `<button class="linkish" type="button" data-a="zerar">${confirmar === 'zerar' ? t.zerarDeNovo : t.zerar}</button>` : ''}</div>` : ''
+    const caixaOnline = window.ImpostorOnline ? `<div class="panel">${window.ImpostorOnline.caixa()}</div>` : ''
     return `<section class="setup imp">
       <div class="setup-grid">
         <div class="panel rules">
-          <div class="imp-cabeca"><h2>${t.regras}</h2>
-            <div class="presets" role="group" aria-label="${t.lingua}">
-              <button class="preset" type="button" data-a="lingua" data-v="pt" aria-pressed="${C.lingua === 'pt'}">PT</button>
-              <button class="preset" type="button" data-a="lingua" data-v="en" aria-pressed="${C.lingua === 'en'}">EN</button>
-            </div></div>
+          <div class="imp-cabeca"><h2>${t.regras}</h2>${blocoLingua()}</div>
           <div class="field"><span class="lbl">${t.jogadores}</span>
             <div class="stepper">
               <button class="btn paper step" type="button" data-a="n" data-v="-1" aria-label="−1"${C.n <= MIN ? ' disabled' : ''}>−</button>
@@ -169,16 +246,16 @@
             </div>
             ${toggle('imp-usar-nomes', C.usarNomes, t.nomes)}${nomes}
           </div>
-          <div class="field"><span class="lbl">${t.modo}</span><div class="modes">${modos}</div></div>
-          <div class="field"><span class="lbl">${t.extras}</span>
-            ${toggle('imp-votar', C.votar, t.votar, t.votarSub)}
-            ${toggle('imp-tempo', C.tempo, t.tempo, t.tempoSub)}${tempos}
-          </div>
+          ${blocoModo(C.n)}
+          ${blocoOpcoes()}
         </div>
-        <div class="panel">
-          <h2>${t.como}</h2>
-          <ol class="how">${t.passos.map((s) => `<li>${s}</li>`).join('')}</ol>
-          ${placar}
+        <div class="imp-coluna">
+          ${caixaOnline}
+          <div class="panel">
+            <h2>${t.como}</h2>
+            <ol class="how">${t.passos.map((s) => `<li>${s}</li>`).join('')}</ol>
+            ${placar}
+          </div>
         </div>
       </div>
       <div class="go-row"><button class="btn big" type="button" data-a="distribuir">${t.distribuir}</button></div>
@@ -186,9 +263,7 @@
   }
 
   function listaPlacar(ganhos) {
-    const ordem = [...Array(C.n).keys()].sort((a, b) => C.placar[b] - C.placar[a])
-    return `<ol class="imp-placar">${ordem.map((p) => `<li style="${cor(p)}"><span>${esc(nome(p))}</span>
-      ${ganhos && ganhos[p] ? `<i>${T().pontos(ganhos[p])}</i>` : ''}<b>${C.placar[p]}</b></li>`).join('')}</ol>`
+    return listaPontos([...Array(C.n).keys()].map((p) => ({ nome: nome(p), lugar: p, pontos: C.placar[p], ganho: ganhos && ganhos[p] })))
   }
 
   function carta(p) {
@@ -199,17 +274,19 @@
       <span class="imp-dica">${R.vistos[p] ? t.jaViu : t.segure}</span></button>`
   }
 
+  // o que aparece na frente da carta: capa e nome, ou "você é o impostor" no modo sem personagem
+  function frente(key) {
+    const t = T()
+    return key ? `${capa(key)}<span class="imp-nome-pers">${esc(pers(key))}</span>`
+      : `<span class="imp-cego"><b>?</b><span>${t.voceImpostor}</span><small>${t.descubra}</small></span>`
+  }
+
   function abrirCarta(p) {
     const c = el.querySelector(`.imp-carta[data-p="${p}"]`)
     if (!c || c.classList.contains('aberta')) return
-    const t = T()
-    const cego = ehImpostor(p) && !R.diferente
-    const key = ehImpostor(p) ? R.diferente : R.comum
     c.classList.add('aberta')
-    c.querySelector('.imp-frente').innerHTML = cego
-      ? `<span class="imp-cego"><b>?</b><span>${t.voceImpostor}</span><small>${t.descubra}</small></span>`
-      : `${capa(key)}<span class="imp-nome-pers">${esc(pers(key))}</span>`
-    c.querySelector('.imp-dica').textContent = t.solte
+    c.querySelector('.imp-frente').innerHTML = frente(ehImpostor(p) ? R.diferente : R.comum)
+    c.querySelector('.imp-dica').textContent = T().solte
     if (!R.vistos[p]) { R.vistos[p] = true; som('tick') }
   }
 
@@ -220,9 +297,13 @@
     c.classList.add('vista')
     c.querySelector('.imp-frente').innerHTML = '<span class="imp-verso"><b>?</b></span>'
     c.querySelector('.imp-dica').textContent = T().jaViu
-    const viram = R.vistos.filter(Boolean).length
     const h = document.getElementById('imp-viram')
-    if (h) h.textContent = T().viram(viram, C.n)
+    if (h) h.textContent = T().viram(R.vistos.filter(Boolean).length, C.n)
+  }
+
+  function botaoRevelar(attr) {
+    const t = T()
+    return `<button class="btn big red" type="button" ${attr}="revelar">${confirmar === 'revelar' ? t.revelarDeNovo : t.revelar}</button>`
   }
 
   function botaoSeguir() {
@@ -230,7 +311,7 @@
     const prox = proximaDepoisDasCartas()
     if (prox === 'dicas') return `<button class="btn big green" type="button" data-a="ir" data-v="dicas">${t.paraDicas}</button>`
     if (prox === 'votos') return `<button class="btn big" type="button" data-a="ir" data-v="votos">${t.paraVotar}</button>`
-    return `<button class="btn big red" type="button" data-a="revelar">${confirmar === 'revelar' ? t.revelarDeNovo : t.revelar}</button>`
+    return botaoRevelar('data-a')
   }
 
   function telaCartas() {
@@ -245,18 +326,11 @@
 
   function telaDicas() {
     const t = T()
-    const depois = C.votar
-      ? `<button class="btn big" type="button" data-a="ir" data-v="votos">${t.paraVotar}</button>`
-      : `<button class="btn big red" type="button" data-a="revelar">${confirmar === 'revelar' ? t.revelarDeNovo : t.revelar}</button>`
-    const fim = relogio.restante <= 0
+    const depois = C.votar ? `<button class="btn big" type="button" data-a="ir" data-v="votos">${t.paraVotar}</button>` : botaoRevelar('data-a')
     return `<section class="imp-jogo">
       <div class="imp-topo"><span class="hint">${t.quemComeca}</span>
         <button class="linkish" type="button" data-a="ir" data-v="cartas">${C.lingua === 'en' ? 'Cards' : 'Cartas'}</button></div>
-      <div class="panel imp-dicas" style="${cor(R.comeca)}">
-        <div><span class="lbl">${t.quemComeca}</span><b class="imp-grande">${esc(nome(R.comeca))}</b><p>${t.sentido}</p></div>
-        <div class="imp-tempo"><b id="imp-relogio" class="${fim ? 'fim' : ''}">${fim ? t.acabou : textoRelogio()}</b>
-          <button class="btn green" type="button" id="imp-relogio-bt" data-a="relogio">${relogio.rodando ? t.pausar : relogio.restante < C.segs * 1000 && !fim ? t.continuar : t.iniciar}</button></div>
-      </div>
+      ${painelDicas(nome(R.comeca), R.comeca, relogio.restante, relogio.rodando, 'data-a="relogio"')}
       <div class="go-row">${depois}</div>
     </section>`
   }
@@ -278,42 +352,17 @@
 
   function telaFim() {
     const t = T()
-    const f = R.fim
-    const imp = R.impostores.map((p) => esc(nome(p))).join(' + ')
-    const titulo = f.semVotos ? (R.impostores.length > 1 ? t.eram : t.era) + ' ' + imp
-      : f.empate ? t.empate
-        : f.pego ? (R.impostores.length > 1 ? t.pegaramDois : t.pegaram)
-          : (R.impostores.length > 1 ? t.escaparam : t.escapou)
-    const quem = f.semVotos ? '' : `<p class="imp-quem-era">${R.impostores.length > 1 ? t.eram : t.era} <b>${imp}</b></p>`
-    const lado = (rotulo, key) => `<figure class="imp-lado"><span class="lbl">${rotulo}</span>
-      ${key ? capa(key) : '<span class="imp-verso grande"><b>?</b></span>'}<figcaption>${key ? esc(pers(key)) : t.nenhum}</figcaption></figure>`
-    const chute = !R.diferente && f.pego && f.adivinhou === null && C.votar
-      ? `<div class="imp-chute"><p>${t.adivinhou}</p><div class="go-row">
-          <button class="btn green" type="button" data-a="chute" data-v="1">${t.acertou}</button>
-          <button class="btn paper" type="button" data-a="chute" data-v="0">${t.errou}</button></div></div>` : ''
-    const jogadores = [...Array(C.n).keys()].map((p) => {
-      const key = ehImpostor(p) ? R.diferente : R.comum
-      return `<li class="imp-rev${ehImpostor(p) ? ' imp' : ''}" style="${cor(p)}">
-        <span class="imp-quem">${esc(nome(p))}</span>
-        ${key ? capa(key) : '<span class="imp-verso"><b>?</b></span>'}
-        ${ehImpostor(p) ? `<span class="imp-selo">${t.impostor}</span>` : ''}
-        ${f.semVotos ? '' : `<span class="imp-votos">${t.votos(f.contagem[p])}</span>`}
-        ${f.ganhos[p] ? `<span class="imp-ganho">${t.pontos(f.ganhos[p])}</span>` : ''}</li>`
-    }).join('')
-    return `<section class="imp-jogo">
-      <div class="panel imp-veredito${f.pego || f.semVotos ? ' pego' : ''}">
-        <h2>${titulo}</h2>${quem}
-        <div class="imp-dupla">${lado(t.comum, R.comum)}${lado(t.diferente, R.diferente)}</div>
-        ${chute}
-      </div>
-      <ul class="imp-revelados">${jogadores}</ul>
-      ${C.votar && !f.semVotos ? `<div class="panel"><h2>${t.placar}</h2>${listaPlacar(f.ganhos)}</div>` : ''}
-      <div class="go-row"><button class="btn paper" type="button" data-a="regras">${t.regras}</button>
-        <button class="btn big" type="button" data-a="nova">${t.nova}</button></div>
-    </section>`
+    return telaRevelacao({
+      nomes: [...Array(C.n).keys()].map(nome), impostores: R.impostores, comum: R.comum, diferente: R.diferente, fim: R.fim,
+      chute: !R.diferente && R.fim.pego && R.fim.adivinhou === null && C.votar ? 'data-a' : '',
+      placar: C.votar && !R.fim.semVotos ? listaPlacar(R.fim.ganhos) : '',
+      botoes: `<button class="btn paper" type="button" data-a="regras">${t.regras}</button>
+        <button class="btn big" type="button" data-a="nova">${t.nova}</button>`,
+    })
   }
 
   function render() {
+    if (online()) { el.innerHTML = window.ImpostorOnline.tela(); window.ImpostorOnline.depois(); return }
     if (tela !== 'regras' && !R) tela = 'regras'
     el.innerHTML = tela === 'regras' ? telaRegras() : tela === 'cartas' ? telaCartas()
       : tela === 'dicas' ? telaDicas() : tela === 'votos' ? telaVotos() : telaFim()
@@ -410,6 +459,12 @@
     abrir() {
       if (!pronto) pronto = V.load()
       pronto.then(render)
+    },
+    render,
+    // peças pro modo online
+    _: {
+      C, T, esc, cor, capa, pers, som, salvar, rand, MAX, sortearPar, contar, qtdImpostores, frente, textoRelogio, pintarRelogio,
+      blocoLingua, blocoModo, blocoOpcoes, listaPontos, painelDicas, telaRevelacao,
     },
   }
 })()
