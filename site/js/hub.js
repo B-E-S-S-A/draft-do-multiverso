@@ -1,26 +1,27 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor e o Aposto Que Sei. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei e as Minas. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), minas: document.getElementById('minas') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
   const LETREIRO = {
-    home: ['Banca do <em>Multiverso</em>', 'três jogos de personagens da Marvel'],
+    home: ['Banca do <em>Multiverso</em>', 'quatro jogos de personagens da Marvel'],
     draft: ['Draft do <em>Multiverso</em>', 'leilão de personagens · HQ e MCU'],
   }
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : LETREIRO[atual]
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'minas' ? window.Minas.letreiro() : LETREIRO[atual]
     h1.innerHTML = l[0]
     sub.textContent = l[1]
   }
 
   function ir(jogo) {
     if (atual === 'aposto' && jogo !== 'aposto') window.Aposto.esconder()
+    if (atual === 'minas' && jogo !== 'minas') window.Minas.esconder()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
     for (const [k, el] of Object.entries(telas)) el.hidden = k !== atual
@@ -28,6 +29,7 @@
     letreiro()
     if (atual === 'impostor') window.Impostor.abrir()
     if (atual === 'aposto') window.Aposto.abrir()
+    if (atual === 'minas') window.Minas.abrir()
     window.scrollTo(0, 0)
   }
 
@@ -79,6 +81,18 @@
           <button class="btn green" type="button" data-ir="aposto-online">Jogar online</button>
         </div>
       </article>
+      <article class="panel jogo">
+        ${leque([hq('venom'), hq('scarlet-witch'), hq('green-goblin')])}
+        <div class="jogo-texto">
+          <h2>Minas do Multiverso</h2>
+          <p>Cada um esconde 2 minas em nomes do tema. Dois duelam falando nomes, um de cada vez. Falou a mina de alguém? BOOM, perde uma vida. Último vivo ganha.</p>
+          <span class="lbl">2 a 7 jogadores · num celular só ou online · ninguém fica de fora</span>
+        </div>
+        <div class="jogo-btns">
+          <button class="btn big red" type="button" data-ir="minas">Jogar Minas</button>
+          <button class="btn green" type="button" data-ir="minas-online">Jogar online</button>
+        </div>
+      </article>
     </section>`
   }
 
@@ -88,6 +102,9 @@
     if (b.dataset.ir === 'draft-online') { ir('draft'); window.Draft.irParaSala() } else if (b.dataset.ir === 'impostor-online') {
       ir('impostor')
       setTimeout(() => { const n = document.getElementById('imp-on-nome'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
+    } else if (b.dataset.ir === 'minas-online') {
+      ir('minas')
+      setTimeout(() => { const n = document.getElementById('mn-meu'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
     } else if (b.dataset.ir === 'aposto-online') {
       ir('aposto')
       setTimeout(() => { const n = document.getElementById('ap-meu'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
@@ -106,6 +123,8 @@
     if (salaImp) { ir('impostor'); window.ImpostorOnline.entrar(salaImp[1]); return }
     const salaAp = pedido.match(/^aposto-([A-Za-z0-9]{4})$/)
     if (salaAp) { ir('aposto'); window.Aposto.entrar(salaAp[1]); return }
+    const salaMn = pedido.match(/^minas-([A-Za-z0-9]{4})$/)
+    if (salaMn) { ir('minas'); window.Minas.entrar(salaMn[1]); return }
     ir(telas[pedido] ? pedido : 'home')
   })
 })()

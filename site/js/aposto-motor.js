@@ -137,8 +137,8 @@
 
   // procura o nome digitado na lista do tema (sem acento, sem maiúscula, aceita apelido entre parênteses e erro de digitação pequeno)
   const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-  const formas = (nome) => [nome.replace(/\([^)]*\)/g, ' '), ...(nome.match(/\(([^)]*)\)/g) || []).map((x) => x.slice(1, -1))]
-    .flatMap((x) => x.split(/\s*[/,]\s*/)).map(norm).filter(Boolean)
+  const formas = (nome) => [norm(nome), ...[nome.replace(/\([^)]*\)/g, ' '), ...(nome.match(/\(([^)]*)\)/g) || []).map((x) => x.slice(1, -1))]
+    .flatMap((x) => x.split(/\s*[/,]\s*/)).map(norm)].filter(Boolean)
   function distancia(a, b) {
     const d = Array.from({ length: a.length + 1 }, (_, i) => [i])
     for (let k = 1; k <= b.length; k++) d[0][k] = k

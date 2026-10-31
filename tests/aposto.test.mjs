@@ -40,6 +40,11 @@ for (const t of temas) {
   assert.strictEqual(nome('Mistério'), 'Mysterio')
   assert.strictEqual(nome('Thanos'), null)
   assert.strictEqual(nome('Viúva Negra'), null)
+  // todo nome da lista se acha pelo próprio nome completo
+  for (const tema of temas) {
+    const m = T.montar(null, tema)
+    for (const [n] of tema.itens) assert.strictEqual(m.itens[M.achar(m, n)].n, n, `${tema.id}: ${n}`)
+  }
 }
 
 let rodadas = 0, provou = 0, correu = 0
