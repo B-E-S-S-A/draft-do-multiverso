@@ -1,34 +1,31 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor, a Bolsa e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft e o Impostor. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), bolsa: document.getElementById('bolsa'), missao: document.getElementById('missao') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
   const LETREIRO = {
-    home: ['Banca do <em>Multiverso</em>', 'jogos de personagens da Marvel pra turma'],
+    home: ['Banca do <em>Multiverso</em>', 'dois jogos de personagens da Marvel'],
     draft: ['Draft do <em>Multiverso</em>', 'leilão de personagens · HQ e MCU'],
   }
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'bolsa' ? window.Bolsa.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : LETREIRO[atual]
     h1.innerHTML = l[0]
     sub.textContent = l[1]
   }
 
   function ir(jogo) {
-    if (atual === 'bolsa' && jogo !== 'bolsa') window.Bolsa.esconder()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
     for (const [k, el] of Object.entries(telas)) el.hidden = k !== atual
     voltar.hidden = atual === 'home'
     letreiro()
     if (atual === 'impostor') window.Impostor.abrir()
-    if (atual === 'bolsa') window.Bolsa.abrir()
-    if (atual === 'missao') window.Missao.abrir()
     window.scrollTo(0, 0)
   }
 
@@ -68,29 +65,6 @@
           <button class="btn green" type="button" data-ir="impostor-online">Jogar online</button>
         </div>
       </article>
-      <article class="panel jogo">
-        ${leque([hq('iron-man'), hq('loki'), hq('howard')])}
-        <div class="jogo-texto">
-          <h2>Bolsa do Multiverso</h2>
-          <p>Os personagens viram ações e o Clarim Diário mexe nos preços. Compre na baixa, venda na alta… mas tem boato no ar e um Skrull que sabe todas as notícias.</p>
-          <span class="lbl">2 a 10 jogadores · cada um no seu celular · telão opcional</span>
-        </div>
-        <div class="jogo-btns">
-          <button class="btn big green" type="button" data-ir="bolsa">Jogar Bolsa</button>
-        </div>
-      </article>
-      <h2 class="home-secao">Pra noite toda <small>rola enquanto vocês fazem outra coisa</small></h2>
-      <article class="panel jogo">
-        ${leque([hq('black-widow'), hq('nick-fury'), hq('mystique')])}
-        <div class="jogo-texto">
-          <h2>Missão Secreta</h2>
-          <p>Cada um recebe uma missão com um alvo: "faça o Lipe dizer Wakanda". Cumpra sem ninguém perceber. Desconfiou de alguém? Te peguei!</p>
-          <span class="lbl">3 a 16 jogadores · cada um no seu celular · dá pra entrar no meio</span>
-        </div>
-        <div class="jogo-btns">
-          <button class="btn big red" type="button" data-ir="missao">Jogar Missão</button>
-        </div>
-      </article>
     </section>`
   }
 
@@ -113,10 +87,6 @@
     if (sala) { ir('draft'); window.Draft.entrarSala(sala[1]); return }
     const salaImp = pedido.match(/^imp-([A-Za-z0-9]{4})$/)
     if (salaImp) { ir('impostor'); window.ImpostorOnline.entrar(salaImp[1]); return }
-    const salaBo = pedido.match(/^bolsa-([A-Za-z0-9]{4})$/)
-    if (salaBo) { ir('bolsa'); window.Bolsa.entrar(salaBo[1]); return }
-    const salaMi = pedido.match(/^missao-([A-Za-z0-9]{4})$/)
-    if (salaMi) { ir('missao'); window.Missao.entrar(salaMi[1]); return }
     ir(telas[pedido] ? pedido : 'home')
   })
 })()
