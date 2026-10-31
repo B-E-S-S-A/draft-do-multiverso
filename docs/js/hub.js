@@ -1,31 +1,33 @@
-// Tela inicial da banca: escolhe entre o Draft e o Impostor. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft, o Impostor e o Aposto Que Sei. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
   const LETREIRO = {
-    home: ['Banca do <em>Multiverso</em>', 'dois jogos de personagens da Marvel'],
+    home: ['Banca do <em>Multiverso</em>', 'três jogos de personagens da Marvel'],
     draft: ['Draft do <em>Multiverso</em>', 'leilão de personagens · HQ e MCU'],
   }
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : LETREIRO[atual]
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : LETREIRO[atual]
     h1.innerHTML = l[0]
     sub.textContent = l[1]
   }
 
   function ir(jogo) {
+    if (atual === 'aposto' && jogo !== 'aposto') window.Aposto.esconder()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
     for (const [k, el] of Object.entries(telas)) el.hidden = k !== atual
     voltar.hidden = atual === 'home'
     letreiro()
     if (atual === 'impostor') window.Impostor.abrir()
+    if (atual === 'aposto') window.Aposto.abrir()
     window.scrollTo(0, 0)
   }
 
@@ -65,6 +67,18 @@
           <button class="btn green" type="button" data-ir="impostor-online">Jogar online</button>
         </div>
       </article>
+      <article class="panel jogo">
+        ${leque([hq('wolverine'), hq('green-goblin'), hq('groot')])}
+        <div class="jogo-texto">
+          <h2>Aposto Que Sei</h2>
+          <p>Sai um tema ("inimigos do Homem-Aranha") e cada um aposta quantos sabe. Quem apostou mais tem que provar na hora, tocando nas capas certas. Blefou e errou? Quem mandou provar leva os pontos.</p>
+          <span class="lbl">2 a 7 jogadores · num celular só ou online</span>
+        </div>
+        <div class="jogo-btns">
+          <button class="btn big" type="button" data-ir="aposto">Jogar Aposto</button>
+          <button class="btn green" type="button" data-ir="aposto-online">Jogar online</button>
+        </div>
+      </article>
     </section>`
   }
 
@@ -74,6 +88,9 @@
     if (b.dataset.ir === 'draft-online') { ir('draft'); window.Draft.irParaSala() } else if (b.dataset.ir === 'impostor-online') {
       ir('impostor')
       setTimeout(() => { const n = document.getElementById('imp-on-nome'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
+    } else if (b.dataset.ir === 'aposto-online') {
+      ir('aposto')
+      setTimeout(() => { const n = document.getElementById('ap-meu'); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
     } else ir(b.dataset.ir)
   })
   voltar.addEventListener('click', () => ir('home'))
@@ -87,6 +104,8 @@
     if (sala) { ir('draft'); window.Draft.entrarSala(sala[1]); return }
     const salaImp = pedido.match(/^imp-([A-Za-z0-9]{4})$/)
     if (salaImp) { ir('impostor'); window.ImpostorOnline.entrar(salaImp[1]); return }
+    const salaAp = pedido.match(/^aposto-([A-Za-z0-9]{4})$/)
+    if (salaAp) { ir('aposto'); window.Aposto.entrar(salaAp[1]); return }
     ir(telas[pedido] ? pedido : 'home')
   })
 })()

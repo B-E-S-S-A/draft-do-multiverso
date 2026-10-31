@@ -1,0 +1,114 @@
+/* Aposto Que Sei: um balcão de apostas no visual da banca. A grade de 16 capas fica virada durante as apostas
+   e abre quando alguém manda provar; cada toque vira ✓ ou ✗, e no fim aparece o que "tinha". */
+.ap { padding-block: 22px 56px }
+.ap-coluna { display: grid; gap: 26px; align-content: start }
+.ap-jogo { max-width: 760px; margin: 0 auto; padding-block: 18px 48px; display: grid; gap: 14px }
+.ap-placar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
+.ap-placar span { --cor: var(--p1); font-family: var(--display); font-size: 22px; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--cor); padding: 1px 10px 3px 7px }
+.ap-placar span.vez { outline: 3px solid var(--sun); outline-offset: 2px }
+.ap-placar span.fora { opacity: .5 }
+.ap-placar b { font-weight: 400; color: var(--cor) }
+.ap-placar small { font-family: var(--label); font-size: 10px; color: var(--muted) }
+
+.ap-tema { background: var(--ink); color: var(--paper); border: 4px solid var(--ink); box-shadow: 4px 4px 0 var(--sun-dk); padding: 10px 14px 12px; display: grid; gap: 2px }
+.ap-tema .lbl { color: var(--sun) }
+.ap-tema h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(32px, 7vw, 50px); line-height: .9 }
+.ap-tema small { font-family: var(--label); font-size: 11px; color: #cfc9b8 }
+.ap-tema small b { color: var(--sun); font-weight: 400 }
+
+/* ---------- apostas ---------- */
+.ap-mesa { display: grid; gap: 10px }
+.ap-lance { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; background: var(--sun); border: 4px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 6px 14px 8px }
+.ap-lance small { font-weight: 700; font-size: 16px }
+.ap-lance b { font-family: var(--display); font-weight: 400; font-size: 72px; line-height: .75; animation: ap-pula .3s cubic-bezier(.3, 1.6, .5, 1) }
+.ap-lance span { font-family: var(--label); font-size: 11px }
+@keyframes ap-pula { from { transform: scale(1.6) } }
+.ap-vez { --cor: var(--p1); display: flex; align-items: center; gap: 10px; border-left: 10px solid var(--cor); background: var(--paper); border-top: 3px solid var(--ink); border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink); padding: 6px 10px }
+.ap-vez .lbl { font-size: 13px; white-space: nowrap }
+.ap-relogio { position: relative; flex: 1 1 80px; height: 18px; border: 2px solid var(--ink); background: #e9e4d6 }
+.ap-relogio i { position: absolute; inset: 0 auto 0 0; background: var(--banca); transition: width .1s linear }
+.ap-relogio b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 400; font-size: 18px; color: #fff;
+  text-shadow: 2px 0 0 var(--ink), -2px 0 0 var(--ink), 0 2px 0 var(--ink), 0 -2px 0 var(--ink) }
+.ap-relogio.acabando i { background: var(--p1); animation: ap-pisca .5s steps(2) infinite }
+@keyframes ap-pisca { 50% { opacity: .5 } }
+.ap-acao { display: grid; gap: 10px }
+.ap-aposta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: stretch }
+.ap-aposta .btn.big { font-size: clamp(26px, 6.5vw, 36px) }
+.ap-prova-btn { font-size: clamp(30px, 8vw, 44px) !important; letter-spacing: .03em }
+.ap-hist { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px }
+.ap-hist span { --cor: var(--p1); background: var(--paper); border: 2px solid var(--ink); border-left: 6px solid var(--cor); padding: 1px 6px }
+.ap-hist span:last-of-type { animation: ap-entra .3s ease-out }
+.ap-hist i { font-style: normal; color: var(--muted) }
+@keyframes ap-entra { from { opacity: 0; transform: translateX(-8px) } }
+
+/* ---------- a grade de capas ---------- */
+.ap-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 560px; width: 100%; justify-self: center }
+.ap-tile { position: relative; aspect-ratio: 4 / 5; border: 0; padding: 0; background: none; perspective: 600px; cursor: default; touch-action: manipulation }
+.ap-face { position: absolute; inset: 0; display: grid; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); backface-visibility: hidden;
+  transition: transform .4s cubic-bezier(.3, 1.3, .5, 1); transition-delay: calc(var(--k) * 35ms) }
+.ap-verso { place-items: center; background: var(--banca); background-image: repeating-linear-gradient(135deg, transparent 0 8px, rgba(0, 0, 0, .12) 8px 16px) }
+.ap-verso b { font-family: var(--display); font-weight: 400; font-size: 34px; color: var(--sun); text-shadow: 3px 3px 0 var(--ink) }
+.ap-frente { transform: rotateY(180deg); background: #fff; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden }
+.ap-frente .cv { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; object-position: 50% 12% }
+.ap-frente small { font-family: var(--label); font-size: 9px; line-height: 1.15; text-align: center; padding: 3px 2px 4px; background: var(--paper); border-top: 2px solid var(--ink);
+  min-height: 2.6em; display: grid; place-items: center; overflow-wrap: anywhere }
+.ap-grade.aberta .ap-verso { transform: rotateY(-180deg) }
+.ap-grade.aberta .ap-frente { transform: rotateY(0) }
+.ap-grade.viva .ap-tile { cursor: pointer }
+.ap-grade.viva .ap-tile:hover .ap-frente { transform: translateY(-3px) }
+.ap-grade.viva .ap-tile:active .ap-frente { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink) }
+.ap-frente i { position: absolute; top: 4px; right: 4px; font-style: normal; font-family: var(--display); font-size: 26px; line-height: 1; padding: 0 6px 2px; border: 2px solid var(--ink); background: #fff }
+.ap-tile.ok .ap-frente { border-color: #1c8a4a; box-shadow: inset 0 0 0 3px #1c8a4a, 3px 3px 0 var(--ink) }
+.ap-tile.ok .ap-frente i { background: #1c8a4a; color: #fff; animation: ap-carimba .25s cubic-bezier(.3, 1.6, .5, 1) }
+.ap-tile.erro .ap-frente { border-color: var(--p1); box-shadow: inset 0 0 0 3px var(--p1), 3px 3px 0 var(--ink); animation: ap-treme .35s steps(4) }
+.ap-tile.erro .ap-frente i { background: var(--p1); color: #fff; animation: ap-carimba .25s cubic-bezier(.3, 1.6, .5, 1) }
+.ap-tile.tinha .ap-frente { border-style: dashed; border-color: var(--sun-dk); box-shadow: inset 0 0 0 3px var(--sun), 3px 3px 0 var(--ink) }
+.ap-tile.tinha .ap-frente i { background: var(--sun); font-family: var(--label); font-size: 10px; padding: 3px 5px }
+.ap-tile.apaga .ap-frente { opacity: .4; filter: grayscale(1) }
+@keyframes ap-carimba { from { transform: scale(2.4) rotate(-12deg); opacity: 0 } }
+@keyframes ap-treme { 25% { transform: translateX(-5px) } 50% { transform: translateX(5px) } 75% { transform: translateX(-3px) } }
+
+/* ---------- prova ---------- */
+.ap-provando { --cor: var(--p1); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; background: var(--paper);
+  border: 4px solid var(--ink); border-left: 12px solid var(--cor); box-shadow: 4px 4px 0 var(--ink); padding: 8px 12px }
+.ap-provando .lbl { grid-column: 1 / -1; color: var(--muted) }
+.ap-provando > b { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 7vw, 40px); line-height: .9 }
+.ap-pips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end }
+.ap-pips i { width: 16px; height: 16px; border: 3px solid var(--ink); background: #fff }
+.ap-pips i.on { background: #1c8a4a; animation: ap-carimba .25s ease-out }
+.ap-provando .ap-relogio, .ap-prepara { grid-column: 1 / -1 }
+.ap-prepara { font-family: var(--label); font-size: 11px; animation: ap-pisca .6s steps(2) infinite }
+body.ap-foco .awning, body.ap-foco .rodape { display: none }
+.fase-prova { padding-top: 10px; gap: 10px }
+.ap-tema-mini { grid-column: 1 / -1; font-weight: 700; font-size: 15px; line-height: 1.2 }
+
+.ap-passa, .ap-estouro { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(11, 10, 18, .8) }
+.ap-passa > div { width: min(100%, 440px); background: var(--paper); border: 4px solid var(--ink); border-top: 14px solid var(--sun); box-shadow: 8px 8px 0 #000;
+  padding: 16px 20px; display: grid; gap: 10px; text-align: center; justify-items: center; animation: ap-entra .3s ease-out }
+.ap-passa h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(36px, 9vw, 52px); line-height: .9 }
+.ap-passa p { margin: 0; font-size: 17px }
+.ap-estouro { background: rgba(11, 10, 18, .35); pointer-events: none; animation: ap-some 1.3s ease-in forwards }
+.ap-estouro b { font-family: var(--display); font-weight: 400; font-size: clamp(90px, 26vw, 220px); color: #fff; background: var(--p1); border: 6px solid var(--ink);
+  padding: 0 24px 8px; box-shadow: 10px 10px 0 var(--ink); transform: rotate(-8deg); animation: ap-bate .35s cubic-bezier(.3, 1.6, .5, 1) }
+@keyframes ap-bate { from { transform: rotate(-8deg) scale(3); opacity: 0 } }
+@keyframes ap-some { 75% { opacity: 1 } to { opacity: 0 } }
+
+/* ---------- resultado ---------- */
+.ap-resultado { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 6px 0 4px }
+.ap-carimbo { font-family: var(--display); font-weight: 400; font-size: clamp(56px, 15vw, 96px); line-height: .85; padding: 4px 18px 10px; border: 6px solid currentColor; margin-block: 4px 10px;
+  transform: rotate(-6deg); animation: ap-bate .4s cubic-bezier(.3, 1.6, .5, 1) }
+.ap-resultado.ok .ap-carimbo { color: #1c8a4a; background: #e3f7ea } .ap-resultado.erro .ap-carimbo { color: var(--p1); background: var(--p1-tint) }
+.ap-resultado p { margin: 0; font-size: 18px }
+.ap-resultado p b { --cor: var(--p1); color: var(--cor); font-family: var(--display); font-weight: 400; font-size: 28px; white-space: nowrap }
+
+/* ---------- fim ---------- */
+.ap-fimtela { padding-block: 22px 56px; display: grid; justify-items: center }
+.ap-fim { --cor: var(--p1); width: min(100%, 520px); border-top: 14px solid var(--cor); display: grid; gap: 12px }
+.ap-fim h2 { margin: 0; font-size: clamp(40px, 9vw, 56px); line-height: .9 }
+.ap-rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.ap-rank li { --cor: var(--p1); display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--ink); border-left: 10px solid var(--cor); padding: 2px 10px; font-weight: 700 }
+.ap-rank small { font-family: var(--label); font-size: 9px; font-weight: 400; color: var(--muted) }
+.ap-rank b { font-family: var(--display); font-weight: 400; font-size: 30px }
+@media (prefers-reduced-motion: reduce) {
+  .ap-face { transition: none } .ap-lance b, .ap-carimbo, .ap-estouro b, .ap-tile.erro .ap-frente, .ap-frente i, .ap-pips i.on { animation: none }
+}
