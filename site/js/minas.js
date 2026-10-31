@@ -78,7 +78,7 @@
     if (!H.J || p.j === undefined) return { ...base, fase: 'sala', pessoas: H.pessoas.map((x) => ({ nome: x.nome, bot: !!x.bot, on: x.on, voce: x === p, dono: x === H.pessoas[0] })) }
     const J = H.J
     const copia = (minas) => minas.map((m) => ({ n: m.n, explodiu: m.explodiu }))
-    const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, tema: { titulo: J.tema.titulo }, par: [...J.par], falando: J.par[J.vez], dobro: J.dobro,
+    const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vidasIni: J.vidas, tema: { titulo: J.tema.titulo }, par: [...J.par], falando: J.par[J.vez], dobro: J.dobro,
       ultimo: J.ultimo && { ...J.ultimo }, falas: J.falas.map((f) => ({ ...f })), plantando: J.plantando, evento: J.evento && { ...J.evento },
       js: J.js.map((x) => ({ nome: x.nome, vidas: x.vidas, bot: x.bot, plantou: x.minas.length >= 2, boomsDados: x.boomsDados })),
       resta: H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur }
@@ -113,7 +113,11 @@
   const fazer = (msg) => {
     if (H) { const r = acao(H.pessoas[0], msg); if (r) plantou(r) } else sala.enviar(msg)
   }
-  function plantou(r) { ui.aviso = r.ok ? '' : AVISOS[r.motivo] || ''; if (r.ok) { ui.mina = ''; som('draw') } else som('undo'); render() }
+  function plantou(r) {
+    ui.aviso = r.ok ? '' : AVISOS[r.motivo] || ''
+    if (r.ok) { ui.mina = ''; const c = document.getElementById('mn-mina'); if (c) c.value = ''; som('draw') } else som('undo')
+    render()
+  }
 
   // ---------- sala online ----------
   sala.aoStatus = (st) => {

@@ -3,7 +3,11 @@
   const esc = window.View.esc
   const cor = (i) => `--cor: var(--c${i % 10})`
   const nome = (v, j) => (v.js[j] ? v.js[j].nome : '?')
-  const coracoes = (n) => (n > 0 ? '♥'.repeat(n) : '☠')
+  // pixel art: coração (cheio = vida, vazio = vida perdida) e a bomba das minas
+  const CORACAO = '<svg class="mn-px mn-cor" viewBox="0 0 7 6" aria-hidden="true"><path d="M1 0h2v1h1V0h2v1h1v2H6v1H5v1H4v1H3V5H2V4H1V3H0V1h1z"/><path class="brilho" d="M1 1h1v1H1z"/></svg>'
+  const BOMBA = '<svg class="mn-px mn-bomba" viewBox="0 0 10 10" aria-hidden="true"><path class="faisca" d="M7 0h1v1H7zM6 1h1v1H6zM8 1h1v1H8z"/><path class="pavio" d="M6 2h1v1H6zM5 3h1v1H5z"/>'
+    + '<path d="M3 3h2v1h1v1h1v1h1v2H7v1H6v1H3V9H2V8H1V6h1V5h1z"/><path class="brilho" d="M2 6h1v1H2zM3 5h1v1H3z"/></svg>'
+  const coracoes = (n, ini = 3) => (n > 0 ? Array.from({ length: Math.max(n, ini) }, (_, k) => `<span class="${k < n ? '' : 'vazio'}">${CORACAO}</span>`).join('') : '<span class="mn-fora">fora</span>')
   const relogio = () => '<span class="ap-relogio mn-relogio"><i data-x="barra"></i><b data-x="seg"></b></span>'
 
   const COMO = `<ol class="how">
@@ -16,7 +20,7 @@
 
   function vidas(sel, pode) {
     return `<div class="field"><span class="lbl">Vidas</span><div class="presets">${[2, 3, 4].map((x) =>
-      `<button class="preset" type="button" data-m="vidas" data-v="${x}" aria-pressed="${sel === x}"${pode ? '' : ' disabled'}>${coracoes(x)} ${x}</button>`).join('')}</div></div>`
+      `<button class="preset mn-vidas" type="button" data-m="vidas" data-v="${x}" aria-pressed="${sel === x}"${pode ? '' : ' disabled'}><span class="mn-coracoes">${coracoes(x, x)}</span> ${x} vidas</button>`).join('')}</div></div>`
   }
 
   // ---------- antes de jogar ----------
@@ -74,17 +78,19 @@
 
   // ---------- jogo ----------
   function placar(v) {
-    return `<div class="mn-placar">${v.js.map((p, i) => `<span class="${p.vidas <= 0 ? 'fora' : ''}${v.par.includes(i) && v.fase === 'duelo' ? ' duela' : ''}" style="${cor(i)}">${esc(p.nome)} <b>${coracoes(p.vidas)}</b></span>`).join('')}
+    return `<div class="mn-placar">${v.js.map((p, i) => `<span class="${p.vidas <= 0 ? 'fora' : ''}${v.par.includes(i) && v.fase === 'duelo' ? ' duela' : ''}" style="${cor(i)}">${esc(p.nome)} <b class="mn-coracoes">${coracoes(p.vidas, v.vidasIni)}</b></span>`).join('')}
       ${v.dobro ? '<small class="mn-dobro">cada erro tira 2</small>' : ''}</div>`
   }
 
   function tema(v) {
-    return `<div class="mn-tema"><span class="mn-faixa" aria-hidden="true"></span><span class="ap-rodada">duelo ${v.rodada}</span><h2>${esc(v.tema.titulo)}</h2></div>`
+    return `<div class="mn-tema"><span class="mn-faixa" aria-hidden="true"></span><span class="ap-rodada">duelo ${v.rodada}</span><h2>${esc(v.tema.titulo)}</h2>
+      <span class="mn-fileira" aria-hidden="true">${BOMBA.repeat(7)}</span></div>`
   }
 
   // plantio: num celular só o aparelho passa de mão em mão; online cada um planta no seu
   function plantar(v, ui) {
-    const feitos = v.js.map((p, i) => `<span class="${p.plantou ? 'ok' : ''}" style="${cor(i)}">${esc(p.nome)} ${p.plantou ? '💣💣' : '…'}</span>`).join('')
+    const feitos = v.js.map((p, i) => `<span class="${p.plantou ? 'ok' : ''}" style="${cor(i)}">${esc(p.nome)} ${p.plantou ? BOMBA + BOMBA : '<i>plantando…</i>'}</span>`).join('')
+    const casas = (minhas) => `<div class="mn-casas">${[0, 1].map((k) => minhas[k] ? `<span class="cheia">${BOMBA}<b>${esc(minhas[k].n)}</b></span>` : `<span class="vazia"><i>?</i><b>mina ${k + 1}</b></span>`).join('')}</div>`
     let meio
     const quem = ui.local ? v.plantando : v.eu
     if (quem < 0 || quem === undefined) meio = '<p class="hint">Esperando…</p>'
@@ -94,11 +100,11 @@
     } else {
       const minhas = (ui.local ? v.todas && v.todas[quem] : v.minhas) || []
       meio = minhas.length >= 2
-        ? `<div class="mn-plantio" style="${cor(quem)}"><span class="lbl">suas minas</span><div class="mn-minas">${minhas.map((m) => `<span>💣 ${esc(m.n)}</span>`).join('')}</div>
+        ? `<div class="mn-plantio" style="${cor(quem)}"><span class="lbl">suas minas estão no campo</span>${casas(minhas)}
             ${ui.local ? '<button class="btn big" type="button" data-m="esconder">Pronto, esconde e passa</button>' : '<p class="hint">Esperando os outros plantarem…</p>'}</div>`
         : `<div class="mn-plantio" style="${cor(quem)}"><span class="lbl">${esc(nome(v, quem))}: plante a mina ${minhas.length + 1} de 2</span>
             <p class="note">Digite um nome que vale pra <b>${esc(v.tema.titulo)}</b>. Dica: mine o que os outros vão falar.</p>
-            ${minhas.length ? `<div class="mn-minas">${minhas.map((m) => `<span>💣 ${esc(m.n)}</span>`).join('')}</div>` : ''}
+            ${casas(minhas)}
             <div class="online-row mn-campo"><input id="mn-mina" maxlength="40" autocomplete="off" autocapitalize="words" enterkeyhint="go" value="${esc(ui.mina || '')}">
               <button class="btn red" type="button" data-m="plantar">Plantar</button></div>
             ${ui.aviso ? `<p class="neterr" role="alert">${esc(ui.aviso)}</p>` : ''}</div>`
@@ -110,7 +116,7 @@
     const [a, b] = v.par
     const fala = v.falando
     const ult = v.ultimo
-    const falas = v.falas.map((f) => `<span style="${cor(f.j)}">${f.nome ? esc(f.nome) : '🗣'}</span>`).join('')
+    const falas = v.falas.map((f) => `<span style="${cor(f.j)}">${f.nome ? esc(f.nome) : '…'}</span>`).join('')
     const souFala = ui.local ? !v.js[fala].bot : v.eu === fala
     const posso = (j) => ui.local || v.eu === j
     // BOOM: no próprio celular aparecem as suas minas; num celular só, escolhe o dono e depois a mina
@@ -118,10 +124,10 @@
     if (ult) {
       if (!ui.local && v.minhas && v.eu !== ult.j) {
         const vivas = v.minhas.map((m, k) => ({ ...m, k })).filter((m) => !m.explodiu)
-        if (vivas.length) boom = `<div class="mn-boom-row">${vivas.map((m) => `<button class="btn red mn-boom" type="button" data-m="boom" data-v="${m.k}" data-dono="${v.eu}">BOOM! <small>${esc(m.n)}</small></button>`).join('')}</div>`
+        if (vivas.length) boom = `<div class="mn-boom-row">${vivas.map((m) => `<button class="mn-boom" type="button" data-m="boom" data-v="${m.k}" data-dono="${v.eu}"><b>BOOM!</b><small>${esc(m.n)}</small></button>`).join('')}</div>`
       }
       if (ui.local) boom = ui.boomDono === undefined
-        ? `<button class="btn red mn-boom grande" type="button" data-m="boom-abre">BOOM! <small>falaram a minha mina</small></button>`
+        ? `<button class="mn-boom grande" type="button" data-m="boom-abre"><b>BOOM!</b><small>falaram a minha mina</small></button>`
         : boomLocal(v, ui)
     }
     const outro = ult ? (ult.j === a ? b : a) : -1
@@ -133,16 +139,16 @@
         : `<button class="btn paper mn-duvido" type="button" data-m="abre-duvida">${ui.local ? esc(nome(v, outro)) + ': ' : ''}DUVIDO do último nome</button>`)
       : ''
     return `<div class="mn-arena">
-        <span class="mn-lado${fala === a ? ' vez' : ''}" style="${cor(a)}">${esc(nome(v, a))}<b>${coracoes(v.js[a].vidas)}</b></span>
-        <i>⚔</i>
-        <span class="mn-lado${fala === b ? ' vez' : ''}" style="${cor(b)}">${esc(nome(v, b))}<b>${coracoes(v.js[b].vidas)}</b></span>
+        <span class="mn-lado${fala === a ? ' vez' : ''}" style="${cor(a)}"><small>${fala === a ? 'falando' : 'escutando'}</small>${esc(nome(v, a))}<b class="mn-coracoes">${coracoes(v.js[a].vidas, v.vidasIni)}</b></span>
+        <i class="mn-vs" aria-hidden="true">VS</i>
+        <span class="mn-lado dir${fala === b ? ' vez' : ''}" style="${cor(b)}"><small>${fala === b ? 'falando' : 'escutando'}</small>${esc(nome(v, b))}<b class="mn-coracoes">${coracoes(v.js[b].vidas, v.vidasIni)}</b></span>
       </div>
       <div class="mn-vez" style="${cor(fala)}"><span class="lbl">vez de ${esc(nome(v, fala))}</span>${relogio()}</div>
-      ${souFala ? `<button class="btn big mn-falei" type="button" data-m="falei">FALEI! <small>${ui.local ? esc(nome(v, fala)) + ' fala um nome e toca' : 'fale um nome e toque'}</small></button>` : ''}
+      ${souFala ? `<button class="mn-falei" type="button" data-m="falei" style="${cor(fala)}"><b>FALEI!</b><small>${ui.local ? esc(nome(v, fala)) + ' fala um nome e toca' : 'fale um nome e toque'}</small></button>` : ''}
       ${ult && ult.nome ? `<p class="mn-ultimo" style="${cor(ult.j)}">${esc(nome(v, ult.j))} falou: <b>${esc(ult.nome)}</b></p>` : ''}
       <div class="mn-falas">${falas || '<small>ninguém falou ainda</small>'}</div>
       ${boom}${duvida}
-      ${!ui.local && v.minhas ? `<p class="mn-suas">suas minas: ${v.minhas.map((m) => `<span class="${m.explodiu ? 'foi' : ''}">💣 ${esc(m.n)}</span>`).join(' ')}</p>` : ''}`
+      ${!ui.local && v.minhas ? `<p class="mn-suas"><span class="lbl">suas minas</span>${v.minhas.map((m) => `<span class="${m.explodiu ? 'foi' : ''}">${BOMBA}${esc(m.n)}</span>`).join('')}</p>` : ''}`
   }
 
   function boomLocal(v, ui) {
@@ -155,21 +161,22 @@
     }
     const minas = (v.todas[ui.boomDono] || []).map((m, k) => ({ ...m, k })).filter((m) => !m.explodiu)
     return `<div class="ap-juiz mn-boom-escolhe"><span class="lbl">${esc(nome(v, ui.boomDono))}, qual mina explodiu?</span>
-      <div class="mn-boom-row">${minas.map((m) => `<button class="btn red mn-boom" type="button" data-m="boom" data-v="${m.k}" data-dono="${ui.boomDono}">BOOM! <small>${esc(m.n)}</small></button>`).join('')}</div>
+      <div class="mn-boom-row">${minas.map((m) => `<button class="mn-boom" type="button" data-m="boom" data-v="${m.k}" data-dono="${ui.boomDono}"><b>BOOM!</b><small>${esc(m.n)}</small></button>`).join('')}</div>
       <button class="linkish" type="button" data-m="boom-fecha">não era (cancelar)</button></div>`
   }
 
   function evento(v) {
     const e = v.evento
     const perdeu = `${esc(nome(v, e.vitima))} perde ${e.dobro ? '2 vidas' : '1 vida'}`
-    if (e.tipo === 'boom') return `<div class="mn-evento boom"><b class="mn-bum">BOOM!</b><p><b>${esc(e.mina)}</b> era mina de ${esc(nome(v, e.dono))}.</p><p>${perdeu}. ${esc(nome(v, e.dono))} ganha 1.</p></div>`
-    if (e.tipo === 'duvido') return `<div class="mn-evento ${e.vale ? 'vale' : 'boom'}"><b class="mn-bum">${e.vale ? 'VALE!' : 'NÃO VALE!'}</b>
-      <p>${esc(nome(v, e.quem))} duvidou de "${esc(e.texto)}"${e.vale ? ` (era ${esc(e.nome)})` : ''}.</p><p>${perdeu}.</p></div>`
-    return `<div class="mn-evento boom"><b class="mn-bum">TRAVOU!</b><p>${esc(nome(v, e.vitima))} ficou 10 segundos sem falar. ${perdeu}.</p></div>`
+    if (e.tipo === 'boom') return `<div class="mn-evento boom"><span class="mn-estrela" aria-hidden="true"></span><b class="mn-bum">BOOM!</b><p class="mn-legenda"><b>${esc(e.mina)}</b> era mina de ${esc(nome(v, e.dono))}.<br>${perdeu}. ${esc(nome(v, e.dono))} ganha 1.</p></div>`
+    if (e.tipo === 'duvido') return `<div class="mn-evento ${e.vale ? 'vale' : 'boom'}">${e.vale ? '' : '<span class="mn-estrela" aria-hidden="true"></span>'}<b class="mn-bum">${e.vale ? 'VALE!' : 'NÃO VALE!'}</b>
+      <p class="mn-legenda">${esc(nome(v, e.quem))} duvidou de "${esc(e.texto)}"${e.vale ? ` (era ${esc(e.nome)})` : ''}.<br>${perdeu}.</p></div>`
+    return `<div class="mn-evento boom"><span class="mn-estrela" aria-hidden="true"></span><b class="mn-bum">TRAVOU!</b><p class="mn-legenda">${esc(nome(v, e.vitima))} ficou 10 segundos sem falar.<br>${perdeu}.</p></div>`
   }
 
   function campo(v) {
-    return `<div class="mn-campo-revelado"><span class="lbl">as minas do campo</span>${v.evento.minas.map((r) => `<p style="${cor(r.j)}"><b>${esc(nome(v, r.j))}</b> ${r.minas.map((m) => `<span class="${m.explodiu ? 'foi' : ''}">💣 ${esc(m.n)}</span>`).join('')}</p>`).join('')}</div>`
+    return `<div class="mn-campo-revelado"><span class="lbl">as minas que estavam no campo</span><div class="mn-grade">${v.evento.minas.map((r) => r.minas.map((m) =>
+      `<span class="mn-mina${m.explodiu ? ' foi' : ''}" style="${cor(r.j)}">${BOMBA}<b>${esc(m.n)}</b><small>${esc(nome(v, r.j))}</small></span>`).join('')).join('')}</div></div>`
   }
 
   function resultado(v, ui) {
@@ -207,7 +214,7 @@
     const ordem = v.js.map((p, i) => i).sort((a, b) => (v.js[b].vidas > 0) - (v.js[a].vidas > 0) || v.js[b].boomsDados - v.js[a].boomsDados)
     return `<section class="ap-fimtela"><div class="panel ap-fim" style="${cor(vivo)}">
       <span class="lbl">fim do campo minado</span><h2>${esc(nome(v, vivo))} sobreviveu!</h2>
-      <ol class="ap-rank">${ordem.map((i) => { const p = v.js[i]; return `<li style="${cor(i)}"><span>${esc(p.nome)} <small>${p.boomsDados} BOOM${p.boomsDados === 1 ? '' : 's'} dado${p.boomsDados === 1 ? '' : 's'}</small></span><b>${coracoes(p.vidas)}</b></li>` }).join('')}</ol>
+      <ol class="ap-rank">${ordem.map((i) => { const p = v.js[i]; return `<li style="${cor(i)}"><span>${esc(p.nome)} <small>${p.boomsDados} BOOM${p.boomsDados === 1 ? '' : 's'} dado${p.boomsDados === 1 ? '' : 's'}</small></span><b class="mn-coracoes">${coracoes(p.vidas, 1)}</b></li>` }).join('')}</ol>
       <div class="online-row">${ui.podeSeguir ? '<button class="btn big" type="button" data-m="denovo">Jogar de novo</button>' : ''}<button class="linkish" type="button" data-m="sair">sair</button></div>
     </div></section>`
   }
