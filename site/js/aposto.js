@@ -23,17 +23,17 @@
   })()
 
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-aposto') || '{}') } catch (e) { return {} } })()
-  const modoSalvo = salvo.modo === 'classico' ? 'classico' : 'raridade'
-  const ui = { n: Math.min(7, Math.max(2, Number(salvo.n) || 3)), nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 7) : [], modo: modoSalvo,
-    meta: T.DURACAO[modoSalvo].includes(salvo.meta) ? salvo.meta : T.DURACAO[modoSalvo][1],
+  const rarSalva = salvo.raridade === true
+  const ui = { n: Math.min(7, Math.max(2, Number(salvo.n) || 3)), nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 7) : [],
+    raridade: rarSalva, truco: salvo.truco !== false, meta: T.DURACAO(rarSalva).includes(salvo.meta) ? salvo.meta : T.DURACAO(rarSalva)[1],
     meuNome: guarda('mvd-imp-nome'), codigo: '', erro: '', status: '', msg: '', valor: 0, base: '', estouro: '', letra: '' }
-  const salvar = () => guarda('mvd-aposto', JSON.stringify({ n: ui.n, nomes: ui.nomes, modo: ui.modo, meta: ui.meta }))
+  const salvar = () => guarda('mvd-aposto', JSON.stringify({ n: ui.n, nomes: ui.nomes, raridade: ui.raridade, truco: ui.truco, meta: ui.meta }))
   let H = null
   let vis = null
   let prazoLocal = 0
 
   // ---------- anfitrião ----------
-  function novoHost(local, pessoas) { H = { local, pessoas, modo: ui.modo, meta: ui.meta, J: null, prazo: 0, dur: 0, botEm: 0, inicio: 0, seguirEm: 0, fs: '', sig: '', laco: 0 } }
+  function novoHost(local, pessoas) { H = { local, pessoas, raridade: ui.raridade, truco: ui.truco, meta: ui.meta, J: null, prazo: 0, dur: 0, botEm: 0, inicio: 0, seguirEm: 0, fs: '', sig: '', laco: 0 } }
   const nomeBot = () => BOTS.find((n) => !H.pessoas.some((p) => p.nome === n)) || 'Bot ' + H.pessoas.length
   const poeBot = () => H.pessoas.push({ id: 'bot-' + Math.random().toString(36).slice(2, 7), nome: nomeBot(), bot: true, on: true, nivel: 0.35 + Math.random() * 0.45 })
 
@@ -41,7 +41,7 @@
     const jogam = H.pessoas.filter((p) => p.on)
     if (jogam.length < 2) return
     H.pessoas.forEach((p) => { p.j = jogam.indexOf(p) })
-    H.J = M.novoJogo({ jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: p.nivel })), meta: H.meta, modo: H.modo, temas: window.ApostoTemas.todos() })
+    H.J = M.novoJogo({ jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: p.nivel })), meta: H.meta, raridade: H.raridade, truco: H.truco, temas: window.ApostoTemas.todos() })
     H.fs = ''
     clearInterval(H.laco)
     H.laco = setInterval(tick, 150)
@@ -92,11 +92,11 @@
   }
 
   function visao(p) {
-    const base = { code: sala.st.code, dono: p === H.pessoas[0], meta: H.meta, modo: H.modo, local: H.local }
+    const base = { code: sala.st.code, dono: p === H.pessoas[0], meta: H.meta, raridade: H.raridade, truco: H.truco, local: H.local }
     if (!H.J || p.j === undefined) return { ...base, fase: 'sala', pessoas: H.pessoas.map((x) => ({ nome: x.nome, bot: !!x.bot, on: x.on, voce: x === p, dono: x === H.pessoas[0] })) }
     const J = H.J
     const pessoaDe = (i) => H.pessoas.find((x) => x.j === i)
-    const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vez: J.vez, MULT: M.MULT, GRITO: M.GRITO, meta: J.meta, modo: J.modo,
+    const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vez: J.vez, MULT: M.MULT, GRITO: M.GRITO, meta: J.meta, raridade: J.raridade, comTruco: J.comTruco,
       // cópias: neste aparelho a visão anterior fica guardada pra comparar (sons), então não pode ser o mesmo objeto do motor
       lance: J.lance && { ...J.lance }, hist: J.hist.map((h) => ({ ...h })), truco: J.truco && { ...J.truco, gritos: J.truco.gritos.map((g) => ({ ...g })) },
       js: J.js.map((x, i) => ({ nome: x.nome, pts: x.pts, bot: x.bot, provas: x.provas, acertou: x.acertou, on: (pessoaDe(i) || {}).on !== false })),
@@ -261,10 +261,13 @@
   const nomesLocais = () => Array.from({ length: ui.n }, (_, i) => (ui.nomes[i] || '').trim() || `Jogador ${i + 1}`)
   const acoes = {
     n: (v) => { ui.n = Math.min(7, Math.max(2, ui.n + Number(v))); salvar(); render() },
-    modo: (v) => {
-      const modo = v === 'classico' ? 'classico' : 'raridade'
-      const meta = T.DURACAO[modo][1]
-      if (H && !H.J) { H.modo = modo; H.meta = meta; enviarTudo() } else { ui.modo = modo; ui.meta = meta; salvar(); render() }
+    // liga/desliga Truco e Raridade (com Raridade a partida vai mais longe em pontos)
+    opt: (k) => {
+      if (k !== 'truco' && k !== 'raridade') return
+      const alvo = H && !H.J ? H : ui
+      alvo[k] = !alvo[k]
+      if (k === 'raridade') alvo.meta = T.DURACAO(alvo.raridade)[1]
+      if (alvo === H) enviarTudo(); else { salvar(); render() }
     },
     meta: (v) => { if (H && !H.J) { H.meta = Number(v); enviarTudo() } else { ui.meta = Number(v); salvar(); render() } },
     local: () => { novoHost(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true }))); comecar() },

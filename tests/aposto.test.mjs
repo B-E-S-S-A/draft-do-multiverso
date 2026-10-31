@@ -18,7 +18,7 @@ for (const t of temas) {
 
 // truco: correr dá os pontos do nível aceito pro outro lado
 {
-  const J = M.novoJogo({ jogadores: [{ nome: 'a' }, { nome: 'b' }], modo: 'classico', temas })
+  const J = M.novoJogo({ jogadores: [{ nome: 'a' }, { nome: 'b' }], truco: true, temas })
   J.vez = 0
   M.apostar(J, 0, 5); M.mandarProvar(J, 1)
   assert.strictEqual(J.fase, 'truco')
@@ -29,10 +29,10 @@ for (const t of temas) {
 }
 
 let rodadas = 0, provou = 0, correu = 0
-for (const modo of ['raridade', 'classico']) {
-  for (let g = 0; g < 200; g++) {
+for (const [raridade, truco] of [[true, false], [false, true], [true, true], [false, false]]) {
+  for (let g = 0; g < 100; g++) {
     const n = 2 + (g % 6)
-    const J = M.novoJogo({ jogadores: Array.from({ length: n }, (_, i) => ({ nome: 'b' + i, bot: true, nivel: 0.3 + Math.random() * 0.6 })), modo, temas })
+    const J = M.novoJogo({ jogadores: Array.from({ length: n }, (_, i) => ({ nome: 'b' + i, bot: true, nivel: 0.3 + Math.random() * 0.6 })), raridade, truco, temas })
     let passos = 0
     while (J.fase !== 'fim' && passos++ < 20000) {
       if (J.fase === 'lances') { const antes = J.lance ? J.lance.n : 0; M.botVez(J, J.vez); if (J.fase === 'lances') assert(J.lance.n > antes) }
@@ -40,7 +40,7 @@ for (const modo of ['raridade', 'classico']) {
       else if (J.fase === 'prova') { J.prova.comecou = true; if (Math.random() < 0.01) M.tempoAcabou(J); else M.botFala(J, J.prova.j) }
       else if (J.fase === 'resultado') { rodadas++; if (J.resultado.ok) provou++; if (J.resultado.motivo === 'correu') correu++; M.proximo(J) }
     }
-    assert.strictEqual(J.fase, 'fim', `partida ${modo} terminou`)
+    assert.strictEqual(J.fase, 'fim', `partida (raridade ${raridade}, truco ${truco}) terminou`)
   }
 }
 console.log(`ok · ${temas.length} temas · 400 partidas de bots · ${Math.round(rodadas / 400)} rodadas por partida · provaram ${Math.round(100 * provou / rodadas)}% · correram ${correu}`)

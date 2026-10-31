@@ -1,9 +1,32 @@
-/* Aposto Que Sei: um balcão de apostas no visual da banca. Na prova, quem prova fala e o juiz toca nos nomes
-   da lista oficial (separada por letra pra achar rápido); a barra enche até a aposta. */
+/* Aposto Que Sei: uma mesa de apostas no visual da banca. Feltro verde com fichas na cor de cada jogador,
+   tema numa faixa de manchete, e a lista do juiz separada por letra. Raridade: comum (branco), raro (azul), lendário (ouro). */
 .ap { padding-block: 22px 56px }
 .ap-coluna { display: grid; gap: 26px; align-content: start }
-.ap-modos { grid-template-columns: repeat(2, minmax(0, 1fr)) }
-.ap-modos .mode b { font-size: 28px }
+
+/* ---------- opções (chaves de liga/desliga) ---------- */
+.ap-opcoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px }
+.ap-opcao { position: relative; display: grid; gap: 4px; align-content: start; justify-items: start; text-align: left; background: #fff; border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink); padding: 10px 12px 12px; border-top-width: 10px; border-top-color: #cfc9b8; transition: transform .08s steps(2) }
+.ap-opcao b { font-family: var(--display); font-weight: 400; font-size: 30px; line-height: .9 }
+.ap-opcao small { font-size: 13px; color: var(--muted); line-height: 1.25 }
+.ap-opcao[aria-pressed="true"] { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink) }
+.ap-opcao.truco[aria-pressed="true"] { border-top-color: var(--p1); background: #fff6f3 }
+.ap-opcao.raridade[aria-pressed="true"] { border-top-color: var(--sun); background: #fffbea }
+.ap-opcao:not([aria-pressed="true"]) .ap-selo, .ap-opcao:not([aria-pressed="true"]) .ap-gemas { filter: grayscale(1); opacity: .45 }
+.ap-opcao:disabled { cursor: default }
+.ap-chave { position: absolute; top: 8px; right: 8px; width: 42px; height: 22px; border: 3px solid var(--ink); background: #e4e1d8 }
+.ap-chave i { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; background: var(--ink); transition: left .15s steps(3) }
+.ap-opcao[aria-pressed="true"] .ap-chave { background: var(--banca) }
+.ap-opcao[aria-pressed="true"] .ap-chave i { left: 22px; background: #fff }
+.ap-selo { display: inline-block; font-family: var(--display); font-size: 22px; line-height: 1; color: var(--p1); border: 3px solid var(--p1); padding: 1px 8px 3px; transform: rotate(-4deg); margin-top: 4px }
+.ap-selo.claro { color: #cfc9b8; border-color: #6d6880; font-family: var(--label); font-size: 10px; padding: 3px 6px; transform: none }
+.ap-gemas { display: inline-flex; gap: 4px; flex-wrap: wrap; margin-top: 4px }
+.ap-gema { font-style: normal; font-family: var(--label); font-size: 10px; line-height: 1; padding: 3px 5px; border: 2px solid var(--ink); white-space: nowrap }
+.ap-gema.r1 { background: #fff; color: var(--ink) }
+.ap-gema.r2 { background: var(--p2); color: #fff }
+.ap-gema.r3 { background: linear-gradient(180deg, #ffe680, #f0a800); color: var(--ink); box-shadow: 0 0 0 2px #fff5c2 inset }
+
+/* ---------- jogo ---------- */
 .ap-jogo { max-width: 760px; margin: 0 auto; padding-block: 18px 48px; display: grid; gap: 14px }
 .ap-placar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
 .ap-placar span { --cor: var(--p1); font-family: var(--display); font-size: 22px; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--cor); padding: 1px 10px 3px 7px }
@@ -12,18 +35,33 @@
 .ap-placar b { font-weight: 400; color: var(--cor) }
 .ap-placar small { font-family: var(--label); font-size: 10px; color: var(--muted) }
 
-.ap-tema { background: var(--ink); color: var(--paper); border: 4px solid var(--ink); box-shadow: 4px 4px 0 var(--sun-dk); padding: 10px 14px 12px; display: grid; gap: 4px }
-.ap-tema .lbl { color: var(--sun) }
-.ap-tema h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(32px, 7vw, 50px); line-height: .9 }
-.ap-tema small { font-size: 13px; color: #cfc9b8 }
+/* o tema numa faixa de manchete, com retícula de gibi */
+.ap-tema { position: relative; background-color: var(--ink); background-image: radial-gradient(rgba(255, 255, 255, .08) 1.5px, transparent 1.6px); background-size: 8px 8px;
+  color: var(--paper); border: 4px solid var(--ink); box-shadow: 5px 5px 0 var(--sun-dk); padding: 14px 16px 12px; display: grid; gap: 8px }
+.ap-tema.novo { animation: ap-desce .35s cubic-bezier(.3, 1.4, .5, 1) }
+.ap-rodada { justify-self: start; font-family: var(--label); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; background: var(--sun); color: var(--ink); padding: 3px 8px 2px }
+.ap-tema h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(34px, 8vw, 54px); line-height: .88; text-shadow: 3px 3px 0 #000 }
+.ap-selos { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
+.ap-tema .ap-selo { color: #ff8f80; border-color: #ff8f80; font-size: 18px; margin: 0 }
+@keyframes ap-desce { from { transform: translateY(-14px); opacity: 0 } }
 
-/* ---------- apostas e truco ---------- */
+/* ---------- a mesa de apostas ---------- */
 .ap-mesa { display: grid; gap: 10px }
-.ap-lance { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; background: var(--sun); border: 4px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 6px 14px 8px }
-.ap-lance small { font-weight: 700; font-size: 16px }
-.ap-lance b { font-family: var(--display); font-weight: 400; font-size: 72px; line-height: .75; animation: ap-pula .3s cubic-bezier(.3, 1.6, .5, 1) }
-.ap-lance span { font-family: var(--label); font-size: 11px }
-@keyframes ap-pula { from { transform: scale(1.6) } }
+.ap-feltro { display: flex; align-items: center; gap: 14px; color: #fff; border: 4px solid var(--ink); padding: 12px 14px;
+  background-color: var(--banca); background-image: repeating-linear-gradient(45deg, rgba(0, 0, 0, .07) 0 2px, transparent 2px 6px); box-shadow: inset 0 0 0 3px #2f8a60, 4px 4px 0 var(--ink) }
+.ap-feltro div { display: grid; gap: 2px; min-width: 0 }
+.ap-feltro small { font-family: var(--label); font-size: 11px; color: #cfe9da }
+.ap-feltro b { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 7vw, 42px); line-height: .9; text-shadow: 2px 2px 0 rgba(0, 0, 0, .35) }
+/* ficha de aposta: borda listrada e miolo na cor do jogador */
+.ap-ficha { --cor: var(--p1); flex: 0 0 auto; display: inline-grid; place-items: center; width: 36px; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--ink);
+  background: repeating-conic-gradient(#fff 0 12deg, var(--cor) 12deg 36deg) }
+.ap-ficha b { display: grid; place-items: center; width: 68%; aspect-ratio: 1; border-radius: 50%; background: var(--cor); border: 2px dashed rgba(255, 255, 255, .75);
+  color: #fff; font-family: var(--display); font-weight: 400; font-size: 15px; line-height: 1; text-shadow: 1px 1px 0 rgba(0, 0, 0, .4) }
+.ap-ficha.grande { width: clamp(84px, 22vw, 108px); border-width: 4px; box-shadow: 3px 4px 0 rgba(0, 0, 0, .45); animation: ap-joga .45s cubic-bezier(.3, 1.5, .5, 1) }
+.ap-ficha.grande b { font-size: clamp(36px, 10vw, 50px); border-width: 3px; text-shadow: 2px 2px 0 rgba(0, 0, 0, .4) }
+.ap-ficha.vazia { --cor: #6d6880; animation: none }
+@keyframes ap-joga { from { transform: translateY(-40px) rotate(-120deg) scale(.6); opacity: 0 } }
+
 .ap-vez { --cor: var(--p1); display: flex; align-items: center; gap: 10px; border-left: 10px solid var(--cor); background: var(--paper); border-top: 3px solid var(--ink); border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink); padding: 6px 10px }
 .ap-vez .lbl { font-size: 13px; white-space: nowrap }
 .ap-relogio { position: relative; flex: 1 1 80px; height: 18px; border: 2px solid var(--ink); background: #e9e4d6 }
@@ -36,12 +74,21 @@
 .ap-aposta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px; align-items: stretch }
 .ap-aposta .btn.big { font-size: clamp(28px, 7vw, 38px) }
 .ap-prova-btn, .ap-grito { font-size: clamp(30px, 8vw, 44px) !important; letter-spacing: .03em }
-.ap-hist, .ap-gritos { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px }
-.ap-hist span, .ap-gritos span { --cor: var(--p1); background: var(--paper); border: 2px solid var(--ink); border-left: 6px solid var(--cor); padding: 1px 6px }
-.ap-hist span:last-of-type, .ap-gritos span:last-of-type { animation: ap-entra .3s ease-out }
-.ap-gritos b { color: var(--p1) }
-.ap-hist i { font-style: normal; color: var(--muted) }
+.ap-hist { display: flex; flex-wrap: wrap; align-items: center; gap: 6px }
+.ap-hist span { display: grid; justify-items: center; gap: 2px }
+.ap-hist span:last-of-type { animation: ap-entra .3s ease-out }
+.ap-hist small { font-family: var(--label); font-size: 8px; color: var(--muted); max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.ap-hist > i { font-style: normal; font-family: var(--display); font-size: 22px; color: var(--muted) }
+.ap-hist-prova { font-family: var(--display); font-weight: 400; font-size: 18px; color: var(--p1); border: 2px solid var(--p1); padding: 2px 5px; transform: rotate(-6deg); background: #fff }
 @keyframes ap-entra { from { opacity: 0; transform: translateX(-8px) } }
+
+/* truco: os gritos viram carimbos */
+.ap-gritos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.ap-gritos span { --cor: var(--p1); font-weight: 700; font-size: 14px; background: #fff; border: 3px solid var(--ink); border-left: 8px solid var(--cor); padding: 3px 10px }
+.ap-gritos span:nth-child(odd) { transform: rotate(-2deg) } .ap-gritos span:nth-child(even) { transform: rotate(2deg) }
+.ap-gritos span:last-child { animation: ap-carimbo .3s cubic-bezier(.3, 1.6, .5, 1) }
+.ap-gritos b { font-family: var(--display); font-weight: 400; font-size: 22px; color: var(--p1) }
+@keyframes ap-carimbo { from { transform: scale(2.2) rotate(-8deg); opacity: 0 } }
 
 /* ---------- prova ---------- */
 body.ap-foco .awning, body.ap-foco .rodape { display: none }
@@ -53,29 +100,34 @@ body.ap-foco .awning, body.ap-foco .rodape { display: none }
 .ap-soma { font-family: var(--label); font-size: 12px; justify-self: end }
 .ap-soma b { font-family: var(--display); font-weight: 400; font-size: 44px; line-height: .8 }
 .ap-tema-mini { font-weight: 700; font-size: 15px; line-height: 1.2 }
-.ap-barra { height: 14px; border: 2px solid var(--ink); background: #e9e4d6 }
-.ap-barra i { display: block; height: 100%; background: var(--sun); transition: width .25s cubic-bezier(.3, 1.4, .5, 1) }
+.ap-barra { height: 16px; border: 3px solid var(--ink); background: repeating-linear-gradient(90deg, #e9e4d6 0 10px, #ddd8c8 10px 12px) }
+.ap-barra i { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--sun) 0 10px, var(--sun-dk) 10px 12px); transition: width .3s cubic-bezier(.3, 1.4, .5, 1) }
 .ap-prepara { font-family: var(--label); font-size: 11px; animation: ap-pisca .6s steps(2) infinite }
 .ap-fala { margin: 0; text-align: center; font-family: var(--display); font-size: clamp(36px, 9vw, 56px); line-height: .9; background: var(--ink); color: var(--sun); padding: 10px; animation: ap-pisca 1s steps(2) infinite }
 .ap-falas { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; align-items: center }
 .ap-falas small { color: var(--muted); font-size: 13px }
 .ap-falas span { background: #fff; border: 2px solid var(--ink); padding: 2px 8px; font-weight: 700; font-size: 14px; animation: ap-pula .25s cubic-bezier(.3, 1.6, .5, 1) }
 .ap-falas span.ok { border-color: #1c8a4a; background: #e3f7ea }
+.ap-falas span.r2 { border-color: var(--p2); background: var(--p2-tint) }
+.ap-falas span.r3 { border-color: #c98a00; background: #fff1b8; box-shadow: 0 0 0 2px #ffe680 }
 .ap-falas span.erro { border-color: var(--p1); background: var(--p1-tint); color: var(--p1-dk) }
 .ap-falas b { font-family: var(--display); font-weight: 400; font-size: 18px; color: #1c8a4a }
+.ap-falas .r2 b { color: var(--p2-dk) } .ap-falas .r3 b { color: #9a6a00 }
+@keyframes ap-pula { from { transform: scale(1.6) } }
 
+/* a lista do juiz, com as letras como abas de fichário */
 .ap-juiz { display: grid; gap: 8px; background: var(--paper); border: 4px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 10px }
 .ap-juiz > .lbl { color: var(--muted) }
-.ap-letras { display: flex; flex-wrap: wrap; gap: 4px }
-.ap-letras button { min-width: 32px; font-family: var(--display); font-size: 20px; line-height: 1; background: #fff; border: 2px solid var(--ink); padding: 3px 6px 5px }
+.ap-letras { display: flex; flex-wrap: wrap; gap: 3px; border-bottom: 3px solid var(--ink); padding-bottom: 6px }
+.ap-letras button { min-width: 32px; font-family: var(--display); font-size: 20px; line-height: 1; background: #f1ede1; border: 2px solid var(--ink); border-bottom-width: 4px; padding: 3px 6px 4px }
 .ap-letras button:first-child { font-family: var(--label); font-size: 10px }
-.ap-letras button[aria-pressed="true"] { background: var(--ink); color: var(--sun) }
+.ap-letras button[aria-pressed="true"] { background: var(--ink); color: var(--sun); transform: translateY(2px) }
 .ap-nomes { display: flex; flex-wrap: wrap; gap: 6px; max-height: 42vh; overflow-y: auto; align-content: flex-start; padding: 2px }
 .ap-nome { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); padding: 6px 9px; font-weight: 700; font-size: 15px; text-align: left; touch-action: manipulation }
+.ap-nome.r2 { border-left: 6px solid var(--p2) }
+.ap-nome.r3 { border-left: 6px solid #f0a800; background: #fffbea }
 .ap-nome:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none }
 .ap-nome.ok { background: #e3f7ea; border-color: #1c8a4a; color: #1c8a4a; box-shadow: none; text-decoration: line-through }
-.ap-nome i, .ap-faltou i { font-style: normal; font-family: var(--label); font-size: 10px; padding: 1px 5px; border: 2px solid var(--ink) }
-.r1 { background: #fff } .r2 { background: var(--sun) } .r3 { background: var(--p1); color: #fff }
 .ap-juiz-btns { position: sticky; bottom: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; background: var(--paper); padding-top: 6px }
 .ap-juiz-btns .btn.red { font-size: 20px }
 
@@ -94,22 +146,28 @@ body.ap-foco .awning, body.ap-foco .rodape { display: none }
 .ap-resultado { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 6px 0 4px }
 .ap-carimbo { font-family: var(--display); font-weight: 400; font-size: clamp(56px, 15vw, 96px); line-height: .85; padding: 4px 18px 10px; border: 6px solid currentColor; margin-block: 4px 10px;
   transform: rotate(-6deg); animation: ap-bate .4s cubic-bezier(.3, 1.6, .5, 1) }
+.ap-carimbo.longo { font-size: clamp(40px, 11vw, 80px) }
 .ap-resultado.ok .ap-carimbo { color: #1c8a4a; background: #e3f7ea } .ap-resultado.erro .ap-carimbo { color: var(--p1); background: var(--p1-tint) }
 .ap-resultado p { margin: 0; font-size: 18px }
 .ap-resultado p b { --cor: var(--p1); color: var(--cor); font-family: var(--display); font-weight: 400; font-size: 28px; white-space: nowrap }
-.ap-faltou { display: grid; gap: 6px; justify-items: center }
+.ap-faltou { display: grid; gap: 6px; justify-items: center; background: var(--paper); border: 3px dashed var(--ink); padding: 10px }
 .ap-faltou div { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center }
-.ap-faltou span { background: var(--paper); border: 2px solid var(--ink); padding: 2px 8px; font-size: 14px; font-weight: 700 }
+.ap-faltou span { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 2px solid var(--ink); padding: 3px 8px; font-size: 14px; font-weight: 700 }
+.ap-faltou span.r3 { background: #fffbea; border-color: #c98a00 } .ap-faltou span.r2 { border-color: var(--p2) }
 
 /* ---------- fim ---------- */
 .ap-fimtela { padding-block: 22px 56px; display: grid; justify-items: center }
 .ap-fim { --cor: var(--p1); width: min(100%, 520px); border-top: 14px solid var(--cor); display: grid; gap: 12px }
 .ap-fim h2 { margin: 0; font-size: clamp(40px, 9vw, 56px); line-height: .9 }
 .ap-rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
-.ap-rank li { --cor: var(--p1); display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--ink); border-left: 10px solid var(--cor); padding: 2px 10px; font-weight: 700 }
+.ap-rank li { --cor: var(--p1); display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid var(--ink); border-left: 10px solid var(--cor); padding: 4px 10px; font-weight: 700 }
+.ap-rank li > span { flex: 1 }
 .ap-rank small { font-family: var(--label); font-size: 9px; font-weight: 400; color: var(--muted) }
 .ap-rank b { font-family: var(--display); font-weight: 400; font-size: 30px }
-@media (max-width: 520px) { .ap-modos { grid-template-columns: minmax(0, 1fr) } }
+.ap-medalha { font-style: normal; font-family: var(--label); font-size: 10px; width: 30px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; border: 3px solid var(--ink) }
+.ap-medalha.m0 { background: linear-gradient(180deg, #ffe680, #f0a800) } .ap-medalha.m1 { background: linear-gradient(180deg, #f4f4f4, #b8b8c4) } .ap-medalha.m2 { background: linear-gradient(180deg, #f3c08a, #b8732e) }
+.ap-rank li:first-child { box-shadow: 4px 4px 0 var(--ink); transform: scale(1.02) }
+@media (max-width: 520px) { .ap-opcoes { grid-template-columns: minmax(0, 1fr) } }
 @media (prefers-reduced-motion: reduce) {
-  .ap-lance b, .ap-carimbo, .ap-estouro b, .ap-falas span, .ap-fala { animation: none }
+  .ap-tema, .ap-ficha.grande, .ap-carimbo, .ap-estouro b, .ap-falas span, .ap-fala, .ap-gritos span:last-child { animation: none }
 }

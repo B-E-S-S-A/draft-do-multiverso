@@ -1,8 +1,8 @@
 // Motor do Aposto Que Sei: só regras e pontos, sem tela e sem rede (roda no anfitrião e nos testes).
 // Rodada: sai um tema → cada um, na sua vez, aumenta a aposta ("faço 8") ou manda quem apostou mais PROVAR.
 // Quem prova fala os nomes em voz alta e os outros (o juiz) marcam na lista oficial. Nome fora da lista = erro.
-// Modo Raridade: cada nome vale 1, 2 ou 3 pontos (raro vale mais) e a aposta é em pontos.
-// Modo Clássico: cada nome vale 1 e, antes da prova, dá pra pedir TRUCO (vale 2x), SEIS, NOVE e DOZE.
+// Opção Raridade: cada nome vale 1, 2 ou 3 pontos (comum, raro, lendário) e a aposta é em pontos; sem ela, cada nome vale 1.
+// Opção Truco: antes da prova dá pra pedir TRUCO (vale 2x), SEIS, NOVE e DOZE.
 (function (raiz) {
   const TEMPO_LANCE = 20000
   const TEMPO_TRUCO = 15000
@@ -10,13 +10,13 @@
   const GRITO = ['', 'TRUCO', 'SEIS', 'NOVE', 'DOZE']
   let rnd = Math.random
 
-  const valor = (J, item) => (J.modo === 'raridade' ? item.v : 1)
-  const tempoProva = (J, n) => Math.min(90000, J.modo === 'raridade' ? 10000 + 2500 * n : 8000 + 4000 * n)
+  const valor = (J, item) => (J.raridade ? item.v : 1)
+  const tempoProva = (J, n) => Math.min(90000, J.raridade ? 10000 + 2500 * n : 8000 + 4000 * n)
 
   // jogadores: [{ nome, bot, nivel }]; temas: ApostoTemas.todos()
-  function novoJogo({ jogadores, meta, modo = 'raridade', temas, aleatorio }) {
+  function novoJogo({ jogadores, meta, raridade = false, truco = true, temas, aleatorio }) {
     if (aleatorio) rnd = aleatorio
-    const J = { modo, meta: meta || (modo === 'raridade' ? 40 : 20), temas, js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, nivel: p.nivel || 0.6, pts: 0, provas: 0, acertou: 0 })),
+    const J = { raridade: !!raridade, comTruco: !!truco, meta: meta || (raridade ? 40 : 20), temas, js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, nivel: p.nivel || 0.6, pts: 0, provas: 0, acertou: 0 })),
       abre: Math.floor(rnd() * jogadores.length), rodada: 0, fase: 'lances', usados: [] }
     novaRodada(J)
     return J
@@ -55,11 +55,11 @@
     if (J.fase !== 'lances' || J.vez !== j || !J.lance || J.lance.de === j) return false
     J.hist.push({ j, prova: true })
     J.prova = { j: J.lance.de, n: J.lance.n, chamou: j, mult: 1, marcados: [], soma: 0, comecou: false, falas: [] }
-    if (J.modo === 'classico') { J.fase = 'truco'; J.truco = { nivel: 0, proposta: 0, quem: J.lance.de, gritos: [] } } else J.fase = 'prova'
+    if (J.comTruco) { J.fase = 'truco'; J.truco = { nivel: 0, proposta: 0, quem: J.lance.de, gritos: [] } } else J.fase = 'prova'
     return true
   }
 
-  // ---------- truco (só no Clássico) ----------
+  // ---------- truco (se estiver ligado) ----------
   // quem vai provar decide primeiro: prova valendo o que está ou pede TRUCO. Quem recebe o pedido aceita, corre ou aumenta.
   const outro = (J, j) => (j === J.prova.j ? J.prova.chamou : J.prova.j)
   function truco(J, j, escolha) {

@@ -4,31 +4,37 @@
   const esc = V.esc
   const cor = (i) => `--cor: var(--c${i % 10})`
   const nome = (v, j) => (v.js[j] ? v.js[j].nome : '?')
-  const MODOS = {
-    raridade: ['Raridade', 'Cada nome vale 1, 2 ou 3 pontos: os raros valem mais. A aposta é em pontos.'],
-    classico: ['Clássico', 'Cada nome vale 1. Antes da prova dá pra pedir TRUCO, SEIS, NOVE e DOZE.'],
-  }
-  const DURACAO = { raridade: [25, 40, 60], classico: [12, 20, 30] }
-  const unidade = (v, n) => (v.modo === 'raridade' ? (n === 1 ? 'ponto' : 'pontos') : n === 1 ? 'nome' : 'nomes')
+  // raridade de cada nome (só conta se a opção Raridade estiver ligada)
+  const RAR = { 1: ['comum', '●'], 2: ['raro', '◆'], 3: ['lendário', '★'] }
+  const gema = (v) => `<i class="ap-gema r${v}" title="${RAR[v][0]}">${RAR[v][1]} ${v}</i>`
+  const DURACAO = (raridade) => (raridade ? [25, 40, 60] : [12, 20, 30])
+  const unidade = (v, n) => (v.raridade ? (n === 1 ? 'ponto' : 'pontos') : n === 1 ? 'nome' : 'nomes')
+  const ficha = (j, n, grande) => `<span class="ap-ficha${grande ? ' grande' : ''}" style="${cor(j)}"><b>${n}</b></span>`
   // tira acento pra agrupar por letra (Ômega fica no O)
   const inicial = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/^[^A-Za-z0-9]+/, '').charAt(0).toUpperCase()
   const iniciais = (n) => { const a = new Set([inicial(n)]); const p = n.match(/\(([^)]+)\)/); if (p) a.add(inicial(p[1])); return a }
 
-  function como(modo) {
+  function como(o) {
     return `<ol class="how">
       <li>Sai um tema: "Inimigos do Homem-Aranha".</li>
-      <li>Na sua vez, aumente a aposta (${modo === 'raridade' ? '"faço 12 pontos!"' : '"falo 8!"'}) ou aperte <b>PROVA!</b> pra quem apostou mais.</li>
+      <li>Na sua vez, aumente a aposta (${o.raridade ? '"faço 12 pontos!"' : '"falo 8!"'}) ou aperte <b>PROVA!</b> pra quem apostou mais.</li>
       <li>Quem apostou fala os nomes em voz alta, contra o relógio. Quem mandou provar é o juiz: marca cada nome na lista oficial do celular.</li>
-      <li>${modo === 'raridade' ? 'Nome fácil vale 1, médio vale 2, raro vale 3.' : 'Antes da prova, quem vai provar pode pedir TRUCO (vale o dobro). Aceita, corre ou pede SEIS!'}</li>
+      ${o.truco ? '<li>Antes da prova, quem vai provar pode pedir TRUCO (vale o dobro). O outro aceita, corre ou pede SEIS!</li>' : ''}
+      ${o.raridade ? '<li>Nome comum vale 1, raro vale 2, lendário vale 3.</li>' : ''}
       <li>Falou um nome que não está na lista? Errou. Provou: ganha a aposta. Errou: o juiz ganha.</li>
     </ol>`
   }
 
-  function opcoes(modo, meta, pode) {
-    return `<div class="field"><span class="lbl">Modo</span><div class="modes ap-modos">${Object.entries(MODOS).map(([k, [t, d]]) =>
-      `<button class="mode" type="button" data-a="modo" data-v="${k}" aria-pressed="${modo === k}"${pode ? '' : ' disabled'}><b>${t}</b><small>${d}</small></button>`).join('')}</div></div>
-      <div class="field"><span class="lbl">Ganha quem chegar a</span><div class="presets">${DURACAO[modo].map((x, i) =>
-      `<button class="preset" type="button" data-a="meta" data-v="${x}" aria-pressed="${meta === x}"${pode ? '' : ' disabled'}>${x} pontos · ${['curta', 'média', 'longa'][i]}</button>`).join('')}</div></div>`
+  // as duas opções viram chaves de liga/desliga, cada uma com a sua cara
+  function opcoes(o, pode) {
+    const chave = (k, titulo, texto, enfeite) => `<button class="ap-opcao ${k}" type="button" data-a="opt" data-v="${k}" aria-pressed="${!!o[k]}"${pode ? '' : ' disabled'}>
+      <span class="ap-chave" aria-hidden="true"><i></i></span><b>${titulo}</b><small>${texto}</small>${enfeite}</button>`
+    return `<div class="field"><span class="lbl">Opções</span><div class="ap-opcoes">
+        ${chave('truco', 'Truco', 'Antes da prova: TRUCO vale o dobro. Aceita, corre ou pede SEIS!', '<span class="ap-selo">TRUCO!</span>')}
+        ${chave('raridade', 'Raridade', 'Nome raro vale mais. A aposta vira pontos.', `<span class="ap-gemas">${gema(1)}${gema(2)}${gema(3)}</span>`)}
+      </div></div>
+      <div class="field"><span class="lbl">Ganha quem chegar a</span><div class="presets">${DURACAO(o.raridade).map((x, i) =>
+      `<button class="preset" type="button" data-a="meta" data-v="${x}" aria-pressed="${o.meta === x}"${pode ? '' : ' disabled'}>${x} pontos · ${['curta', 'média', 'longa'][i]}</button>`).join('')}</div></div>`
   }
 
   // ---------- antes de jogar ----------
@@ -47,12 +53,12 @@
             </div>
             <div class="imp-nomes">${nomes}</div>
           </div>
-          ${opcoes(ui.modo, ui.meta, true)}
+          ${opcoes(ui, true)}
           <div class="go-row"><button class="linkish" type="button" data-a="bots">testar sozinho contra 3 bots</button>
             <button class="btn big" type="button" data-a="local">Começar</button></div>
         </div>
         <div class="ap-coluna">
-          <div class="panel"><h2>Como jogar</h2>${como(ui.modo)}</div>
+          <div class="panel"><h2>Como jogar</h2>${como(ui)}</div>
           <div class="panel"><h2>Cada um no seu celular</h2>
             <label class="imp-meu-nome"><span class="lbl">Seu nome</span><input id="ap-meu" maxlength="14" autocomplete="off" value="${esc(ui.meuNome)}"></label>
             <div class="online-row"><button class="btn green" type="button" data-a="criar">Criar sala</button>
@@ -70,7 +76,7 @@
     return `<section class="setup ap">
       <div class="imp-topo"><span class="hint">Sala ${esc(v.code)} · ${n} na mesa</span><button class="linkish" type="button" data-a="sair">${v.dono ? 'Fechar sala' : 'Sair da sala'}</button></div>
       <div class="setup-grid">
-        <div class="panel rules"><h2>${v.dono ? 'Regras' : 'Regras da sala'}</h2>${opcoes(v.modo, v.meta, v.dono)}${como(v.modo)}</div>
+        <div class="panel rules"><h2>${v.dono ? 'Regras' : 'Regras da sala'}</h2>${opcoes(v, v.dono)}${como(v)}</div>
         <div class="panel"><h2>Sala ${esc(v.code)}</h2>
           ${v.dono ? `<b class="code">${esc(v.code)}</b><div class="online-row"><button class="btn paper" type="button" data-a="convite">Copiar convite</button>
             <button class="btn paper" type="button" data-a="poe-bot"${v.pessoas.length >= 7 ? ' disabled' : ''}>+ bot</button></div><p class="note" role="status">${esc(ui.msg)}</p>` : ''}
@@ -94,7 +100,7 @@
 
   function lances(v, ui) {
     const L = v.lance
-    const hist = v.hist.map((h) => `<span style="${cor(h.j)}">${esc(nome(v, h.j))} <b>${h.prova ? 'PROVA!' : h.n}</b></span>`).join('<i>→</i>')
+    const hist = v.hist.map((h) => `<span style="${cor(h.j)}">${h.prova ? '<b class="ap-hist-prova">PROVA!</b>' : ficha(h.j, h.n)}<small>${esc(nome(v, h.j))}</small></span>`).join('<i>›</i>')
     const minimo = L ? L.n + 1 : 1
     const valor = Math.max(minimo, ui.valor || minimo)
     const acao = ui.souVez
@@ -107,7 +113,8 @@
         </div>`
       : `<p class="hint">Vez de ${esc(nome(v, v.vez))}…</p>`
     return `<div class="ap-mesa">
-      <div class="ap-lance">${L ? `<small>${esc(nome(v, L.de))} aposta que faz</small><b>${L.n}</b><span>${unidade(v, L.n)}</span>` : '<small>ninguém apostou ainda</small><b>–</b>'}</div>
+      <div class="ap-feltro">${L ? `${ficha(L.de, L.n, true)}<div><small>${esc(nome(v, L.de))} aposta que faz</small><b>${L.n} ${unidade(v, L.n)}</b></div>`
+        : '<span class="ap-ficha grande vazia"><b>?</b></span><div><small>ninguém apostou ainda</small><b>quem abre?</b></div>'}</div>
       <div class="ap-vez" style="${cor(v.vez)}"><span class="lbl">${ui.local ? `vez de ${esc(nome(v, v.vez))}` : ui.souVez ? 'sua vez' : 'vez de ' + esc(nome(v, v.vez))}</span>${relogio()}</div>
       ${acao}
       ${hist ? `<div class="ap-hist">${hist}</div>` : ''}
@@ -130,7 +137,7 @@
            ${prox < v.MULT.length ? `<button class="btn big red ap-grito" type="button" data-a="truco" data-v="aumentar">${v.GRITO[prox]}!</button>` : ''}`
     }
     return `<div class="ap-mesa ap-truco">
-      <div class="ap-lance"><small>${esc(nome(v, P.j))} vai provar ${P.n} ${unidade(v, P.n)} · valendo</small><b>${vale(T.proposta || T.nivel)}</b><span>${T.proposta ? 'se aceitar' : 'pontos'}</span></div>
+      <div class="ap-feltro">${ficha(P.j, vale(T.proposta || T.nivel), true)}<div><small>${esc(nome(v, P.j))} vai provar ${P.n} ${unidade(v, P.n)}</small><b>valendo ${vale(T.proposta || T.nivel)}${T.proposta ? ' se aceitar' : ''}</b></div></div>
       ${gritos ? `<div class="ap-gritos">${gritos}</div>` : ''}
       <div class="ap-vez" style="${cor(T.quem)}"><span class="lbl">${ui.local ? `${esc(nome(v, T.quem))} decide` : ui.souTruco ? 'você decide' : esc(nome(v, T.quem)) + ' decide'}</span>${relogio()}</div>
       <div class="ap-acao">${botoes}</div>
@@ -140,7 +147,7 @@
   function prova(v, ui) {
     const P = v.prova
     const pct = Math.min(100, (100 * P.soma) / P.n)
-    const falas = P.falas.map((f) => `<span class="${f.v ? 'ok' : 'erro'}">${esc(f.n)}${f.v ? ` <b>+${f.v}</b>` : ' ✗'}</span>`).join('')
+    const falas = P.falas.map((f) => `<span class="${f.v ? (v.raridade ? 'ok r' + f.v : 'ok') : 'erro'}">${esc(f.n)}${f.v ? ` <b>+${f.v}</b>` : ' ✗'}</span>`).join('')
     const passa = !P.comecou && ui.local && !v.js[P.j].bot
     const cab = `<div class="ap-provando" style="${cor(P.j)}">
       <span class="lbl">${esc(nome(v, P.chamou))} mandou provar${P.mult > 1 ? ` · valendo ${P.n * P.mult}` : ''}</span>
@@ -169,7 +176,7 @@
     return `<div class="ap-juiz">
       <span class="lbl">${v.autoJuiz ? 'testando contra bots: você mesmo marca (sem roubar!)' : 'você é o juiz: toque no nome que ele falar'}</span>
       <div class="ap-letras"><button type="button" data-a="letra" data-v="" aria-pressed="${!L}">todas</button>${letras.map((l) => `<button type="button" data-a="letra" data-v="${l}" aria-pressed="${L === l}">${l}</button>`).join('')}</div>
-      <div class="ap-nomes" id="ap-nomes">${nomes.map((it) => { const m = P.marcados.includes(it.i); return `<button class="ap-nome${m ? ' ok' : ''}" type="button" data-a="marcar" data-v="${it.i}"${m ? ' disabled' : ''}>${esc(it.n)}${v.modo === 'raridade' ? `<i class="r${it.v}">${it.v}</i>` : ''}</button>` }).join('')}</div>
+      <div class="ap-nomes" id="ap-nomes">${nomes.map((it) => { const m = P.marcados.includes(it.i); return `<button class="ap-nome${m ? ' ok' : ''}${v.raridade ? ' r' + it.v : ''}" type="button" data-a="marcar" data-v="${it.i}"${m ? ' disabled' : ''}>${esc(it.n)}${v.raridade ? gema(it.v) : ''}</button>` }).join('')}</div>
       <div class="ap-juiz-btns"><button class="btn paper" type="button" data-a="desmarcar"${P.marcados.length ? '' : ' disabled'}>Desfazer</button>
         <button class="btn red" type="button" data-a="errou">Não tá na lista!</button></div>
     </div>`
@@ -180,19 +187,19 @@
     const txt = R.motivo === 'correu' ? 'CORREU!' : R.ok ? 'PROVOU!' : R.motivo === 'tempo' ? 'ACABOU O TEMPO!' : 'ERROU!'
     const como = R.motivo === 'correu' ? `${esc(nome(v, R.correu))} correu do truco.` : R.ok ? `${esc(nome(v, R.j))} fez ${R.soma} de ${R.n}.` : `${esc(nome(v, R.j))} fez ${R.soma} de ${R.n}.`
     return `<div class="ap-resultado ${R.ok ? 'ok' : 'erro'}">
-      <b class="ap-carimbo">${txt}</b>
+      <b class="ap-carimbo${txt.length > 8 ? ' longo' : ''}">${txt}</b>
       <p>${como} <b style="${cor(R.ganhou)}">+${R.pts} pro ${esc(nome(v, R.ganhou))}</b></p>
-      ${R.faltou.length ? `<div class="ap-faltou"><span class="lbl">dava pra ter falado</span><div>${R.faltou.map((f) => `<span>${esc(f.n)}${v.modo === 'raridade' ? ` <i class="r${f.v}">${f.v}</i>` : ''}</span>`).join('')}</div></div>` : ''}
+      ${R.faltou.length ? `<div class="ap-faltou"><span class="lbl">dava pra ter falado</span><div>${R.faltou.map((f) => `<span class="${v.raridade ? 'r' + f.v : ''}">${esc(f.n)}${v.raridade ? gema(f.v) : ''}</span>`).join('')}</div></div>` : ''}
       ${ui.podeSeguir ? `<button class="btn big" type="button" data-a="proxima">${v.fimLogo ? 'Ver o placar final' : 'Próxima rodada'}</button>` : '<p class="hint">A próxima rodada já vai começar…</p>'}
     </div>`
   }
 
   function jogo(v, ui) {
     const meio = v.fase === 'lances' ? lances(v, ui) : v.fase === 'truco' ? truco(v, ui) : v.fase === 'prova' ? prova(v, ui) : resultado(v, ui)
-    const [modo, explica] = MODOS[v.modo]
+    const selos = (v.comTruco ? '<span class="ap-selo">truco</span>' : '') + (v.raridade ? `<span class="ap-gemas">${gema(1)}${gema(2)}${gema(3)}</span>` : '<span class="ap-selo claro">cada nome vale 1</span>')
     return `<section class="ap-jogo fase-${v.fase}">
       <div class="imp-topo">${placar(v)}<button class="linkish" type="button" data-a="sair">sair</button></div>
-      ${v.fase === 'prova' ? '' : `<div class="ap-tema"><span class="lbl">rodada ${v.rodada} · ${modo}</span><h2>${esc(v.tema.titulo)}</h2><small>${explica}</small></div>`}
+      ${v.fase === 'prova' ? '' : `<div class="ap-tema${v.fase === 'lances' && !v.hist.length ? ' novo' : ''}"><span class="ap-rodada">rodada ${v.rodada}</span><h2>${esc(v.tema.titulo)}</h2><div class="ap-selos">${selos}</div></div>`}
       ${meio}
       ${ui.estouro ? `<div class="ap-estouro" aria-hidden="true"><b>${esc(ui.estouro)}</b></div>` : ''}
     </section>`
@@ -203,7 +210,7 @@
     const w = ordem[0]
     return `<section class="ap-fimtela"><div class="panel ap-fim" style="${cor(w)}">
       <span class="lbl">fim de jogo</span><h2>${esc(v.js[w].nome)} sabe mais!</h2>
-      <ol class="ap-rank">${ordem.map((i) => { const p = v.js[i]; return `<li style="${cor(i)}"><span>${esc(p.nome)} <small>${p.provas ? `provou ${p.acertou} de ${p.provas}` : 'nunca provou'}</small></span><b>${p.pts}</b></li>` }).join('')}</ol>
+      <ol class="ap-rank">${ordem.map((i, k) => { const p = v.js[i]; return `<li style="${cor(i)}">${k < 3 ? `<em class="ap-medalha m${k}">${k + 1}º</em>` : ''}<span>${esc(p.nome)} <small>${p.provas ? `provou ${p.acertou} de ${p.provas}` : 'nunca provou'}</small></span><b>${p.pts}</b></li>` }).join('')}</ol>
       <div class="online-row">${ui.podeSeguir ? '<button class="btn big" type="button" data-a="denovo">Jogar de novo</button>' : ''}<button class="linkish" type="button" data-a="sair">sair</button></div>
     </div></section>`
   }
