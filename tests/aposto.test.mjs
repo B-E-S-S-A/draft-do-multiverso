@@ -28,6 +28,20 @@ for (const t of temas) {
   assert.strictEqual(J.js[1].pts, 10)
 }
 
+// conferir nome digitado: sem acento, apelido, pedaço do nome e erro pequeno valem; nome de fora não
+{
+  const t = T.montar(null, temas.find((x) => x.id === 'aranha-viloes'))
+  const nome = (txt) => { const i = M.achar(t, txt); return i < 0 ? null : t.itens[i].n }
+  assert.strictEqual(nome('venom'), 'Venom')
+  assert.strictEqual(nome('escorpiao'), 'Escorpião')
+  assert.strictEqual(nome('Hobgoblin'), 'Duende Macabro (Hobgoblin)')
+  assert.strictEqual(nome('octopus'), 'Doutor Octopus')
+  assert.strictEqual(nome('Electr'), 'Electro')
+  assert.strictEqual(nome('Mistério'), 'Mysterio')
+  assert.strictEqual(nome('Thanos'), null)
+  assert.strictEqual(nome('Viúva Negra'), null)
+}
+
 let rodadas = 0, provou = 0, correu = 0
 for (const [raridade, truco] of [[true, false], [false, true], [true, true], [false, false]]) {
   for (let g = 0; g < 100; g++) {

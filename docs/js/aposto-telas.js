@@ -17,11 +17,11 @@
   function como(o) {
     return `<ol class="how">
       <li>Sai um tema: "Inimigos do Homem-Aranha".</li>
-      <li>Na sua vez, aumente a aposta (${o.raridade ? '"faço 12 pontos!"' : '"falo 8!"'}) ou aperte <b>PROVA!</b> pra quem apostou mais.</li>
-      <li>Quem apostou fala os nomes em voz alta, contra o relógio. Quem mandou provar é o juiz: marca cada nome na lista oficial do celular.</li>
+      <li>Na sua vez, aumente a aposta (${o.raridade ? '"faço 12 pontos!"' : '"falo 8!"'}) ou aperte <b>DUVIDO!</b> pra quem apostou mais provar.</li>
+      <li>Quem apostou fala os nomes em voz alta, contra o relógio${o.raridade ? ', e quem duvidou marca cada um na lista (cada nome vale diferente)' : ' e toca +1 a cada nome'}. Quem duvidou escuta: desconfiou de um nome? Digita e o celular confere.</li>
       ${o.truco ? '<li>Antes da prova, quem vai provar pode pedir TRUCO (vale o dobro). O outro aceita, corre ou pede SEIS!</li>' : ''}
       ${o.raridade ? '<li>Nome comum vale 1, raro vale 2, lendário vale 3.</li>' : ''}
-      <li>Falou um nome que não está na lista? Errou. Provou: ganha a aposta. Errou: o juiz ganha.</li>
+      <li>Nome que não vale? Errou. Provou: ganha a aposta. Errou: quem duvidou ganha.</li>
     </ol>`
   }
 
@@ -100,7 +100,7 @@
 
   function lances(v, ui) {
     const L = v.lance
-    const hist = v.hist.map((h) => `<span style="${cor(h.j)}">${h.prova ? '<b class="ap-hist-prova">PROVA!</b>' : ficha(h.j, h.n)}<small>${esc(nome(v, h.j))}</small></span>`).join('<i>›</i>')
+    const hist = v.hist.map((h) => `<span style="${cor(h.j)}">${h.prova ? '<b class="ap-hist-prova">DUVIDO!</b>' : ficha(h.j, h.n)}<small>${esc(nome(v, h.j))}</small></span>`).join('<i>›</i>')
     const minimo = L ? L.n + 1 : 1
     const valor = Math.max(minimo, ui.valor || minimo)
     const acao = ui.souVez
@@ -109,7 +109,7 @@
             <button class="btn big" type="button" data-a="apostar" data-v="${valor}">Aposto ${valor}</button>
             <button class="btn paper step" type="button" data-a="valor" data-v="1" aria-label="Mais">+</button>
             <button class="btn paper step" type="button" data-a="valor" data-v="5" aria-label="Mais cinco">+5</button></div>
-          ${L ? `<button class="btn big red ap-prova-btn" type="button" data-a="prova">PROVA, ${esc(nome(v, L.de))}!</button>` : ''}
+          ${L ? `<button class="btn big red ap-prova-btn" type="button" data-a="prova">DUVIDO, ${esc(nome(v, L.de))}!</button>` : ''}
         </div>`
       : `<p class="hint">Vez de ${esc(nome(v, v.vez))}…</p>`
     return `<div class="ap-mesa">
@@ -144,47 +144,73 @@
     </div>`
   }
 
+  // os nomes já falados (sem Raridade, cada toque de +1 vira uma ficha sem nome)
+  function falas(v) {
+    const P = v.prova
+    return P.falas.map((f) => (!f.v ? `<span class="erro">${esc(f.n)} ✗</span>` : f.n
+      ? `<span class="ok${v.raridade ? ' r' + f.v : ''}">${esc(f.n)} <b>+${f.v}</b></span>` : '<span class="ok conta"><b>+1</b></span>')).join('') || '<small>nenhum nome ainda</small>'
+  }
+
   function prova(v, ui) {
     const P = v.prova
     const pct = Math.min(100, (100 * P.soma) / P.n)
-    const falas = P.falas.map((f) => `<span class="${f.v ? (v.raridade ? 'ok r' + f.v : 'ok') : 'erro'}">${esc(f.n)}${f.v ? ` <b>+${f.v}</b>` : ' ✗'}</span>`).join('')
     const passa = !P.comecou && ui.local && !v.js[P.j].bot
+    const D = P.ultimaDuvida
     const cab = `<div class="ap-provando" style="${cor(P.j)}">
-      <span class="lbl">${esc(nome(v, P.chamou))} mandou provar${P.mult > 1 ? ` · valendo ${P.n * P.mult}` : ''}</span>
+      <span class="lbl">${esc(nome(v, P.chamou))} duvidou${P.mult > 1 ? ` · valendo ${P.n * P.mult}` : ''}</span>
       <b>${esc(nome(v, P.j))} tem que fazer ${P.n} ${unidade(v, P.n)}</b>
       <span class="ap-soma"><b>${P.soma}</b>/${P.n}</span>
       <span class="ap-tema-mini">${esc(v.tema.titulo)}</span>
-      <span class="ap-barra"><i style="width:${pct}%"></i></span>
+      <span class="ap-barra" aria-hidden="true"><i style="width:${pct}%"></i></span>
       ${P.comecou ? relogio() : '<span class="ap-prepara">prepara…</span>'}
     </div>`
-    const juiz = ui.souJuiz && P.comecou ? lista(v, ui) : ''
-    const fala = !ui.souJuiz && ui.souProva && P.comecou ? '<p class="ap-fala">FALA! Diga os nomes em voz alta.</p>' : ''
+    const rodando = P.comecou && !v.js[P.j].bot
+    // sem Raridade: quem prova toca +1 a cada nome; com Raridade, quem duvidou marca na lista
+    const conta = rodando && !v.raridade && ui.souProva
+      ? `<div class="ap-conta"><button class="btn big ap-mais" type="button" data-a="contar">+1 <small>falei um nome</small></button>
+          <button class="btn paper" type="button" data-a="descontar"${P.falas.length && P.falas[P.falas.length - 1].n === '' ? '' : ' disabled'}>desfazer</button></div>` : ''
+    const fala = rodando && ui.souProva && !ui.local && v.raridade ? '<p class="ap-fala">FALA! Diga os nomes em voz alta.</p>' : ''
+    const juiz = rodando && v.raridade && ui.souJuiz ? lista(v, ui) : ''
+    const duvida = rodando && !v.raridade && ui.souDuvida ? `<div class="ap-juiz ap-duvido">${caixaDuvida(v, ui)}</div>` : ''
     return `${cab}${fala}
-      <div class="ap-falas">${falas || '<small>nenhum nome ainda</small>'}</div>
-      ${juiz}
-      ${passa ? `<div class="ap-passa" role="dialog"><div><span class="lbl">prova</span><h3>${esc(nome(v, P.j))} fala, ${esc(nome(v, v.juizLocal))} é o juiz</h3>
-        <p>O celular fica com o juiz. ${esc(nome(v, P.j))} fala nomes de <b>${esc(v.tema.titulo)}</b> em voz alta e o juiz toca em cada um na lista.</p>
+      ${D ? `<p class="ap-duvida-res ${D.vale ? 'ok' : 'erro'}">${esc(nome(v, D.quem))} duvidou de "${esc(D.texto)}": <b>${D.vale ? `✓ vale (${esc(D.nome)})` : '✗ não vale'}</b></p>` : ''}
+      <div class="ap-falas" id="ap-falas">${falas(v)}</div>
+      ${conta}${juiz}${duvida}
+      ${passa ? `<div class="ap-passa" role="dialog"><div><span class="lbl">prova</span><h3>${esc(nome(v, P.j))} fala, ${esc(nome(v, v.juizLocal))} escuta</h3>
+        <p>${v.raridade
+          ? `O celular fica com ${esc(nome(v, v.juizLocal))}. ${esc(nome(v, P.j))} fala nomes de <b>${esc(v.tema.titulo)}</b> em voz alta e ${esc(nome(v, v.juizLocal))} marca cada um na lista (cada nome vale diferente).`
+          : `Deixem o celular no meio. ${esc(nome(v, P.j))} fala nomes de <b>${esc(v.tema.titulo)}</b> e toca <b>+1</b> a cada um. ${esc(nome(v, v.juizLocal))} escuta: se duvidar de um nome, toca DUVIDO e digita pra conferir.`}</p>
         <button class="btn big" type="button" data-a="comecar-prova">Começar</button></div></div>` : ''}`
   }
 
-  // a lista oficial, só pra quem julga: letras em cima, nomes embaixo, e os dois botões do juiz
+  // o "duvido" de quem escuta: digita o nome suspeito e o celular confere na lista do tema
+  function caixaDuvida(v, ui) {
+    if (!ui.digitando) return `<button class="btn red ap-duvido-btn" type="button" data-a="abrir-duvida">DUVIDO DE UM NOME</button>`
+    return `<label class="ap-digita"><span class="lbl">digite o nome que você acha que não vale</span>
+        <input id="ap-duvida-txt" maxlength="40" autocomplete="off" autocapitalize="words" enterkeyhint="go" value="${esc(ui.duvida || '')}"></label>
+      <div class="ap-juiz-btns"><button class="btn paper" type="button" data-a="fechar-duvida">cancelar</button>
+        <button class="btn red" type="button" data-a="duvidar">Conferir</button></div>`
+  }
+
+  // a lista oficial, só pra quem escuta (com Raridade): letras em cima, nomes embaixo, e o duvido digitado
   function lista(v, ui) {
     const P = v.prova
     const letras = [...new Set(v.itens.flatMap((it) => [...iniciais(it.n)]))].sort()
     const L = ui.letra && letras.includes(ui.letra) ? ui.letra : ''
     const nomes = v.itens.map((it, i) => ({ ...it, i })).filter((it) => !L || iniciais(it.n).has(L))
     return `<div class="ap-juiz">
-      <span class="lbl">${v.autoJuiz ? 'testando contra bots: você mesmo marca (sem roubar!)' : 'você é o juiz: toque no nome que ele falar'}</span>
+      <span class="lbl">${v.autoJuiz ? 'testando contra bots: você mesmo marca (sem roubar!)' : 'toque no nome que ele falar'}</span>
       <div class="ap-letras"><button type="button" data-a="letra" data-v="" aria-pressed="${!L}">todas</button>${letras.map((l) => `<button type="button" data-a="letra" data-v="${l}" aria-pressed="${L === l}">${l}</button>`).join('')}</div>
       <div class="ap-nomes" id="ap-nomes">${nomes.map((it) => { const m = P.marcados.includes(it.i); return `<button class="ap-nome${m ? ' ok' : ''}${v.raridade ? ' r' + it.v : ''}" type="button" data-a="marcar" data-v="${it.i}"${m ? ' disabled' : ''}>${esc(it.n)}${v.raridade ? gema(it.v) : ''}</button>` }).join('')}</div>
       <div class="ap-juiz-btns"><button class="btn paper" type="button" data-a="desmarcar"${P.marcados.length ? '' : ' disabled'}>Desfazer</button>
-        <button class="btn red" type="button" data-a="errou">Não tá na lista!</button></div>
+        ${ui.digitando ? '' : '<button class="btn red" type="button" data-a="abrir-duvida">Não achei: digitar</button>'}</div>
+      ${ui.digitando ? caixaDuvida(v, ui) : ''}
     </div>`
   }
 
   function resultado(v, ui) {
     const R = v.resultado
-    const txt = R.motivo === 'correu' ? 'CORREU!' : R.ok ? 'PROVOU!' : R.motivo === 'tempo' ? 'ACABOU O TEMPO!' : 'ERROU!'
+    const txt = R.motivo === 'correu' ? 'CORREU!' : R.ok ? 'PROVOU!' : R.motivo === 'tempo' ? 'ACABOU O TEMPO!' : R.motivo === 'duvido' ? 'NÃO VALE!' : 'ERROU!'
     const como = R.motivo === 'correu' ? `${esc(nome(v, R.correu))} correu do truco.` : R.ok ? `${esc(nome(v, R.j))} fez ${R.soma} de ${R.n}.` : `${esc(nome(v, R.j))} fez ${R.soma} de ${R.n}.`
     return `<div class="ap-resultado ${R.ok ? 'ok' : 'erro'}">
       <b class="ap-carimbo${txt.length > 8 ? ' longo' : ''}">${txt}</b>
@@ -215,5 +241,5 @@
     </div></section>`
   }
 
-  window.ApostoTelas = { entrada, sala, jogo, fim, DURACAO }
+  window.ApostoTelas = { entrada, sala, jogo, fim, falas, DURACAO }
 })()

@@ -87,7 +87,7 @@
       else if (P.comecou && H.prazo && agora >= H.prazo) M.tempoAcabou(J)
     } else if (J.fase === 'resultado' && !H.local && agora >= H.seguirEm) M.proximo(J)
     if (fs() !== H.fs) { H.fs = fs(); entrou(agora) }
-    const sig = [H.fs, J.lance ? J.lance.n : 0, J.prova ? J.prova.marcados.length + '/' + J.prova.falas.length : 0, J.js.map((p) => p.pts + (p.bot ? 'b' : '')).join(), H.pessoas.map((p) => p.on).join()].join('|')
+    const sig = [H.fs, J.lance ? J.lance.n : 0, J.prova ? J.prova.marcados.length + '/' + J.prova.falas.length + '/' + (J.prova.ultimaDuvida ? J.prova.ultimaDuvida.seq : 0) : 0, J.js.map((p) => p.pts + (p.bot ? 'b' : '')).join(), H.pessoas.map((p) => p.on).join()].join('|')
     if (sig !== H.sig) { H.sig = sig; enviarTudo() }
   }
 
@@ -109,7 +109,7 @@
       v.souJuiz = juiz >= 0 && M.podeJulgar(J, juiz) && !(J.js[J.prova.j].bot && J.fase === 'prova')
       v.autoJuiz = juiz === J.prova.j
       // a lista oficial só vai pra quem julga (quem prova não pode ver)
-      if (v.souJuiz && J.fase === 'prova') v.itens = J.tema.itens
+      if (v.souJuiz && J.fase === 'prova' && J.raridade) v.itens = J.tema.itens
     }
     return v
   }
@@ -126,7 +126,10 @@
     if (!J) return
     // num celular só, o aparelho age por quem está na vez (ou pelo juiz, na prova)
     let quem = p.j
-    if (H.local) quem = ['apostar', 'prova'].includes(msg.type) ? J.vez : msg.type === 'truco' ? J.truco && J.truco.quem : J.prova ? juizLocal(J) : -1
+    if (H.local) {
+      quem = ['apostar', 'prova'].includes(msg.type) ? J.vez : msg.type === 'truco' ? J.truco && J.truco.quem
+        : !J.prova ? -1 : ['contar', 'descontar'].includes(msg.type) ? J.prova.j : juizLocal(J)
+    }
     if (quem === undefined || quem === null || quem < 0 || (J.js[quem].bot && msg.type !== 'comecar-prova')) return
     if (msg.type === 'apostar') M.apostar(J, quem, msg.n)
     if (msg.type === 'prova') M.mandarProvar(J, quem)
@@ -135,6 +138,9 @@
     if (msg.type === 'marcar') M.marcar(J, quem, msg.i)
     if (msg.type === 'desmarcar') M.desmarcar(J, quem)
     if (msg.type === 'errou') M.errou(J, quem)
+    if (msg.type === 'contar') M.contar(J, quem)
+    if (msg.type === 'descontar') M.descontar(J, quem)
+    if (msg.type === 'duvidar') M.duvidar(J, quem, String(msg.texto || '').slice(0, 40))
     tick()
   }
   const fazer = (msg) => { if (H) acao(H.pessoas[0], msg); else sala.enviar(msg) }
@@ -201,12 +207,14 @@
   function estoura(txt) { ui.estouro = txt; som('hammer'); clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, 1300) }
   function sons(a, v) {
     const mesma = v.rodada === a.rodada
-    if (mesma && v.hist.length > a.hist.length) { const h = v.hist[v.hist.length - 1]; if (h.prova) estoura('PROVA!'); else som('bid', h.j % 2) }
+    if (mesma && v.hist.length > a.hist.length) { const h = v.hist[v.hist.length - 1]; if (h.prova) estoura('DUVIDO!'); else som('bid', h.j % 2) }
     if (mesma && v.truco && (!a.truco || v.truco.gritos.length > a.truco.gritos.length)) { const g = v.truco.gritos[v.truco.gritos.length - 1]; if (g) { if (g.grito === 'ACEITO') som('draw'); else if (g.grito !== 'CORRO') estoura(g.grito + '!') } }
     const fa = a.prova ? a.prova.falas.length : 0
     const fv = v.prova ? v.prova.falas.length : 0
     if (mesma && v.prova && fv > fa) som(v.prova.falas[fv - 1].v ? 'bid' : 'undo', 0)
-    if (v.fase === 'prova' && v.prova.comecou && !(a.prova && a.prova.comecou)) { som('draw'); ui.letra = '' }
+    if (v.fase === 'prova' && v.prova.comecou && !(a.prova && a.prova.comecou)) { som('draw'); ui.letra = ''; ui.digitando = false; ui.duvida = '' }
+    const dv = v.prova && v.prova.ultimaDuvida
+    if (mesma && dv && (!a.prova || !a.prova.ultimaDuvida || a.prova.ultimaDuvida.seq !== dv.seq)) som(dv.vale ? 'tick' : 'hammer')
     if (v.fase === 'resultado' && a.fase !== 'resultado') setTimeout(() => som(v.resultado.ok ? 'sold' : 'undo'), 250)
     if (v.fase === 'lances' && a.fase !== 'lances') som('draw')
     if (v.fase === 'fim' && a.fase !== 'fim') som('win')
@@ -227,12 +235,29 @@
     ui.souTruco = vis.fase === 'truco' && (vis.local ? humano(vis.truco.quem) : vis.eu === vis.truco.quem)
     ui.souProva = vis.fase === 'prova' && (vis.local ? humano(vis.prova.j) : vis.eu === vis.prova.j)
     ui.souJuiz = vis.fase === 'prova' && !!vis.souJuiz && !!vis.itens
+    ui.souDuvida = vis.fase === 'prova' && (vis.local || (vis.eu >= 0 && vis.eu !== vis.prova.j))
+    if (vis.fase !== 'prova') { ui.digitando = false; ui.duvida = '' }
+    // digitando o nome suspeito: só atualiza os números, pra não apagar o que está sendo digitado
+    const caixa = document.getElementById('ap-duvida-txt')
+    if (ui.digitando && caixa && vis.fase === 'prova') {
+      const P = vis.prova
+      const s = el.querySelector('.ap-soma b')
+      if (s) s.textContent = P.soma
+      const b = el.querySelector('.ap-barra i')
+      if (b) b.style.width = Math.min(100, (100 * P.soma) / P.n) + '%'
+      const f = document.getElementById('ap-falas')
+      if (f) f.innerHTML = T.falas(vis)
+      relogio()
+      return
+    }
     const chave = (vis.lance ? vis.lance.n : 0) + '|' + vis.rodada
     if (ui.base !== chave) { ui.base = chave; ui.valor = (vis.lance ? vis.lance.n : 0) + 1 }
     const rolagem = (document.getElementById('ap-nomes') || {}).scrollTop || 0
     el.innerHTML = T.jogo(vis, ui)
     const nomes = document.getElementById('ap-nomes')
     if (nomes) nomes.scrollTop = rolagem
+    const txt = document.getElementById('ap-duvida-txt')
+    if (txt && ui.focar) { ui.focar = false; txt.focus() }
     relogio()
   }
 
@@ -292,6 +317,17 @@
     marcar: (v) => { ui.letra = ''; fazer({ type: 'marcar', i: Number(v) }) },
     desmarcar: () => fazer({ type: 'desmarcar' }),
     errou: () => fazer({ type: 'errou' }),
+    contar: () => fazer({ type: 'contar' }),
+    descontar: () => fazer({ type: 'descontar' }),
+    'abrir-duvida': () => { ui.digitando = true; ui.duvida = ''; ui.focar = true; render() },
+    'fechar-duvida': () => { ui.digitando = false; ui.duvida = ''; render() },
+    duvidar: () => {
+      const txt = (document.getElementById('ap-duvida-txt') || {}).value || ui.duvida || ''
+      if (txt.trim().length < 2) return
+      ui.digitando = false
+      ui.duvida = ''
+      fazer({ type: 'duvidar', texto: txt })
+    },
     proxima: () => { if (H && H.J && H.J.fase === 'resultado') { M.proximo(H.J); tick() } },
     denovo: () => { if (H) comecar() },
     sair: () => sair(),
@@ -306,8 +342,12 @@
     if (m) { ui.nomes[Number(m[1])] = ev.target.value.slice(0, 14); salvar() }
     if (ev.target.id === 'ap-meu') { ui.meuNome = ev.target.value.slice(0, 14); guarda('mvd-imp-nome', ui.meuNome) }
     if (ev.target.id === 'ap-codigo') ui.codigo = ev.target.value
+    if (ev.target.id === 'ap-duvida-txt') ui.duvida = ev.target.value
   })
-  el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target.id === 'ap-codigo') acoes.entrar() })
+  el.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && ev.target.id === 'ap-codigo') acoes.entrar()
+    if (ev.key === 'Enter' && ev.target.id === 'ap-duvida-txt') acoes.duvidar()
+  })
 
   window.Aposto = {
     letreiro: () => ['Aposto Que <em>Sei</em>', 'quem sabe mais de Marvel prova na hora'],

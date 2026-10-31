@@ -115,6 +115,20 @@ body.ap-foco .awning, body.ap-foco .rodape { display: none }
 .ap-falas .r2 b { color: var(--p2-dk) } .ap-falas .r3 b { color: #9a6a00 }
 @keyframes ap-pula { from { transform: scale(1.6) } }
 
+/* sem Raridade: quem prova conta no +1, quem duvidou só digita o nome suspeito */
+.ap-falas span.conta { padding: 2px 6px; background: #fff8d6; border-color: var(--sun-dk) }
+.ap-falas span.conta b { color: var(--ink) }
+.ap-conta { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch }
+.ap-mais { display: grid; justify-items: center; font-size: clamp(54px, 15vw, 84px) !important; line-height: .85; padding-block: 12px 16px !important; --bg: #e3f7ea; --bg-dk: #9fd9b5 }
+.ap-mais small { font-family: var(--label); font-size: 11px; letter-spacing: .06em }
+.ap-duvido { justify-items: stretch }
+.ap-duvido-btn { font-family: var(--display); font-weight: 400; font-size: 32px; padding-block: 10px 12px }
+.ap-digita { display: grid; gap: 6px }
+.ap-digita input { border: 3px solid var(--ink); background: #fff; padding: 10px; font-size: 20px; font-weight: 700; width: 100% }
+.ap-duvida-res { margin: 0; border: 3px solid var(--ink); padding: 6px 10px; font-size: 15px; animation: ap-entra .3s ease-out }
+.ap-duvida-res.ok { background: #e3f7ea } .ap-duvida-res.erro { background: var(--p1-tint) }
+.ap-duvida-res b { font-family: var(--display); font-weight: 400; font-size: 22px }
+
 /* a lista do juiz, com as letras como abas de fichário */
 .ap-juiz { display: grid; gap: 8px; background: var(--paper); border: 4px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 10px }
 .ap-juiz > .lbl { color: var(--muted) }

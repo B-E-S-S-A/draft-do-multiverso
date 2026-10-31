@@ -118,6 +118,59 @@
     return true
   }
 
+  // sem Raridade ninguém marca: quem prova toca +1 a cada nome que fala (e pode desfazer um toque errado)
+  function contar(J, j) {
+    const P = J.prova
+    if (J.fase !== 'prova' || !P.comecou || J.raridade || (j !== P.j && j !== -1)) return false
+    P.soma += 1
+    P.falas.push({ n: '', v: 1 })
+    if (P.soma >= P.n) encerrar(J, true, 'provou')
+    return true
+  }
+  function descontar(J, j) {
+    const P = J.prova
+    if (J.fase !== 'prova' || J.raridade || j !== P.j || !P.soma || P.falas[P.falas.length - 1].n) return false
+    P.soma -= 1
+    P.falas.pop()
+    return true
+  }
+
+  // procura o nome digitado na lista do tema (sem acento, sem maiúscula, aceita apelido entre parênteses e erro de digitação pequeno)
+  const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  const formas = (nome) => [nome.replace(/\([^)]*\)/g, ' '), ...(nome.match(/\(([^)]*)\)/g) || []).map((x) => x.slice(1, -1))]
+    .flatMap((x) => x.split(/\s*[/,]\s*/)).map(norm).filter(Boolean)
+  function distancia(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i])
+    for (let k = 1; k <= b.length; k++) d[0][k] = k
+    for (let i = 1; i <= a.length; i++) for (let k = 1; k <= b.length; k++) d[i][k] = Math.min(d[i - 1][k] + 1, d[i][k - 1] + 1, d[i - 1][k - 1] + (a[i - 1] === b[k - 1] ? 0 : 1))
+    return d[a.length][b.length]
+  }
+  function achar(tema, texto) {
+    const t = norm(String(texto || ''))
+    if (t.length < 2) return -1
+    let melhor = -1
+    let nota = 9
+    tema.itens.forEach((it, i) => {
+      for (const f of formas(it.n)) {
+        const n = f === t ? 0 : t.length >= 4 && (f.startsWith(t) || f.split(' ').includes(t)) ? 1 : distancia(f, t) <= (t.length > 8 ? 2 : 1) ? 2 : 9
+        if (n < nota) { nota = n; melhor = i }
+      }
+    })
+    return melhor
+  }
+
+  // quem mandou provar desconfiou de um nome: digita e o celular confere. Não vale = quem prova errou.
+  function duvidar(J, j, texto) {
+    const P = J.prova
+    if (J.fase !== 'prova' || !P.comecou || j === P.j || String(texto || '').trim().length < 2) return null
+    const i = achar(J.tema, texto)
+    const nome = String(texto).trim().slice(0, 40)
+    P.ultimaDuvida = { quem: j, texto: nome, vale: i >= 0, nome: i >= 0 ? J.tema.itens[i].n : '', seq: (P.ultimaDuvida ? P.ultimaDuvida.seq : 0) + 1 }
+    if (i < 0) { P.falas.push({ n: nome, v: 0 }); encerrar(J, false, 'duvido'); return P.ultimaDuvida }
+    if (J.raridade && !P.marcados.includes(i)) marcar(J, j, i) // na Raridade, o nome que vale já entra na conta
+    return P.ultimaDuvida
+  }
+
   function encerrar(J, ok, motivo) {
     const P = J.prova
     if (J.fase !== 'prova') return
@@ -168,9 +221,9 @@
   function botFala(J, j) {
     const P = J.prova
     const resta = J.js[j].lembra.filter((i) => !P.marcados.includes(i))
-    if (resta.length) return marcar(J, -1, resta[0])
+    if (resta.length) return J.raridade ? marcar(J, -1, resta[0]) : (J.js[j].lembra = J.js[j].lembra.filter((i) => i !== resta[0]), contar(J, -1))
     return errou(J, -1, 'um nome que não está na lista')
   }
 
-  raiz.ApostoMotor = { novoJogo, apostar, mandarProvar, truco, marcar, desmarcar, errou, encerrar, tempoAcabou, proximo, podeJulgar, botVez, botTruco, botFala, minimo, valor, tempoProva, TEMPO_LANCE, TEMPO_TRUCO, MULT, GRITO }
+  raiz.ApostoMotor = { novoJogo, apostar, mandarProvar, truco, marcar, desmarcar, errou, contar, descontar, duvidar, achar, encerrar, tempoAcabou, proximo, podeJulgar, botVez, botTruco, botFala, minimo, valor, tempoProva, TEMPO_LANCE, TEMPO_TRUCO, MULT, GRITO }
 })(typeof window !== 'undefined' ? window : globalThis)
