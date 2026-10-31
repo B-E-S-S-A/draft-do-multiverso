@@ -1,9 +1,7 @@
 // Aposto Que Sei: liga o motor (aposto-motor.js), os temas, as telas e a sala online (sala.js).
-// Num celular só, o aparelho fica no meio da mesa e cada um joga na sua vez (a prova é passada pra quem vai provar).
-// Online, quem cria a sala é o anfitrião: roda o motor, o relógio e os bots, e manda a mesma mesa pra todo mundo.
+// Num celular só, o aparelho fica no meio da mesa; na prova ele vai pra mão do juiz (quem mandou provar).
+// Online, quem cria a sala é o anfitrião: roda o motor, o relógio e os bots; a lista oficial só vai pra quem julga.
 (function () {
-  const E = window.Engine
-  const D = E.D
   const M = window.ApostoMotor
   const T = window.ApostoTelas
   const X = window.Sfx
@@ -25,70 +23,95 @@
   })()
 
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-aposto') || '{}') } catch (e) { return {} } })()
-  const ui = { n: Math.min(7, Math.max(2, Number(salvo.n) || 3)), nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 7) : [], meta: [10, 15, 25].includes(salvo.meta) ? salvo.meta : 15,
-    meuNome: guarda('mvd-imp-nome'), codigo: '', erro: '', status: '', msg: '', valor: 0, base: -1, estouro: false }
-  const salvar = () => guarda('mvd-aposto', JSON.stringify({ n: ui.n, nomes: ui.nomes, meta: ui.meta }))
+  const modoSalvo = salvo.modo === 'classico' ? 'classico' : 'raridade'
+  const ui = { n: Math.min(7, Math.max(2, Number(salvo.n) || 3)), nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 7) : [], modo: modoSalvo,
+    meta: T.DURACAO[modoSalvo].includes(salvo.meta) ? salvo.meta : T.DURACAO[modoSalvo][1],
+    meuNome: guarda('mvd-imp-nome'), codigo: '', erro: '', status: '', msg: '', valor: 0, base: '', estouro: '', letra: '' }
+  const salvar = () => guarda('mvd-aposto', JSON.stringify({ n: ui.n, nomes: ui.nomes, modo: ui.modo, meta: ui.meta }))
   let H = null
   let vis = null
   let prazoLocal = 0
 
   // ---------- anfitrião ----------
-  function novoHost(local, pessoas) { H = { local, pessoas, meta: ui.meta, J: null, prazo: 0, dur: 0, botEm: 0, inicio: 0, seguirEm: 0, fs: '', sig: '', laco: 0 } }
+  function novoHost(local, pessoas) { H = { local, pessoas, modo: ui.modo, meta: ui.meta, J: null, prazo: 0, dur: 0, botEm: 0, inicio: 0, seguirEm: 0, fs: '', sig: '', laco: 0 } }
   const nomeBot = () => BOTS.find((n) => !H.pessoas.some((p) => p.nome === n)) || 'Bot ' + H.pessoas.length
-  const poeBot = () => H.pessoas.push({ id: 'bot-' + Math.random().toString(36).slice(2, 7), nome: nomeBot(), bot: true, on: true, nivel: 0.45 + Math.random() * 0.4 })
+  const poeBot = () => H.pessoas.push({ id: 'bot-' + Math.random().toString(36).slice(2, 7), nome: nomeBot(), bot: true, on: true, nivel: 0.35 + Math.random() * 0.45 })
 
   function comecar() {
     const jogam = H.pessoas.filter((p) => p.on)
     if (jogam.length < 2) return
     H.pessoas.forEach((p) => { p.j = jogam.indexOf(p) })
-    H.J = M.novoJogo({ jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: p.nivel })), meta: H.meta, temas: window.ApostoTemas.todos(D), D })
+    H.J = M.novoJogo({ jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: p.nivel })), meta: H.meta, modo: H.modo, temas: window.ApostoTemas.todos() })
     H.fs = ''
     clearInterval(H.laco)
     H.laco = setInterval(tick, 150)
     tick()
   }
 
+  // num celular só, quem julga é quem mandou provar (ou outra pessoa de verdade; testando contra bots, quem prova)
+  function juizLocal(J) {
+    const P = J.prova
+    if (!J.js[P.chamou].bot) return P.chamou
+    const k = J.js.findIndex((p, i) => i !== P.j && !p.bot)
+    return k >= 0 ? k : P.j
+  }
+
   // a cada mudança de vez/fase o relógio recomeça
   function entrou(agora) {
     const J = H.J
+    H.prazo = 0
+    H.dur = 0
     if (J.fase === 'lances') { H.prazo = agora + M.TEMPO_LANCE; H.dur = M.TEMPO_LANCE; H.botEm = agora + 1300 + Math.random() * 1500 }
-    if (J.fase === 'prova' && !J.prova.comecou) { H.inicio = H.local && !J.js[J.prova.j].bot ? 0 : agora + 2600; H.prazo = 0; H.dur = 0 }
-    if (J.fase === 'prova' && J.prova.comecou) { const t = M.tempoProva(J.prova.n); H.prazo = agora + t; H.dur = t; H.botEm = agora + 1100 + Math.random() * 700 }
-    if (J.fase === 'resultado') { H.prazo = 0; H.dur = 0; H.seguirEm = agora + 8000 }
+    if (J.fase === 'truco') { H.prazo = agora + M.TEMPO_TRUCO; H.dur = M.TEMPO_TRUCO; H.botEm = agora + 1500 + Math.random() * 1500 }
+    if (J.fase === 'prova' && !J.prova.comecou) H.inicio = H.local && !J.js[J.prova.j].bot ? 0 : agora + 2600
+    if (J.fase === 'prova' && J.prova.comecou) { const t = M.tempoProva(J, J.prova.n); H.prazo = agora + t; H.dur = t; H.botEm = agora + 1200 + Math.random() * 800 }
+    if (J.fase === 'resultado') H.seguirEm = agora + 10000
   }
 
   function tick() {
     if (!H || !H.J) return
     const J = H.J
     const agora = Date.now()
-    const fs = () => [J.rodada, J.fase, J.vez, J.hist.length, J.prova ? J.prova.comecou : ''].join('|')
+    const fs = () => [J.rodada, J.fase, J.vez, J.hist.length, J.truco ? J.truco.gritos.length : '', J.prova ? J.prova.comecou : ''].join('|')
     if (fs() !== H.fs) { H.fs = fs(); entrou(agora) }
     if (J.fase === 'lances') {
       if (J.js[J.vez].bot && agora >= H.botEm) M.botVez(J, J.vez)
       else if (agora >= H.prazo) M.tempoAcabou(J)
+    } else if (J.fase === 'truco') {
+      if (J.js[J.truco.quem].bot && agora >= H.botEm) M.botTruco(J, J.truco.quem)
+      else if (agora >= H.prazo) M.tempoAcabou(J)
     } else if (J.fase === 'prova') {
       const P = J.prova
       if (!P.comecou && H.inicio && agora >= H.inicio) P.comecou = true
-      else if (P.comecou && J.js[P.j].bot && agora >= H.botEm) { M.botToque(J, P.j); H.botEm = agora + 900 + Math.random() * 1300 }
+      else if (P.comecou && J.js[P.j].bot && agora >= H.botEm) { M.botFala(J, P.j); H.botEm = agora + 1200 + Math.random() * 1300 }
       else if (P.comecou && H.prazo && agora >= H.prazo) M.tempoAcabou(J)
     } else if (J.fase === 'resultado' && !H.local && agora >= H.seguirEm) M.proximo(J)
     if (fs() !== H.fs) { H.fs = fs(); entrou(agora) }
-    const sig = [H.fs, J.lance ? J.lance.n : 0, J.prova ? J.prova.tocados.length : 0, J.js.map((p) => p.pts + (p.bot ? 'b' : '')).join(), H.pessoas.map((p) => p.on).join()].join('|')
+    const sig = [H.fs, J.lance ? J.lance.n : 0, J.prova ? J.prova.marcados.length + '/' + J.prova.falas.length : 0, J.js.map((p) => p.pts + (p.bot ? 'b' : '')).join(), H.pessoas.map((p) => p.on).join()].join('|')
     if (sig !== H.sig) { H.sig = sig; enviarTudo() }
   }
 
   function visao(p) {
-    const base = { code: sala.st.code, dono: p === H.pessoas[0], meta: H.meta, modo: H.local ? 'local' : 'online' }
+    const base = { code: sala.st.code, dono: p === H.pessoas[0], meta: H.meta, modo: H.modo, local: H.local }
     if (!H.J || p.j === undefined) return { ...base, fase: 'sala', pessoas: H.pessoas.map((x) => ({ nome: x.nome, bot: !!x.bot, on: x.on, voce: x === p, dono: x === H.pessoas[0] })) }
     const J = H.J
-    const aberto = J.fase === 'resultado' || J.fase === 'fim'
     const pessoaDe = (i) => H.pessoas.find((x) => x.j === i)
-    // cópias: neste aparelho a visão anterior fica guardada pra comparar (sons), então não pode ser o mesmo objeto do motor
-    return { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vez: J.vez, lance: J.lance && { ...J.lance }, hist: J.hist.map((h) => ({ ...h })),
+    const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vez: J.vez, MULT: M.MULT, GRITO: M.GRITO, meta: J.meta, modo: J.modo,
+      // cópias: neste aparelho a visão anterior fica guardada pra comparar (sons), então não pode ser o mesmo objeto do motor
+      lance: J.lance && { ...J.lance }, hist: J.hist.map((h) => ({ ...h })), truco: J.truco && { ...J.truco, gritos: J.truco.gritos.map((g) => ({ ...g })) },
       js: J.js.map((x, i) => ({ nome: x.nome, pts: x.pts, bot: x.bot, provas: x.provas, acertou: x.acertou, on: (pessoaDe(i) || {}).on !== false })),
-      tema: { titulo: J.tema.titulo, k: J.tema.k, grade: J.tema.grade }, certos: aberto ? J.tema.certos : null,
-      prova: J.prova && { ...J.prova, tocados: J.prova.tocados.map((t) => ({ ...t })) }, resultado: J.resultado && { ...J.resultado }, resta: H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur,
+      tema: { titulo: J.tema.titulo }, prova: J.prova && { ...J.prova, marcados: [...J.prova.marcados], falas: J.prova.falas.map((f) => ({ ...f })) },
+      resultado: J.resultado && { ...J.resultado }, resta: H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur,
       fimLogo: !!J.resultado && J.js.some((x) => x.pts >= J.meta) }
+    if (J.prova) {
+      const juiz = H.local ? juizLocal(J) : p.j
+      v.juizLocal = juizLocal(J)
+      v.souJuiz = juiz >= 0 && M.podeJulgar(J, juiz) && !(J.js[J.prova.j].bot && J.fase === 'prova')
+      v.autoJuiz = juiz === J.prova.j
+      // a lista oficial só vai pra quem julga (quem prova não pode ver)
+      if (v.souJuiz && J.fase === 'prova') v.itens = J.tema.itens
+    }
+    return v
   }
 
   function enviarTudo() {
@@ -97,17 +120,21 @@
     receber(visao(H.pessoas[0]))
   }
 
-  // num celular só, o aparelho age por quem está na vez (ou por quem está provando)
   function acao(p, msg) {
     const J = H.J
     if (msg.type === 'nome' && !J) { p.nome = String(msg.nome || '').trim().slice(0, 14) || p.nome; enviarTudo(); return }
     if (!J) return
-    const quem = H.local ? (msg.type === 'tocar' || msg.type === 'comecar-prova' ? J.prova && J.prova.j : J.vez) : p.j
-    if (quem === undefined || quem === null || quem < 0 || J.js[quem].bot) return
+    // num celular só, o aparelho age por quem está na vez (ou pelo juiz, na prova)
+    let quem = p.j
+    if (H.local) quem = ['apostar', 'prova'].includes(msg.type) ? J.vez : msg.type === 'truco' ? J.truco && J.truco.quem : J.prova ? juizLocal(J) : -1
+    if (quem === undefined || quem === null || quem < 0 || (J.js[quem].bot && msg.type !== 'comecar-prova')) return
     if (msg.type === 'apostar') M.apostar(J, quem, msg.n)
     if (msg.type === 'prova') M.mandarProvar(J, quem)
-    if (msg.type === 'comecar-prova' && J.fase === 'prova' && J.prova.j === quem) J.prova.comecou = true
-    if (msg.type === 'tocar') M.tocar(J, quem, msg.pos)
+    if (msg.type === 'truco') M.truco(J, quem, String(msg.escolha))
+    if (msg.type === 'comecar-prova' && J.fase === 'prova' && H.local) J.prova.comecou = true
+    if (msg.type === 'marcar') M.marcar(J, quem, msg.i)
+    if (msg.type === 'desmarcar') M.desmarcar(J, quem)
+    if (msg.type === 'errou') M.errou(J, quem)
     tick()
   }
   const fazer = (msg) => { if (H) acao(H.pessoas[0], msg); else sala.enviar(msg) }
@@ -156,7 +183,7 @@
     else if (H.J.js[p.j]) {
       // caiu no meio: um bot assume a vez dele pra mesa não travar (e devolve se ele voltar)
       H.J.js[p.j].bot = true
-      H.J.js[p.j].conhece = H.J.js[p.j].conhece || []
+      H.J.js[p.j].lembra = H.J.js[p.j].lembra || []
     }
     H.sig = ''
     enviarTudo()
@@ -171,34 +198,41 @@
     render()
   }
 
+  function estoura(txt) { ui.estouro = txt; som('hammer'); clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, 1300) }
   function sons(a, v) {
-    if (v.hist && a.hist && v.rodada === a.rodada && v.hist.length > a.hist.length) {
-      const h = v.hist[v.hist.length - 1]
-      if (h.prova) { som('hammer'); ui.estouro = true; setTimeout(() => { ui.estouro = false; render() }, 1300) } else som('bid', h.j % 2)
-    }
-    const ta = a.prova ? a.prova.tocados.length : 0
-    const tv = v.prova ? v.prova.tocados.length : 0
-    if (v.prova && tv > ta && v.rodada === a.rodada) som(v.prova.tocados[tv - 1].ok ? 'tick' : 'undo')
-    if (v.fase === 'resultado' && a.fase !== 'resultado') setTimeout(() => som(v.resultado.ok ? 'sold' : 'hammer'), 250)
+    const mesma = v.rodada === a.rodada
+    if (mesma && v.hist.length > a.hist.length) { const h = v.hist[v.hist.length - 1]; if (h.prova) estoura('PROVA!'); else som('bid', h.j % 2) }
+    if (mesma && v.truco && (!a.truco || v.truco.gritos.length > a.truco.gritos.length)) { const g = v.truco.gritos[v.truco.gritos.length - 1]; if (g) { if (g.grito === 'ACEITO') som('draw'); else if (g.grito !== 'CORRO') estoura(g.grito + '!') } }
+    const fa = a.prova ? a.prova.falas.length : 0
+    const fv = v.prova ? v.prova.falas.length : 0
+    if (mesma && v.prova && fv > fa) som(v.prova.falas[fv - 1].v ? 'bid' : 'undo', 0)
+    if (v.fase === 'prova' && v.prova.comecou && !(a.prova && a.prova.comecou)) { som('draw'); ui.letra = '' }
+    if (v.fase === 'resultado' && a.fase !== 'resultado') setTimeout(() => som(v.resultado.ok ? 'sold' : 'undo'), 250)
     if (v.fase === 'lances' && a.fase !== 'lances') som('draw')
     if (v.fase === 'fim' && a.fase !== 'fim') som('win')
   }
 
   function render() {
-    // durante a prova a grade ocupa a tela toda (sem o toldo), pra caber no celular sem rolar
+    // durante a prova a tela é só dela (sem o toldo), pra caber no celular
     const foco = !!vis && vis.fase === 'prova' && !el.hidden
     if (foco && !document.body.classList.contains('ap-foco')) window.scrollTo(0, 0)
     document.body.classList.toggle('ap-foco', foco)
     if (!vis) { el.innerHTML = T.entrada(ui); return }
     if (vis.fase === 'sala') { el.innerHTML = T.sala(vis, ui); return }
-    const local = vis.modo === 'local'
-    ui.podeSeguir = local || vis.dono
+    ui.local = vis.local
+    ui.podeSeguir = vis.local || vis.dono
     if (vis.fase === 'fim') { el.innerHTML = T.fim(vis, ui); return }
-    ui.souVez = vis.fase === 'lances' && (local ? !vis.js[vis.vez].bot : vis.eu === vis.vez)
-    ui.souProva = vis.fase === 'prova' && (local ? !vis.js[vis.prova.j].bot : vis.eu === vis.prova.j)
-    const base = vis.lance ? vis.lance.n : 0
-    if (ui.base !== base + '|' + vis.rodada) { ui.base = base + '|' + vis.rodada; ui.valor = base + 1 }
+    const humano = (j) => j >= 0 && !vis.js[j].bot
+    ui.souVez = vis.fase === 'lances' && (vis.local ? humano(vis.vez) : vis.eu === vis.vez)
+    ui.souTruco = vis.fase === 'truco' && (vis.local ? humano(vis.truco.quem) : vis.eu === vis.truco.quem)
+    ui.souProva = vis.fase === 'prova' && (vis.local ? humano(vis.prova.j) : vis.eu === vis.prova.j)
+    ui.souJuiz = vis.fase === 'prova' && !!vis.souJuiz && !!vis.itens
+    const chave = (vis.lance ? vis.lance.n : 0) + '|' + vis.rodada
+    if (ui.base !== chave) { ui.base = chave; ui.valor = (vis.lance ? vis.lance.n : 0) + 1 }
+    const rolagem = (document.getElementById('ap-nomes') || {}).scrollTop || 0
     el.innerHTML = T.jogo(vis, ui)
+    const nomes = document.getElementById('ap-nomes')
+    if (nomes) nomes.scrollTop = rolagem
     relogio()
   }
 
@@ -213,7 +247,7 @@
     if (vis.fase === 'prova' && seg <= 5 && seg > 0 && seg !== ultimoSeg) som('tick')
     ultimoSeg = seg
   }
-  setInterval(() => { if (vis && !el.hidden && (vis.fase === 'lances' || vis.fase === 'prova')) relogio() }, 100)
+  setInterval(() => { if (vis && !el.hidden && ['lances', 'truco', 'prova'].includes(vis.fase)) relogio() }, 100)
 
   function sair() {
     if (H) clearInterval(H.laco)
@@ -227,6 +261,11 @@
   const nomesLocais = () => Array.from({ length: ui.n }, (_, i) => (ui.nomes[i] || '').trim() || `Jogador ${i + 1}`)
   const acoes = {
     n: (v) => { ui.n = Math.min(7, Math.max(2, ui.n + Number(v))); salvar(); render() },
+    modo: (v) => {
+      const modo = v === 'classico' ? 'classico' : 'raridade'
+      const meta = T.DURACAO[modo][1]
+      if (H && !H.J) { H.modo = modo; H.meta = meta; enviarTudo() } else { ui.modo = modo; ui.meta = meta; salvar(); render() }
+    },
     meta: (v) => { if (H && !H.J) { H.meta = Number(v); enviarTudo() } else { ui.meta = Number(v); salvar(); render() } },
     local: () => { novoHost(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true }))); comecar() },
     bots: () => { novoHost(true, [{ id: 'l0', nome: ui.meuNome || 'Você', on: true }]); for (let k = 0; k < 3; k++) poeBot(); comecar() },
@@ -241,11 +280,15 @@
       else { ui.msg = link; render() }
     },
     comecar: () => { if (H && !H.J) comecar() },
-    valor: (v) => { ui.valor += Number(v); render() },
+    valor: (v) => { ui.valor = Math.min(99, ui.valor + Number(v)); render() },
     apostar: (v) => fazer({ type: 'apostar', n: Number(v) }),
     prova: () => fazer({ type: 'prova' }),
+    truco: (v) => fazer({ type: 'truco', escolha: v }),
     'comecar-prova': () => fazer({ type: 'comecar-prova' }),
-    tocar: (v) => { if (ui.souProva && vis.prova.comecou) fazer({ type: 'tocar', pos: Number(v) }) },
+    letra: (v) => { ui.letra = v; render() },
+    marcar: (v) => { ui.letra = ''; fazer({ type: 'marcar', i: Number(v) }) },
+    desmarcar: () => fazer({ type: 'desmarcar' }),
+    errou: () => fazer({ type: 'errou' }),
     proxima: () => { if (H && H.J && H.J.fase === 'resultado') { M.proximo(H.J); tick() } },
     denovo: () => { if (H) comecar() },
     sair: () => sair(),
@@ -263,11 +306,10 @@
   })
   el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target.id === 'ap-codigo') acoes.entrar() })
 
-  let pronto = null
   window.Aposto = {
     letreiro: () => ['Aposto Que <em>Sei</em>', 'quem sabe mais de Marvel prova na hora'],
     esconder() { document.body.classList.remove('ap-foco') },
-    abrir() { ui.meuNome = guarda('mvd-imp-nome') || ui.meuNome; if (!pronto) pronto = window.View.load(); pronto.then(render) },
-    entrar(code) { ui.codigo = code; if (!pronto) pronto = window.View.load(); pronto.then(() => sala.entrar(code)) },
+    abrir() { ui.meuNome = guarda('mvd-imp-nome') || ui.meuNome; render() },
+    entrar(code) { ui.codigo = code; sala.entrar(code) },
   }
 })()

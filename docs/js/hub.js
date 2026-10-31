@@ -71,7 +71,7 @@
         ${leque([hq('wolverine'), hq('green-goblin'), hq('groot')])}
         <div class="jogo-texto">
           <h2>Aposto Que Sei</h2>
-          <p>Sai um tema ("inimigos do Homem-Aranha") e cada um aposta quantos sabe. Quem apostou mais tem que provar na hora, tocando nas capas certas. Blefou e errou? Quem mandou provar leva os pontos.</p>
+          <p>Sai um tema ("inimigos do Homem-Aranha") e cada um aposta quantos nomes sabe, sem limite. Quem apostou mais prova na hora, falando em voz alta, e o juiz marca na lista. Nome raro vale mais. Tem modo clássico com truco.</p>
           <span class="lbl">2 a 7 jogadores · num celular só ou online</span>
         </div>
         <div class="jogo-btns">
