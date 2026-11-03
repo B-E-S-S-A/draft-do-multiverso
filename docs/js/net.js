@@ -157,8 +157,9 @@
       if (e.type === 'peer-unavailable' && tentativas < 5) { tentativas += 1; setTimeout(conectar, 3000); return }
       clearTimeout(espera)
       const msg = e.type === 'peer-unavailable'
-        ? `Não achei a sala ${code}. Confere o código com quem criou. A sala some se a página dele fechar ou recarregar.`
-        : 'Não deu pra conectar. Tenta de novo.'
+        ? window.Lingua.t(`Não achei a sala ${code}. Confere o código com quem criou. A sala some se a página dele fechar ou recarregar.`,
+          `Could not find room ${code}. Check the code with the host. The room disappears if their page closes or reloads.`)
+        : window.Lingua.t('Não deu pra conectar. Tenta de novo.', 'Could not connect. Try again.')
       leave()
       setStatus('off', { error: msg, code })
     })
