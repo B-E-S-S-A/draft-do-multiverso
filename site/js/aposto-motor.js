@@ -159,6 +159,22 @@
     return melhor
   }
 
+  // quem prova escreveu um nome (em vez de falar): o celular confere na hora. Nome que não vale = errou; repetido não conta.
+  function escreveu(J, j, texto) {
+    const P = J.prova
+    if (J.fase !== 'prova' || !P.comecou || j !== P.j || String(texto || '').trim().length < 2) return null
+    const i = achar(J.tema, texto)
+    const dito = String(texto).trim().slice(0, 40)
+    if (i < 0) { P.falas.push({ n: dito, v: 0 }); encerrar(J, false, 'errou'); return { vale: false } }
+    const it = J.tema.itens[i]
+    if (P.marcados.includes(i)) return { vale: true, repetido: true, nome: it.n }
+    P.marcados.push(i)
+    P.soma += valor(J, it)
+    P.falas.push({ n: it.n, v: valor(J, it) })
+    if (P.soma >= P.n) encerrar(J, true, 'provou')
+    return { vale: true, nome: it.n }
+  }
+
   // quem mandou provar desconfiou de um nome: digita e o celular confere. Não vale = quem prova errou.
   function duvidar(J, j, texto) {
     const P = J.prova
@@ -225,5 +241,5 @@
     return errou(J, -1, 'um nome que não está na lista')
   }
 
-  raiz.ApostoMotor = { novoJogo, apostar, mandarProvar, truco, marcar, desmarcar, errou, contar, descontar, duvidar, achar, encerrar, tempoAcabou, proximo, podeJulgar, botVez, botTruco, botFala, minimo, valor, tempoProva, TEMPO_LANCE, TEMPO_TRUCO, MULT, GRITO }
+  raiz.ApostoMotor = { novoJogo, apostar, mandarProvar, truco, marcar, desmarcar, errou, contar, descontar, duvidar, escreveu, achar, encerrar, tempoAcabou, proximo, podeJulgar, botVez, botTruco, botFala, minimo, valor, tempoProva, TEMPO_LANCE, TEMPO_TRUCO, MULT, GRITO }
 })(typeof window !== 'undefined' ? window : globalThis)

@@ -453,10 +453,20 @@
   }
   const myName = () => { try { return localStorage.getItem('mvd-me') || '' } catch (e) { return '' } }
 
+  // chat do Draft online: vai direto pro outro aparelho (jogador 1 vermelho, jogador 2 azul)
+  const chat = window.Chat.criar({ id: 'draft', enviar: (txt) => {
+    if (S.me == null) return
+    const m = { nome: S.cfg.names[S.me] || myName() || 'Jogador ' + (S.me + 1), txt, cor: S.me }
+    Net.send({ type: 'chat', m })
+    chat.receber({ ...m, eu: true })
+  } })
+  setInterval(() => chat.mostrar(!!S.net && S.net.status === 'connected' && document.body.dataset.jogo === 'draft'), 500)
+
   Net.on('status', (n) => {
     const wasGuest = S.me === 1
     S.ask = null
     S.net = { status: n.status, code: n.code, error: n.error }
+    if (n.status !== 'connected') chat.limpar()
     S.me = n.status === 'connected' ? (n.role === 'host' ? 0 : 1) : null
     if (wasGuest && S.me !== 1) {
       // saiu da sala do amigo: volta pro jogo deste aparelho
@@ -472,6 +482,7 @@
   })
   Net.on('message', (msg) => {
     if (!msg || typeof msg !== 'object') return
+    if (msg.type === 'chat' && msg.m) { chat.receber({ nome: String(msg.m.nome || '').slice(0, 20), txt: String(msg.m.txt || '').slice(0, 160), cor: msg.m.cor }); return }
     if (msg.type === 'act' && S.me === 0 && typeof msg.act === 'string') run(msg.act, msg.data || {}, 1)
     else if (msg.type === 'state' && S.me === 1 && msg.s) applyState(msg.s)
     else if (msg.type === 'full') { Net.leave(); S.net.error = 'Essa sala já tem dois jogadores.'; render() }

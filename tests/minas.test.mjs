@@ -60,6 +60,27 @@ const temas = globalThis.ApostoTemas.todos()
   assert.strictEqual(J.js[J.evento.toaa].vidas, 1)
 }
 
+// escrever o nome: o celular sabe se vale, se repetiu e se é mina de alguém (BOOM sozinho)
+{
+  const J = M.novoJogo({ jogadores: [{ nome: 'a' }, { nome: 'b' }, { nome: 'c' }], temas })
+  M.tempoPlantio(J)
+  const [x] = J.par
+  const dono = [0, 1, 2].find((k) => k !== x)
+  const mina = J.js[dono].minas[0].n
+  M.escreveu(J, x, mina)
+  assert.strictEqual(J.evento.tipo, 'boom')
+  assert.strictEqual(J.evento.dono, dono)
+  M.proximo(J); M.tempoPlantio(J)
+  M.escreveu(J, M.falando(J), 'Batmóvel')
+  assert.strictEqual(J.evento.tipo, 'naovale')
+  M.proximo(J); M.tempoPlantio(J)
+  const livres = J.tema.itens.filter((it) => !J.js.some((p) => p.minas.some((m) => m.n === it.n)))
+  const a1 = M.falando(J)
+  M.escreveu(J, a1, livres[0].n)
+  M.escreveu(J, M.falando(J), livres[0].n)
+  assert.strictEqual(J.evento.tipo, 'repetiu')
+}
+
 let partidas = 0, toaa = 0, rodadas = 0
 for (let g = 0; g < 300; g++) {
   const n = 2 + (g % 6)

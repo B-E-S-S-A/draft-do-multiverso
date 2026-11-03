@@ -108,6 +108,7 @@
     const quem = (padrao) => (H.local ? padrao : p.j)
     if (msg.type === 'plantar') r = M.plantar(J, quem(Number(msg.j)), String(msg.texto || '').slice(0, 40))
     if (msg.type === 'falei' && !H.pausa) M.falei(J, quem(M.falando(J)))
+    if (msg.type === 'escrever' && !H.pausa) M.escreveu(J, quem(M.falando(J)), String(msg.texto || '').slice(0, 40))
     if (msg.type === 'pausa') pausar(quem(J.ultimo ? J.par.find((x) => x !== J.ultimo.j) : -1))
     if (msg.type === 'retoma') retomar()
     if (msg.type === 'boom') M.boom(J, quem(Number(msg.dono)), Number(msg.mina), Number(msg.seq))
@@ -205,7 +206,7 @@
     ui.podeSeguir = vis.local || vis.dono
     if (vis.fase === 'fim') { el.innerHTML = T.fim(vis, ui); return }
     // digitando (mina ou dúvida): não redesenha a tela inteira, pra não apagar o que está sendo escrito
-    const campo = document.activeElement && ['mn-mina', 'mn-duvida'].includes(document.activeElement.id) ? document.activeElement : null
+    const campo = document.activeElement && ['mn-mina', 'mn-duvida', 'mn-escreve'].includes(document.activeElement.id) ? document.activeElement : null
     const chave = [vis.fase, vis.rodada, vis.falas.length, vis.plantando, ui.vendo, ui.aviso, ui.boomDono, ui.digitando, ui.estouro, vis.pausa, JSON.stringify(vis.minhas || (vis.todas && vis.todas[ui.vendo]) || [])].join('|')
     if (campo && chave === ui.chave) { relogio(); return }
     ui.chave = chave
@@ -258,6 +259,7 @@
     esconder: () => { ui.vendo = -1; render() },
     plantar: () => { const t = valor('mn-mina'); if (t.trim().length >= 2) fazer({ type: 'plantar', texto: t, j: ui.vendo }) },
     falei: () => fazer({ type: 'falei' }),
+    escrever: () => { const c = document.getElementById('mn-escreve'); const t = (c && c.value) || ''; if (t.trim().length < 2) return; c.value = ''; fazer({ type: 'escrever', texto: t }) },
     'boom-abre': () => { ui.boomDono = null; render() },
     'boom-dono': (v) => { ui.boomDono = Number(v); render() },
     'boom-fecha': () => { ui.boomDono = undefined; render() },
@@ -287,6 +289,7 @@
     if (ev.target.id === 'mn-codigo') acoes.entrar()
     if (ev.target.id === 'mn-mina') acoes.plantar()
     if (ev.target.id === 'mn-duvida') acoes.duvidar()
+    if (ev.target.id === 'mn-escreve') acoes.escrever()
   })
 
   window.Minas = {

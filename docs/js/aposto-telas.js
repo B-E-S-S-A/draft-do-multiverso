@@ -170,13 +170,17 @@
       ? `<div class="ap-conta"><button class="btn big ap-mais" type="button" data-a="contar">+1 <small>falei um nome</small></button>
           <button class="btn paper" type="button" data-a="descontar"${P.falas.length && P.falas[P.falas.length - 1].n === '' ? '' : ' disabled'}>desfazer</button></div>` : ''
     const fala = rodando && ui.souProva && !ui.local && v.raridade ? '<p class="ap-fala">FALA! Diga os nomes em voz alta.</p>' : ''
+    // em vez de falar, quem prova pode escrever: o celular confere sozinho
+    const escreve = rodando && ui.souProva && v.pausa < 0 ? `<div class="ap-escreve"><label class="ap-digita"><span class="lbl">${ui.local ? esc(nome(v, P.j)) + ': ' : ''}ou escreva o nome (o celular confere)</span>
+      <span class="ap-escreve-linha"><input id="ap-escreve" maxlength="40" autocomplete="off" autocapitalize="words" enterkeyhint="send">
+      <button class="btn green" type="button" data-a="escrever">Enviar</button></span></label><small id="ap-recado" class="ap-recado" role="status"></small></div>` : ''
     const juiz = rodando && v.raridade && ui.souJuiz ? lista(v, ui) : ''
     const duvida = rodando && !v.raridade && ui.souDuvida ? `<div class="ap-juiz ap-duvido">${caixaDuvida(v, ui)}</div>` : ''
     const pausa = v.pausa >= 0 && P.comecou ? `<p class="mn-pausa ap-pausa" role="status">relógio parado: ${esc(nome(v, v.pausa))} está digitando um nome pra conferir…</p>` : ''
     return `${cab}${fala}${pausa}
       ${D ? `<p class="ap-duvida-res ${D.vale ? 'ok' : 'erro'}">${esc(nome(v, D.quem))} duvidou de "${esc(D.texto)}": <b>${D.vale ? `✓ vale (${esc(D.nome)})` : '✗ não vale'}</b></p>` : ''}
       <div class="ap-falas" id="ap-falas">${falas(v)}</div>
-      ${conta}${juiz}${duvida}
+      ${conta}${escreve}${juiz}${duvida}
       ${passa ? `<div class="ap-passa" role="dialog"><div><span class="lbl">prova</span><h3>${esc(nome(v, P.j))} fala, ${esc(nome(v, v.juizLocal))} escuta</h3>
         <p>${v.raridade
           ? `O celular fica com ${esc(nome(v, v.juizLocal))}. ${esc(nome(v, P.j))} fala nomes de <b>${esc(v.tema.titulo)}</b> em voz alta e ${esc(nome(v, v.juizLocal))} marca cada um na lista (cada nome vale diferente).`

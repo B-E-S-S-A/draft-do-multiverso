@@ -47,6 +47,20 @@ for (const t of temas) {
   }
 }
 
+// escrever em vez de falar: nome que vale conta, repetido não conta de novo, nome de fora é erro
+{
+  const J = M.novoJogo({ jogadores: [{ nome: 'a' }, { nome: 'b' }], truco: false, temas })
+  J.vez = 0
+  M.apostar(J, 0, 3); M.mandarProvar(J, 1); J.prova.comecou = true
+  const um = J.tema.itens[0].n
+  assert(M.escreveu(J, 0, um).vale)
+  assert(M.escreveu(J, 0, um).repetido)
+  assert.strictEqual(J.prova.soma, 1)
+  assert.strictEqual(M.escreveu(J, 1, J.tema.itens[1].n), null, 'só quem prova escreve')
+  assert.strictEqual(M.escreveu(J, 0, 'Batman').vale, false)
+  assert.strictEqual(J.fase, 'resultado')
+}
+
 let rodadas = 0, provou = 0, correu = 0
 for (const [raridade, truco] of [[true, false], [false, true], [true, true], [false, false]]) {
   for (let g = 0; g < 100; g++) {

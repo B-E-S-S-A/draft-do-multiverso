@@ -5,7 +5,7 @@
 // Ninguém fica de fora: quem já saiu continua plantando minas. E uma vez por jogo… Aquele Acima de Todos.
 (function (raiz) {
   const TEMPO_PLANTIO = 60000
-  const TEMPO_VEZ = 10000
+  const TEMPO_VEZ = 12000
   const MAX_VIDAS = 5
   let rnd = Math.random
   const A = () => raiz.ApostoMotor
@@ -89,6 +89,19 @@
     perde(J, falando(J), { tipo: 'travou', vitima: falando(J) })
   }
 
+  // quem está falando escreveu o nome (em vez de falar): o celular confere se vale, se repetiu e se é mina de alguém
+  function escreveu(J, j, texto) {
+    if (J.fase !== 'duelo' || j !== falando(J) || String(texto || '').trim().length < 2) return null
+    const i = A().achar(J.tema, texto)
+    const dito = String(texto).trim().slice(0, 40)
+    if (i < 0) { falei(J, j, dito); perde(J, j, { tipo: 'naovale', vitima: j, texto: dito }); return { vale: false } }
+    const nome = J.tema.itens[i].n
+    if (J.falas.some((f) => f.nome === nome)) { falei(J, j, nome); perde(J, j, { tipo: 'repetiu', vitima: j, nome }); return { repetiu: true } }
+    falei(J, j, nome)
+    J.js.forEach((p, dono) => { const k = p.minas.findIndex((m) => m.n === nome && !m.explodiu); if (k >= 0 && J.fase === 'duelo' && dono !== j) boom(J, dono, k, J.seq) })
+    return { vale: true, nome }
+  }
+
   // BOOM: o dono de uma mina diz que ela foi falada na fala "seq" (o celular confere se a mina é mesmo dele)
   function boom(J, dono, mina, seq) {
     if (J.fase !== 'duelo' || !J.ultimo) return false
@@ -151,5 +164,5 @@
     return nome
   }
 
-  raiz.MinasMotor = { novoJogo, plantar, tempoPlantio, falei, tempoVez, boom, duvidar, proximo, botFala, vivos, falando, proximoPlantar, TEMPO_PLANTIO, TEMPO_VEZ }
+  raiz.MinasMotor = { novoJogo, plantar, tempoPlantio, falei, escreveu, tempoVez, boom, duvidar, proximo, botFala, vivos, falando, proximoPlantar, TEMPO_PLANTIO, TEMPO_VEZ }
 })(typeof window !== 'undefined' ? window : globalThis)

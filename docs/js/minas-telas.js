@@ -15,7 +15,8 @@
     <li>Dois fazem o <b>duelo</b>: cada um, na sua vez, fala um nome do tema em voz alta e toca FALEI.</li>
     <li>Todo mundo escuta. Falaram a sua mina? Toque <b>BOOM!</b>: quem falou perde uma vida e você ganha uma.</li>
     <li>Achou que o outro falou um nome que não vale? <b>DUVIDO!</b> Digita o nome e o celular confere. Quem errou perde vida.</li>
-    <li>Travou (10 segundos sem falar)? Perde vida. Quem sai continua plantando minas. Último vivo ganha.</li>
+    <li>Prefere não falar? Escreva o nome: o celular confere sozinho se vale, se repetiu e se é mina.</li>
+    <li>Travou (12 segundos sem falar)? Perde vida. Quem sai continua plantando minas. Último vivo ganha.</li>
   </ol>`
 
   function vidas(sel, pode) {
@@ -145,7 +146,10 @@
       </div>
       <div class="mn-vez" style="${cor(fala)}"><span class="lbl">vez de ${esc(nome(v, fala))}</span>${relogio()}</div>
       ${v.pausa >= 0 ? `<p class="mn-pausa" role="status">relógio parado: ${esc(nome(v, v.pausa))} está digitando um duvido…</p>` : ''}
-      ${souFala && v.pausa < 0 ? `<button class="mn-falei" type="button" data-m="falei" style="${cor(fala)}"><b>FALEI!</b><small>${ui.local ? esc(nome(v, fala)) + ' fala um nome e toca' : 'fale um nome e toque'}</small></button>` : ''}
+      ${souFala && v.pausa < 0 ? `<button class="mn-falei" type="button" data-m="falei" style="${cor(fala)}"><b>FALEI!</b><small>${ui.local ? esc(nome(v, fala)) + ' fala um nome e toca' : 'fale um nome e toque'}</small></button>
+        <div class="ap-escreve"><label class="ap-digita"><span class="lbl">ou escreva o nome (o celular confere)</span>
+          <span class="ap-escreve-linha"><input id="mn-escreve" maxlength="40" autocomplete="off" autocapitalize="words" enterkeyhint="send">
+          <button class="btn green" type="button" data-m="escrever">Enviar</button></span></label></div>` : ''}
       ${ult && ult.nome ? `<p class="mn-ultimo" style="${cor(ult.j)}">${esc(nome(v, ult.j))} falou: <b>${esc(ult.nome)}</b></p>` : ''}
       <div class="mn-falas">${falas || '<small>ninguém falou ainda</small>'}</div>
       ${boom}${duvida}
@@ -172,7 +176,9 @@
     if (e.tipo === 'boom') return `<div class="mn-evento boom"><span class="mn-estrela" aria-hidden="true"></span><b class="mn-bum">BOOM!</b><p class="mn-legenda"><b>${esc(e.mina)}</b> era mina de ${esc(nome(v, e.dono))}.<br>${perdeu}. ${esc(nome(v, e.dono))} ganha 1.</p></div>`
     if (e.tipo === 'duvido') return `<div class="mn-evento ${e.vale ? 'vale' : 'boom'}">${e.vale ? '' : '<span class="mn-estrela" aria-hidden="true"></span>'}<b class="mn-bum">${e.vale ? 'VALE!' : 'NÃO VALE!'}</b>
       <p class="mn-legenda">${esc(nome(v, e.quem))} duvidou de "${esc(e.texto)}"${e.vale ? ` (era ${esc(e.nome)})` : ''}.<br>${perdeu}.</p></div>`
-    return `<div class="mn-evento boom"><span class="mn-estrela" aria-hidden="true"></span><b class="mn-bum">TRAVOU!</b><p class="mn-legenda">${esc(nome(v, e.vitima))} ficou 10 segundos sem falar.<br>${perdeu}.</p></div>`
+    if (e.tipo === 'naovale') return `<div class="mn-evento boom"><span class="mn-estrela" aria-hidden="true"></span><b class="mn-bum">NÃO VALE!</b><p class="mn-legenda">${esc(nome(v, e.vitima))} escreveu "${esc(e.texto)}", que não é do tema.<br>${perdeu}.</p></div>`
+    if (e.tipo === 'repetiu') return `<div class="mn-evento boom"><span class="mn-estrela" aria-hidden="true"></span><b class="mn-bum">REPETIU!</b><p class="mn-legenda">${esc(e.nome)} já tinha saído nesse duelo.<br>${perdeu}.</p></div>`
+    return `<div class="mn-evento boom"><span class="mn-estrela" aria-hidden="true"></span><b class="mn-bum">TRAVOU!</b><p class="mn-legenda">${esc(nome(v, e.vitima))} ficou 12 segundos sem falar.<br>${perdeu}.</p></div>`
   }
 
   function campo(v) {

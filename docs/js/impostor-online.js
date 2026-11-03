@@ -33,6 +33,20 @@
   let escondida = false
   let confirmar = null
 
+  // chat da sala: quem entrou manda pro anfitrião, o anfitrião espalha pra todo mundo (com a cor de cada um)
+  const chat = window.Chat.criar({ id: 'imp', enviar: (txt) => {
+    if (N.papel === 'host' && sala) difundir(MEU_ID, txt)
+    else if (conn && conn.open) try { conn.send({ type: 'chat', txt }) } catch (e) {}
+  } })
+  function difundir(id, txt) {
+    const k = sala.jogadores.findIndex((x) => x.id === id)
+    const j = sala.jogadores[k]
+    const m = { id, nome: (j && j.nome) || 'Jogador ' + (k + 1), txt: String(txt).slice(0, 160), cor: Math.max(0, k) }
+    for (const x of sala.jogadores) if (x.conn && x.conn.open) try { x.conn.send({ type: 'chat', m }) } catch (e) {}
+    chat.receber({ ...m, eu: id === MEU_ID })
+  }
+  setInterval(() => chat.mostrar((N.status === 'hosting' || N.status === 'connected') && document.body.dataset.jogo === 'impostor'), 500)
+
   // ---------- conexão ----------
   const disponivel = () => typeof window.Peer === 'function'
   const novoCodigo = () => [0, 1, 2, 3].map(() => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join('')
@@ -56,6 +70,7 @@
     clearInterval(batida)
     if (p) try { p.destroy() } catch (e) {}
     Object.assign(N, { status: 'off', papel: null, erro: '' })
+    chat.limpar()
     if (!silencioso) I.render()
   }
 
@@ -135,6 +150,7 @@
       j.nome = String(msg.nome || '').trim().slice(0, 14)
       I.render()
     } else if (j && msg.type === 'voto') votar(j.id, String(msg.alvo))
+    else if (j && msg.type === 'chat' && msg.txt) difundir(j.id, msg.txt)
   }
 
   function caiuConvidado(c) {
@@ -194,6 +210,7 @@
   function doAnfitriao(msg) {
     if (!msg || typeof msg !== 'object' || msg.type === 'ping') return
     if (msg.type === 'cheia') { sair(true); return erro(T().on.cheia) }
+    if (msg.type === 'chat' && msg.m) { chat.receber({ ...msg.m, eu: msg.m.id === MEU_ID }); return }
     if (msg.type === 'visao' && msg.v) {
       const antes = V
       V = msg.v

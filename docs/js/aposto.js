@@ -149,11 +149,18 @@
     if (msg.type === 'pausa') pausar(quem)
     if (msg.type === 'retoma') retomar()
     if (msg.type === 'contar' && !H.pausa) M.contar(J, quem)
+    if (msg.type === 'escrever' && !H.pausa) {
+      const r = M.escreveu(J, H.local ? J.prova && J.prova.j : p.j, String(msg.texto || '').slice(0, 40))
+      if (r && r.repetido) avisar(p, r.nome + ' já foi')
+    }
     if (msg.type === 'descontar') M.descontar(J, quem)
     if (msg.type === 'duvidar') { retomar(); M.duvidar(J, quem, String(msg.texto || '').slice(0, 40)) }
     tick()
   }
   const fazer = (msg) => { if (H) acao(H.pessoas[0], msg); else sala.enviar(msg) }
+  // recadinho só pra quem escreveu (nome repetido)
+  function avisar(p, txt) { if (p === H.pessoas[0]) { ui.recado = txt; mostraRecado() } else if (p.conn) sala.enviar({ type: 'recado', txt }, p.conn) }
+  function mostraRecado() { const r = document.getElementById('ap-recado'); if (r) r.textContent = ui.recado || ''; clearTimeout(ui._r); ui._r = setTimeout(() => { ui.recado = ''; const x = document.getElementById('ap-recado'); if (x) x.textContent = '' }, 2500) }
 
   // ---------- sala online ----------
   sala.aoStatus = (st) => {
@@ -168,6 +175,7 @@
     if (de === 'host') {
       if (msg.type === 'cheia') { sala.sair(); ui.erro = ERROS.cheia; render(); return }
       if (msg.type === 'visao' && msg.v) receber(msg.v)
+      if (msg.type === 'recado') { ui.recado = String(msg.txt || ''); mostraRecado() }
       return
     }
     if (!H) return
@@ -248,8 +256,8 @@
     ui.souDuvida = vis.fase === 'prova' && (vis.local || (vis.eu >= 0 && vis.eu !== vis.prova.j))
     if (vis.fase !== 'prova') { ui.digitando = false; ui.duvida = '' }
     // digitando o nome suspeito: só atualiza os números, pra não apagar o que está sendo digitado
-    const caixa = document.getElementById('ap-duvida-txt')
-    if (ui.digitando && caixa && vis.fase === 'prova') {
+    const caixa = document.activeElement && ['ap-duvida-txt', 'ap-escreve'].includes(document.activeElement.id) ? document.activeElement : document.getElementById('ap-duvida-txt')
+    if (caixa && (ui.digitando || caixa.id === 'ap-escreve') && vis.fase === 'prova') {
       const P = vis.prova
       const s = el.querySelector('.ap-soma b')
       if (s) s.textContent = P.soma
@@ -329,6 +337,14 @@
     errou: () => fazer({ type: 'errou' }),
     contar: () => fazer({ type: 'contar' }),
     descontar: () => fazer({ type: 'descontar' }),
+    escrever: () => {
+      const c = document.getElementById('ap-escreve')
+      const t = (c && c.value) || ''
+      if (t.trim().length < 2) return
+      c.value = ''
+      c.focus()
+      fazer({ type: 'escrever', texto: t })
+    },
     'abrir-duvida': () => { ui.digitando = true; ui.duvida = ''; ui.focar = true; render(); fazer({ type: 'pausa' }) },
     'fechar-duvida': () => { ui.digitando = false; ui.duvida = ''; render(); fazer({ type: 'retoma' }) },
     duvidar: () => {
@@ -357,6 +373,7 @@
   el.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter' && ev.target.id === 'ap-codigo') acoes.entrar()
     if (ev.key === 'Enter' && ev.target.id === 'ap-duvida-txt') acoes.duvidar()
+    if (ev.key === 'Enter' && ev.target.id === 'ap-escreve') acoes.escrever()
   })
 
   window.Aposto = {
