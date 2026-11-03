@@ -1,0 +1,52 @@
+/* Missão Secreta: a missão vem num cartão de dossiê com carimbo de "ultrassecreto"; o resto é o visual da banca. */
+.mi-jogo { padding-block: 22px 56px; display: grid; gap: 14px; max-width: 900px; margin: 0 auto }
+.mi-carta { position: relative; display: grid; gap: 12px; justify-items: start; background: #efe2c2; border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+  padding: 22px 18px 16px; background-image: repeating-linear-gradient(0deg, transparent 0 26px, rgba(0, 0, 0, .06) 26px 27px) }
+.mi-carimbo { position: absolute; top: 10px; right: 12px; transform: rotate(6deg); font-family: var(--label); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--p1); border: 3px solid var(--p1); padding: 2px 8px; opacity: .85 }
+.mi-txt { margin: 10px 0 0; font-family: var(--display); font-weight: 400; font-size: clamp(30px, 7vw, 46px); line-height: .95; max-width: 26ch }
+.mi-txt.escondida { color: transparent; background: var(--ink); user-select: none; min-width: 12ch }
+.mi-carta.aberta .mi-txt { animation: mi-revela .35s steps(4) }
+@keyframes mi-revela { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 0 0 0) } }
+.mi-pts { font-family: var(--label); font-size: 11px; background: var(--sun); border: 2px solid var(--ink); padding: 2px 8px }
+.mi-botoes { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.mi-botoes .btn.big { flex: 1 1 220px }
+.mi-nota { margin: 0; background: var(--ink); color: var(--sun); font-weight: 700; padding: 8px 12px; animation: bo-entra .3s ease-out }
+.mi-baixo { align-items: start }
+.mi-placar li { background: #fff; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink) }
+.mi-placar li.fora { opacity: .5 }
+.mi-placar small { font-family: var(--label); font-size: 9px; font-weight: 400 }
+.mi-feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; max-height: 320px; overflow-y: auto }
+.mi-feed li { border-left: 4px solid var(--ink); padding-left: 8px }
+.mi-feed li:first-child { animation: bo-entra .3s ease-out }
+.mi-pedido h3 { font-size: clamp(28px, 7vw, 40px); animation: none; color: var(--ink) }
+.mi-pedido > div { border-top-color: var(--sun) }
+.mi-pedido .online-row { justify-content: center }
+.home-secao { grid-column: 1 / -1; margin: 10px 0 -10px; font-family: var(--display); font-weight: 400; font-size: 40px; line-height: 1;
+  display: flex; align-items: center; gap: 14px }
+.home-secao::after { content: ''; flex: 1; height: 4px; background: var(--ink) }
+.home-secao small { font-family: var(--label); font-size: 11px; color: var(--muted) }
+
+/* peças que a Missão divide com a antiga Bolsa (placar, escolha de pessoa, confirmação e tela final) */
+@keyframes bo-entra { from { opacity: 0; transform: translateX(-8px) } }
+.bo-painel { display: grid; gap: 10px }
+.bo-escolhe { display: flex; flex-wrap: wrap; gap: 6px }
+.bo-escolhe .preset { font-size: 13px; padding: 7px 10px }
+.bo-escolhe .preset[style] { border-left: 8px solid var(--cor) }
+@keyframes bo-escurece { from { background: rgba(11, 10, 18, 0) } }
+@keyframes bo-aparece { from { opacity: 0; transform: translateY(8px) } }
+.bo-rank { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px }
+.bo-rank li { --cor: var(--p1); display: flex; justify-content: space-between; gap: 8px; border-left: 8px solid var(--cor); padding: 2px 8px; background: rgba(255, 255, 255, .06); font-weight: 700 }
+.bo-rank li b { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1 }
+.bo-rank em { font-style: normal; font-family: var(--label); font-size: 9px; color: #7dffb2 }
+.bo-denuncia { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(11, 10, 18, .8); animation: bo-escurece .2s both }
+.bo-denuncia > div { width: min(100%, 460px); background: var(--paper); border: 4px solid var(--ink); border-top: 14px solid var(--p1); box-shadow: 8px 8px 0 #000; padding: 16px 20px; display: grid; gap: 8px; text-align: center }
+.bo-denuncia p { margin: 0; font-size: 18px }
+.bo-denuncia h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(48px, 12vw, 72px); line-height: .85; animation: bo-revela .35s cubic-bezier(.3, 1.6, .5, 1) 1.6s both }
+.bo-denuncia small { font-size: 14px; animation: bo-aparece .3s 2s both }
+.bo-denuncia.certo h3 { color: #1c8a4a }
+@keyframes bo-revela { from { opacity: 0; transform: scale(2.2) } }
+.bo-fim { padding-block: 22px 56px; display: grid; justify-items: center }
+.bo-fim-box { --cor: var(--p1); width: min(100%, 560px); border-top: 14px solid var(--cor); display: grid; gap: 12px }
+.bo-fim-box h2 { margin: 0; font-size: clamp(40px, 9vw, 56px); line-height: .9 }
+.bo-fim .bo-rank li { background: #fff; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink) }

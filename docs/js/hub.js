@@ -1,20 +1,20 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei e as Minas. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei, as Minas e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), minas: document.getElementById('minas') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), minas: document.getElementById('minas'), missao: document.getElementById('missao') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
   const LETREIRO = {
-    home: ['Banca do <em>Multiverso</em>', 'quatro jogos de personagens da Marvel'],
+    home: ['Banca do <em>Multiverso</em>', 'jogos de personagens da Marvel pra turma'],
     draft: ['Draft do <em>Multiverso</em>', 'leilão de personagens · HQ e MCU'],
   }
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'minas' ? window.Minas.letreiro() : LETREIRO[atual]
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'minas' ? window.Minas.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]
     h1.innerHTML = l[0]
     sub.textContent = l[1]
   }
@@ -30,6 +30,7 @@
     if (atual === 'impostor') window.Impostor.abrir()
     if (atual === 'aposto') window.Aposto.abrir()
     if (atual === 'minas') window.Minas.abrir()
+    if (atual === 'missao') window.Missao.abrir()
     window.scrollTo(0, 0)
   }
 
@@ -93,6 +94,18 @@
           <button class="btn green" type="button" data-ir="minas-online">Jogar online</button>
         </div>
       </article>
+      <h2 class="home-secao">Pra noite toda <small>rola enquanto vocês fazem outra coisa</small></h2>
+      <article class="panel jogo">
+        ${leque([hq('black-widow'), hq('nick-fury'), hq('mystique')])}
+        <div class="jogo-texto">
+          <h2>Missão Secreta</h2>
+          <p>Cada um recebe uma missão com um alvo: "faça o Lipe dizer Wakanda". Cumpra sem ninguém perceber. Desconfiou de alguém? Te peguei!</p>
+          <span class="lbl">3 a 16 jogadores · cada um no seu celular · dá pra entrar no meio</span>
+        </div>
+        <div class="jogo-btns">
+          <button class="btn big red" type="button" data-ir="missao">Jogar Missão</button>
+        </div>
+      </article>
     </section>`
   }
 
@@ -125,6 +138,8 @@
     if (salaAp) { ir('aposto'); window.Aposto.entrar(salaAp[1]); return }
     const salaMn = pedido.match(/^minas-([A-Za-z0-9]{4})$/)
     if (salaMn) { ir('minas'); window.Minas.entrar(salaMn[1]); return }
+    const salaMi = pedido.match(/^missao-([A-Za-z0-9]{4})$/)
+    if (salaMi) { ir('missao'); window.Missao.entrar(salaMi[1]); return }
     ir(telas[pedido] ? pedido : 'home')
   })
 })()
