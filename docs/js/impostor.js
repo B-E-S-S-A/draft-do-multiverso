@@ -24,7 +24,9 @@
   let relogio = null        // { fim, restante, rodando }
   let laco = null
 
-  const T = () => TXT[C.lingua]
+  // a língua é da pessoa (o botão PT/EN do topo), não da sala
+  const lingua = () => window.Lingua.atual()
+  const T = () => TXT[lingua()]
   const esc = V.esc
   const rand = (n) => Math.floor(Math.random() * n)
   const online = () => window.ImpostorOnline && window.ImpostorOnline.ativo()
@@ -33,12 +35,11 @@
   C.n = Math.min(MAX, Math.max(MIN, Number(C.n) || 3))
   C.placar = Array.from({ length: MAX }, (_, i) => Number(C.placar && C.placar[i]) || 0)
   C.nomes = Array.from({ length: MAX }, (_, i) => String((C.nomes && C.nomes[i]) || ''))
-  if (!TXT[C.lingua]) C.lingua = 'pt'
   function salvar() { try { localStorage.setItem(SAVE, JSON.stringify(C)) } catch (e) {} }
   const som = (f) => { if (X && X.on) X[f]() }
 
   const nome = (p) => (C.usarNomes && C.nomes[p] && C.nomes[p].trim()) || T().jogador(p + 1)
-  const pers = (key) => (C.lingua === 'en' ? EN[key] : D.hq[IDX[key]].n)
+  const pers = (key) => (lingua() === 'en' ? EN[key] : D.hq[IDX[key]].n)
   const capa = (key) => V.card(E.lotOf('hq:' + IDX[key]))
   const ehImpostor = (p) => R.impostores.includes(p)
   const qtdImpostores = (n) => (C.modo === 'dois' && n >= 6 ? 2 : 1)
@@ -155,8 +156,8 @@
 
   function blocoLingua() {
     return `<div class="presets" role="group" aria-label="${T().lingua}">
-      <button class="preset" type="button" data-a="lingua" data-v="pt" aria-pressed="${C.lingua === 'pt'}">PT</button>
-      <button class="preset" type="button" data-a="lingua" data-v="en" aria-pressed="${C.lingua === 'en'}">EN</button></div>`
+      <button class="preset" type="button" data-a="lingua" data-v="pt" aria-pressed="${lingua() === 'pt'}">PT</button>
+      <button class="preset" type="button" data-a="lingua" data-v="en" aria-pressed="${lingua() === 'en'}">EN</button></div>`
   }
   function blocoModo(n) {
     const t = T()
@@ -329,7 +330,7 @@
     const depois = C.votar ? `<button class="btn big" type="button" data-a="ir" data-v="votos">${t.paraVotar}</button>` : botaoRevelar('data-a')
     return `<section class="imp-jogo">
       <div class="imp-topo"><span class="hint">${t.quemComeca}</span>
-        <button class="linkish" type="button" data-a="ir" data-v="cartas">${C.lingua === 'en' ? 'Cards' : 'Cartas'}</button></div>
+        <button class="linkish" type="button" data-a="ir" data-v="cartas">${lingua() === 'en' ? 'Cards' : 'Cartas'}</button></div>
       ${painelDicas(nome(R.comeca), R.comeca, relogio.restante, relogio.rodando, 'data-a="relogio"')}
       <div class="go-row">${depois}</div>
     </section>`
@@ -377,7 +378,7 @@
     },
     modo: (v) => { C.modo = v; salvar() },
     segs: (v) => { C.segs = Number(v); salvar() },
-    lingua: (v) => { C.lingua = v; salvar(); if (window.Hub) window.Hub.letreiro() },
+    lingua: (v) => window.Lingua.definir(v),
     zerar: () => {
       if (confirmar !== 'zerar') { confirmar = 'zerar'; return }
       C.placar = Array(MAX).fill(0); confirmar = null; salvar()
@@ -454,6 +455,8 @@
   })
 
   let pronto = null
+  // trocou a língua no topo: redesenha se o Impostor estiver na tela
+  window.Lingua.aoMudar(() => { if (!el.hidden) { render(); if (window.Hub) window.Hub.letreiro() } })
   window.Impostor = {
     letreiro: () => [T().titulo, T().sub],
     abrir() {

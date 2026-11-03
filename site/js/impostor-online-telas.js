@@ -139,7 +139,7 @@
   function caixa(x) {
     const o = T().on
     const N = x.N
-    const cancelar = `<button class="linkish" type="button" data-o="sair">${C.lingua === 'en' ? 'Cancel' : 'Cancelar'}</button>`
+    const cancelar = `<button class="linkish" type="button" data-o="sair">${window.Lingua.en() ? 'Cancel' : 'Cancelar'}</button>`
     if (N.status === 'creating') return `<h2>${o.titulo}</h2><p>${o.criando}</p>${cancelar}`
     if (N.status === 'joining') return `<h2>${o.titulo}</h2><p>${o.entrando(N.code)}</p>${cancelar}`
     return `<h2>${o.titulo}</h2><p class="note">${o.sub}</p>${N.erro ? `<p class="neterr">${esc(N.erro)}</p>` : ''}

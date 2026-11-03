@@ -57,16 +57,16 @@
     clearInterval(batida)
     conn = null
     try { c.close() } catch (e) {}
-    if (net.role === 'host') setStatus('hosting', { error: 'Seu amigo saiu ou a internet dele caiu. Ele pode entrar de novo com o mesmo código.' })
+    if (net.role === 'host') setStatus('hosting', { error: window.Lingua.t('Seu amigo saiu ou a internet dele caiu. Ele pode entrar de novo com o mesmo código.', 'Your friend left or their internet dropped. They can join again with the same code.') })
     else {
       const code = net.code
       leave()
-      setStatus('off', { error: 'A conexão com a sala caiu. Toque em Entrar pra tentar de novo.', code })
+      setStatus('off', { error: window.Lingua.t('A conexão com a sala caiu. Toque em Entrar pra tentar de novo.', 'The connection to the room dropped. Tap Join to try again.'), code })
     }
   }
 
   function host(attempt = 0) {
-    if (!net.available()) return setStatus('off', { error: 'Não deu pra carregar o modo online. Confere a internet e recarrega a página.' })
+    if (!net.available()) return setStatus('off', { error: window.Lingua.t('Não deu pra carregar o modo online. Confere a internet e recarrega a página.', 'Could not load online mode. Check your internet and reload the page.') })
     leave()
     const code = (attempt === 0 && codigoGuardado()) || newCode()
     net.role = 'host'
@@ -74,7 +74,7 @@
     const p = new window.Peer(PREFIX + code)
     peer = p
     espera = setTimeout(() => {
-      if (peer === p && net.status === 'creating') { leave(); setStatus('off', { error: 'Não deu pra criar a sala. Confere a internet e tenta de novo.' }) }
+      if (peer === p && net.status === 'creating') { leave(); setStatus('off', { error: window.Lingua.t('Não deu pra criar a sala. Confere a internet e tenta de novo.', 'Could not create the room. Check your internet and try again.') }) }
     }, 12000)
     p.on('open', () => {
       if (peer !== p) return
@@ -104,7 +104,7 @@
         clearTimeout(espera)
         if (e.type === 'unavailable-id' && attempt < 4) return host(attempt + 1)
         leave()
-        setStatus('off', { error: 'Sem conexão com o servidor da sala. Confere a internet e tenta de novo.' })
+        setStatus('off', { error: window.Lingua.t('Sem conexão com o servidor da sala. Confere a internet e tenta de novo.', 'No connection to the room server. Check your internet and try again.') })
         return
       }
       if (ERROS_SERVIDOR.includes(e.type) || e.type === 'unavailable-id') reconectar(p)
@@ -125,9 +125,9 @@
   })
 
   function join(raw) {
-    if (!net.available()) return setStatus('off', { error: 'Não deu pra carregar o modo online. Confere a internet e recarrega a página.' })
+    if (!net.available()) return setStatus('off', { error: window.Lingua.t('Não deu pra carregar o modo online. Confere a internet e recarrega a página.', 'Could not load online mode. Check your internet and reload the page.') })
     const code = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
-    if (code.length !== 4) return setStatus('off', { error: 'O código tem 4 letras ou números, tipo VY5X.', code })
+    if (code.length !== 4) return setStatus('off', { error: window.Lingua.t('O código tem 4 letras ou números, tipo VY5X.', 'The code has 4 letters or numbers, like VY5X.'), code })
     leave()
     net.role = 'guest'
     setStatus('joining', { code })
@@ -137,7 +137,7 @@
     espera = setTimeout(() => {
       if (peer === p && net.status === 'joining') {
         leave()
-        setStatus('off', { error: 'Não conectou. Confere o código e se quem criou a sala ainda está com o site aberto.', code })
+        setStatus('off', { error: window.Lingua.t('Não conectou. Confere o código e se quem criou a sala ainda está com o site aberto.', 'Could not connect. Check the code and whether the host still has the site open.'), code })
       }
     }, 25000)
     const conectar = () => {

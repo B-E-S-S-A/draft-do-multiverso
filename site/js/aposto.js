@@ -8,10 +8,14 @@
   const el = document.getElementById('aposto')
   const sala = window.Sala.nova({ prefixo: 'mvaposto-v1-', chave: 'mvd-sala-aposto' })
   const BOTS = ['JARVIS', 'KAREN', 'Sexta-Feira', 'EDITH', 'Dum-E', 'Vigia']
+  const t = (pt, en) => window.Lingua.t(pt, en)
   const ERROS = {
-    servidor: 'Sem conexão com o servidor da sala. Confere a internet.', codigo: 'O código tem 4 letras ou números.',
-    naoAchei: 'Não achei essa sala. Confere o código com quem criou.', naoConectou: 'Não conectou. Quem criou a sala está com o site aberto?',
-    caiu: 'A sala fechou ou a conexão caiu.', cheia: 'Essa sala está cheia (7 na mesa).',
+    servidor: () => t('Sem conexão com o servidor da sala. Confere a internet.', 'No connection to the room server. Check your internet.'),
+    codigo: () => t('O código tem 4 letras ou números.', 'The code has 4 letters or numbers.'),
+    naoAchei: () => t('Não achei essa sala. Confere o código com quem criou.', 'Could not find that room. Check the code with the host.'),
+    naoConectou: () => t('Não conectou. Quem criou a sala está com o site aberto?', 'Could not connect. Does the host have the site open?'),
+    caiu: () => t('A sala fechou ou a conexão caiu.', 'The room closed or the connection dropped.'),
+    cheia: () => t('Essa sala está cheia (7 na mesa).', 'This room is full (7 at the table).'),
   }
   const som = (f, p) => { if (X && X.on) X[f](p) }
   const guarda = (k, v) => { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v) } catch (e) { return '' } }
@@ -108,7 +112,7 @@
       // cópias: neste aparelho a visão anterior fica guardada pra comparar (sons), então não pode ser o mesmo objeto do motor
       lance: J.lance && { ...J.lance }, hist: J.hist.map((h) => ({ ...h })), truco: J.truco && { ...J.truco, gritos: J.truco.gritos.map((g) => ({ ...g })) },
       js: J.js.map((x, i) => ({ nome: x.nome, pts: x.pts, bot: x.bot, provas: x.provas, acertou: x.acertou, on: (pessoaDe(i) || {}).on !== false })),
-      tema: { titulo: J.tema.titulo }, prova: J.prova && { ...J.prova, marcados: [...J.prova.marcados], falas: J.prova.falas.map((f) => ({ ...f })) },
+      tema: { id: J.tema.id, titulo: J.tema.titulo }, prova: J.prova && { ...J.prova, marcados: [...J.prova.marcados], falas: J.prova.falas.map((f) => ({ ...f })) },
       resultado: J.resultado && { ...J.resultado }, resta: H.pausa ? H.pausa.resto : H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur, pausa: H.pausa ? H.pausa.quem : -1,
       fimLogo: !!J.resultado && J.js.some((x) => x.pts >= J.meta) }
     if (J.prova) {
@@ -151,21 +155,22 @@
     if (msg.type === 'contar' && !H.pausa) M.contar(J, quem)
     if (msg.type === 'escrever' && !H.pausa) {
       const r = M.escreveu(J, H.local ? J.prova && J.prova.j : p.j, String(msg.texto || '').slice(0, 40))
-      if (r && r.repetido) avisar(p, r.nome + ' já foi')
+      if (r && r.repetido) avisar(p, r.nome)
     }
     if (msg.type === 'descontar') M.descontar(J, quem)
     if (msg.type === 'duvidar') { retomar(); M.duvidar(J, quem, String(msg.texto || '').slice(0, 40)) }
     tick()
   }
   const fazer = (msg) => { if (H) acao(H.pessoas[0], msg); else sala.enviar(msg) }
-  // recadinho só pra quem escreveu (nome repetido)
-  function avisar(p, txt) { if (p === H.pessoas[0]) { ui.recado = txt; mostraRecado() } else if (p.conn) sala.enviar({ type: 'recado', txt }, p.conn) }
+  // recadinho só pra quem escreveu (nome repetido); cada aparelho escreve na sua língua
+  const jaFoi = (n) => window.ApostoTemas.nome(vis && vis.tema && vis.tema.id, n) + t(' já foi', ' was already said')
+  function avisar(p, n) { if (p === H.pessoas[0]) { ui.recado = jaFoi(n); mostraRecado() } else if (p.conn) sala.enviar({ type: 'recado', nome: n }, p.conn) }
   function mostraRecado() { const r = document.getElementById('ap-recado'); if (r) r.textContent = ui.recado || ''; clearTimeout(ui._r); ui._r = setTimeout(() => { ui.recado = ''; const x = document.getElementById('ap-recado'); if (x) x.textContent = '' }, 2500) }
 
   // ---------- sala online ----------
   sala.aoStatus = (st) => {
-    if (st.status === 'off') { if (H && !H.local) { clearInterval(H.laco); H = null } if (!H) vis = null; ui.erro = st.erro ? ERROS[st.erro] || ERROS.caiu : ''; ui.status = '' }
-    if (st.status === 'creating' || st.status === 'joining') ui.status = 'Conectando…'
+    if (st.status === 'off') { if (H && !H.local) { clearInterval(H.laco); H = null } if (!H) vis = null; ui.erro = st.erro ? (ERROS[st.erro] || ERROS.caiu)() : ''; ui.status = '' }
+    if (st.status === 'creating' || st.status === 'joining') ui.status = t('Conectando…', 'Connecting…')
     if (st.status === 'hosting' && H) { ui.status = ''; enviarTudo() }
     if (st.status === 'connected') sala.enviar({ type: 'oi', id: MEU_ID, nome: ui.meuNome })
     render()
@@ -173,9 +178,9 @@
   sala.aoDados = (msg, de) => {
     if (!msg || typeof msg !== 'object') return
     if (de === 'host') {
-      if (msg.type === 'cheia') { sala.sair(); ui.erro = ERROS.cheia; render(); return }
+      if (msg.type === 'cheia') { sala.sair(); ui.erro = ERROS.cheia(); render(); return }
       if (msg.type === 'visao' && msg.v) receber(msg.v)
-      if (msg.type === 'recado') { ui.recado = String(msg.txt || ''); mostraRecado() }
+      if (msg.type === 'recado') { ui.recado = jaFoi(String(msg.nome || '')); mostraRecado() }
       return
     }
     if (!H) return
@@ -225,8 +230,8 @@
   function estoura(txt) { ui.estouro = txt; som('hammer'); clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, 1300) }
   function sons(a, v) {
     const mesma = v.rodada === a.rodada
-    if (mesma && v.hist.length > a.hist.length) { const h = v.hist[v.hist.length - 1]; if (h.prova) estoura('DUVIDO!'); else som('bid', h.j % 2) }
-    if (mesma && v.truco && (!a.truco || v.truco.gritos.length > a.truco.gritos.length)) { const g = v.truco.gritos[v.truco.gritos.length - 1]; if (g) { if (g.grito === 'ACEITO') som('draw'); else if (g.grito !== 'CORRO') estoura(g.grito + '!') } }
+    if (mesma && v.hist.length > a.hist.length) { const h = v.hist[v.hist.length - 1]; if (h.prova) estoura(t('DUVIDO!', 'PROVE IT!')); else som('bid', h.j % 2) }
+    if (mesma && v.truco && (!a.truco || v.truco.gritos.length > a.truco.gritos.length)) { const g = v.truco.gritos[v.truco.gritos.length - 1]; if (g) { if (g.grito === 'ACEITO') som('draw'); else if (g.grito !== 'CORRO') estoura(T.grito(g.grito) + '!') } }
     const fa = a.prova ? a.prova.falas.length : 0
     const fv = v.prova ? v.prova.falas.length : 0
     if (mesma && v.prova && fv > fa) som(v.prova.falas[fv - 1].v ? 'bid' : 'undo', 0)
@@ -301,7 +306,7 @@
   }
 
   // ---------- botões ----------
-  const nomesLocais = () => Array.from({ length: ui.n }, (_, i) => (ui.nomes[i] || '').trim() || `Jogador ${i + 1}`)
+  const nomesLocais = () => Array.from({ length: ui.n }, (_, i) => (ui.nomes[i] || '').trim() || `${t('Jogador', 'Player')} ${i + 1}`)
   const acoes = {
     n: (v) => { ui.n = Math.min(7, Math.max(2, ui.n + Number(v))); salvar(); render() },
     // liga/desliga Truco e Raridade (com Raridade a partida vai mais longe em pontos)
@@ -314,14 +319,14 @@
     },
     meta: (v) => { if (H && !H.J) { H.meta = Number(v); enviarTudo() } else { ui.meta = Number(v); salvar(); render() } },
     local: () => { novoHost(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true }))); comecar() },
-    bots: () => { novoHost(true, [{ id: 'l0', nome: ui.meuNome || 'Você', on: true }]); for (let k = 0; k < 3; k++) poeBot(); comecar() },
-    criar: () => { novoHost(false, [{ id: MEU_ID, conn: null, nome: ui.meuNome || 'Jogador 1', on: true }]); ui.erro = ''; sala.criar() },
+    bots: () => { novoHost(true, [{ id: 'l0', nome: ui.meuNome || t('Você', 'You'), on: true }]); for (let k = 0; k < 3; k++) poeBot(); comecar() },
+    criar: () => { novoHost(false, [{ id: MEU_ID, conn: null, nome: ui.meuNome || t('Jogador 1', 'Player 1'), on: true }]); ui.erro = ''; sala.criar() },
     entrar: () => { ui.codigo = (document.getElementById('ap-codigo') || {}).value || ''; ui.erro = ''; sala.entrar(ui.codigo) },
     'poe-bot': () => { if (H && !H.J && H.pessoas.length < 7) { poeBot(); enviarTudo() } },
     'tira-bot': (v) => { if (H && !H.J && H.pessoas[v] && H.pessoas[v].bot) { H.pessoas.splice(Number(v), 1); enviarTudo() } },
     convite: () => {
       const link = location.origin + location.pathname + '#aposto-' + sala.st.code
-      const ok = () => { ui.msg = 'Convite copiado! Manda pros amigos.'; render() }
+      const ok = () => { ui.msg = t('Convite copiado! Manda pros amigos.', 'Invite copied! Send it to your friends.'); render() }
       if (navigator.clipboard) navigator.clipboard.writeText(link).then(ok, () => { ui.msg = link; render() })
       else { ui.msg = link; render() }
     },
@@ -376,8 +381,11 @@
     if (ev.key === 'Enter' && ev.target.id === 'ap-escreve') acoes.escrever()
   })
 
+  // trocou a língua: redesenha (o jogo não muda, só a escrita)
+  window.Lingua.aoMudar(() => { if (!el.hidden) render() })
+
   window.Aposto = {
-    letreiro: () => ['Aposto Que <em>Sei</em>', 'quem sabe mais de Marvel prova na hora'],
+    letreiro: () => [t('Aposto Que <em>Sei</em>', 'Bet I <em>Know</em>'), t('quem sabe mais de Marvel prova na hora', 'whoever knows more Marvel proves it on the spot')],
     esconder() { document.body.classList.remove('ap-foco') },
     abrir() { ui.meuNome = guarda('mvd-imp-nome') || ui.meuNome; render() },
     entrar(code) { ui.codigo = code; sala.entrar(code) },

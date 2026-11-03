@@ -8,12 +8,16 @@
   const el = document.getElementById('minas')
   const sala = window.Sala.nova({ prefixo: 'mvminas-v1-', chave: 'mvd-sala-minas' })
   const BOTS = ['JARVIS', 'KAREN', 'Sexta-Feira', 'EDITH', 'Dum-E', 'Vigia']
+  const t = (pt, en) => window.Lingua.t(pt, en)
   const ERROS = {
-    servidor: 'Sem conexão com o servidor da sala. Confere a internet.', codigo: 'O código tem 4 letras ou números.',
-    naoAchei: 'Não achei essa sala. Confere o código com quem criou.', naoConectou: 'Não conectou. Quem criou a sala está com o site aberto?',
-    caiu: 'A sala fechou ou a conexão caiu.', cheia: 'Essa sala está cheia (7 no campo).',
+    servidor: () => t('Sem conexão com o servidor da sala. Confere a internet.', 'No connection to the room server. Check your internet.'),
+    codigo: () => t('O código tem 4 letras ou números.', 'The code has 4 letters or numbers.'),
+    naoAchei: () => t('Não achei essa sala. Confere o código com quem criou.', 'Could not find that room. Check the code with the host.'),
+    naoConectou: () => t('Não conectou. Quem criou a sala está com o site aberto?', 'Could not connect. Does the host have the site open?'),
+    caiu: () => t('A sala fechou ou a conexão caiu.', 'The room closed or the connection dropped.'),
+    cheia: () => t('Essa sala está cheia (7 no campo).', 'This room is full (7 on the field).'),
   }
-  const AVISOS = { naovale: 'Esse nome não vale pra esse tema.', repetida: 'Você já plantou essa.', fase: '' }
+  const AVISOS = { naovale: () => t('Esse nome não vale pra esse tema.', 'That name does not count for this theme.'), repetida: () => t('Você já plantou essa.', 'You already planted that one.'), fase: () => '' }
   const som = (f, p) => { if (X && X.on) X[f](p) }
   const guarda = (k, v) => { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v) } catch (e) { return '' } }
   const MEU_ID = (() => {
@@ -83,7 +87,7 @@
     if (!H.J || p.j === undefined) return { ...base, fase: 'sala', pessoas: H.pessoas.map((x) => ({ nome: x.nome, bot: !!x.bot, on: x.on, voce: x === p, dono: x === H.pessoas[0] })) }
     const J = H.J
     const copia = (minas) => minas.map((m) => ({ n: m.n, explodiu: m.explodiu }))
-    const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vidasIni: J.vidas, tema: { titulo: J.tema.titulo }, par: [...J.par], falando: J.par[J.vez], dobro: J.dobro,
+    const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vidasIni: J.vidas, tema: { id: J.tema.id, titulo: J.tema.titulo }, par: [...J.par], falando: J.par[J.vez], dobro: J.dobro,
       ultimo: J.ultimo && { ...J.ultimo }, falas: J.falas.map((f) => ({ ...f })), plantando: J.plantando, evento: J.evento && { ...J.evento },
       js: J.js.map((x) => ({ nome: x.nome, vidas: x.vidas, bot: x.bot, plantou: x.minas.length >= 2, boomsDados: x.boomsDados })),
       resta: H.pausa ? H.pausa.resto : H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur, pausa: H.pausa ? H.pausa.quem : -1 }
@@ -123,15 +127,15 @@
     if (H) { const r = acao(H.pessoas[0], msg); if (r) plantou(r) } else sala.enviar(msg)
   }
   function plantou(r) {
-    ui.aviso = r.ok ? '' : AVISOS[r.motivo] || ''
+    ui.aviso = r.ok ? '' : AVISOS[r.motivo] ? AVISOS[r.motivo]() : ''
     if (r.ok) { ui.mina = ''; const c = document.getElementById('mn-mina'); if (c) c.value = ''; som('draw') } else som('undo')
     render()
   }
 
   // ---------- sala online ----------
   sala.aoStatus = (st) => {
-    if (st.status === 'off') { if (H && !H.local) { clearInterval(H.laco); H = null } if (!H) vis = null; ui.erro = st.erro ? ERROS[st.erro] || ERROS.caiu : ''; ui.status = '' }
-    if (st.status === 'creating' || st.status === 'joining') ui.status = 'Conectando…'
+    if (st.status === 'off') { if (H && !H.local) { clearInterval(H.laco); H = null } if (!H) vis = null; ui.erro = st.erro ? (ERROS[st.erro] || ERROS.caiu)() : ''; ui.status = '' }
+    if (st.status === 'creating' || st.status === 'joining') ui.status = t('Conectando…', 'Connecting…')
     if (st.status === 'hosting' && H) { ui.status = ''; enviarTudo() }
     if (st.status === 'connected') sala.enviar({ type: 'oi', id: MEU_ID, nome: ui.meuNome })
     render()
@@ -139,7 +143,7 @@
   sala.aoDados = (msg, de) => {
     if (!msg || typeof msg !== 'object') return
     if (de === 'host') {
-      if (msg.type === 'cheia') { sala.sair(); ui.erro = ERROS.cheia; render(); return }
+      if (msg.type === 'cheia') { sala.sair(); ui.erro = ERROS.cheia(); render(); return }
       if (msg.type === 'plantio' && msg.r) plantou(msg.r)
       if (msg.type === 'visao' && msg.v) receber(msg.v)
       return
@@ -237,20 +241,20 @@
   }
 
   // ---------- botões ----------
-  const nomesLocais = () => Array.from({ length: ui.n }, (_, i) => (ui.nomes[i] || '').trim() || `Jogador ${i + 1}`)
+  const nomesLocais = () => Array.from({ length: ui.n }, (_, i) => (ui.nomes[i] || '').trim() || `${t('Jogador', 'Player')} ${i + 1}`)
   const valor = (id) => (document.getElementById(id) || {}).value || ''
   const acoes = {
     n: (v) => { ui.n = Math.min(7, Math.max(2, ui.n + Number(v))); salvar(); render() },
     vidas: (v) => { if (H && !H.J) { H.vidas = Number(v); enviarTudo() } else { ui.vidas = Number(v); salvar(); render() } },
     local: () => { novoHost(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true }))); comecar() },
-    bots: () => { novoHost(true, [{ id: 'l0', nome: ui.meuNome || 'Você', on: true }]); for (let k = 0; k < 3; k++) poeBot(); comecar() },
-    criar: () => { novoHost(false, [{ id: MEU_ID, conn: null, nome: ui.meuNome || 'Jogador 1', on: true }]); ui.erro = ''; sala.criar() },
+    bots: () => { novoHost(true, [{ id: 'l0', nome: ui.meuNome || t('Você', 'You'), on: true }]); for (let k = 0; k < 3; k++) poeBot(); comecar() },
+    criar: () => { novoHost(false, [{ id: MEU_ID, conn: null, nome: ui.meuNome || t('Jogador 1', 'Player 1'), on: true }]); ui.erro = ''; sala.criar() },
     entrar: () => { ui.codigo = valor('mn-codigo'); ui.erro = ''; sala.entrar(ui.codigo) },
     'poe-bot': () => { if (H && !H.J && H.pessoas.length < 7) { poeBot(); enviarTudo() } },
     'tira-bot': (v) => { if (H && !H.J && H.pessoas[v] && H.pessoas[v].bot) { H.pessoas.splice(Number(v), 1); enviarTudo() } },
     convite: () => {
       const link = location.origin + location.pathname + '#minas-' + sala.st.code
-      const ok = () => { ui.msg = 'Convite copiado! Manda pros amigos.'; render() }
+      const ok = () => { ui.msg = t('Convite copiado! Manda pros amigos.', 'Invite copied! Send it to your friends.'); render() }
       if (navigator.clipboard) navigator.clipboard.writeText(link).then(ok, () => { ui.msg = link; render() })
       else { ui.msg = link; render() }
     },
@@ -292,8 +296,11 @@
     if (ev.target.id === 'mn-escreve') acoes.escrever()
   })
 
+  // trocou a língua: redesenha (o jogo não muda, só a escrita)
+  window.Lingua.aoMudar(() => { if (!el.hidden) { ui.chave = ''; render() } })
+
   window.Minas = {
-    letreiro: () => ['Minas do <em>Multiverso</em>', 'fale um nome… se for mina, BOOM'],
+    letreiro: () => [t('Minas do <em>Multiverso</em>', 'Multiverse <em>Mines</em>'), t('fale um nome… se for mina, BOOM', 'say a name… if it is a mine, BOOM')],
     esconder() { document.body.classList.remove('mn-foco') },
     abrir() { ui.meuNome = guarda('mvd-imp-nome') || ui.meuNome; render() },
     entrar(code) { ui.codigo = code; sala.entrar(code) },

@@ -7,17 +7,19 @@
 (function () {
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
   const X = window.Sfx
+  const t = (pt, en) => window.Lingua.t(pt, en)
+  const VAZIO = () => `<li class="chat-vazio">${t('Ninguém falou nada ainda. Começa a discussão!', 'Nobody has said anything yet. Start the discussion!')}</li>`
 
   function criar({ id, enviar }) {
     const raiz = document.createElement('div')
     raiz.className = 'chat'
     raiz.hidden = true
     raiz.innerHTML = `<button class="chat-abre" type="button" aria-expanded="false">Chat <b hidden>0</b></button>
-      <section class="chat-painel" hidden aria-label="Chat da sala">
-        <header><span>Chat da sala</span><button class="chat-fecha" type="button" aria-label="Fechar o chat">×</button></header>
-        <ol class="chat-lista" aria-live="polite"><li class="chat-vazio">Ninguém falou nada ainda. Começa a discussão!</li></ol>
-        <form class="chat-form"><input maxlength="160" autocomplete="off" enterkeyhint="send" placeholder="Escreva aqui…" aria-label="Mensagem">
-          <button class="btn" type="submit">Enviar</button></form>
+      <section class="chat-painel" hidden>
+        <header><span></span><button class="chat-fecha" type="button">×</button></header>
+        <ol class="chat-lista" aria-live="polite">${VAZIO()}</ol>
+        <form class="chat-form"><input maxlength="160" autocomplete="off" enterkeyhint="send">
+          <button class="btn" type="submit"></button></form>
       </section>`
     document.body.appendChild(raiz)
     const botao = raiz.querySelector('.chat-abre')
@@ -27,6 +29,19 @@
     const campo = raiz.querySelector('input')
     let naoLidas = 0
     const aberto = () => !painel.hidden
+    // os textos do balão, na língua deste aparelho
+    function pintar() {
+      painel.setAttribute('aria-label', t('Chat da sala', 'Room chat'))
+      raiz.querySelector('header span').textContent = t('Chat da sala', 'Room chat')
+      raiz.querySelector('.chat-fecha').setAttribute('aria-label', t('Fechar o chat', 'Close the chat'))
+      campo.placeholder = t('Escreva aqui…', 'Type here…')
+      campo.setAttribute('aria-label', t('Mensagem', 'Message'))
+      raiz.querySelector('.chat-form .btn').textContent = t('Enviar', 'Send')
+      const vazio = lista.querySelector('.chat-vazio')
+      if (vazio) vazio.outerHTML = VAZIO()
+    }
+    pintar()
+    window.Lingua.aoMudar(pintar)
 
     function abrir(sim) {
       painel.hidden = !sim
@@ -58,7 +73,7 @@
         if (!aberto() && !m.eu) { naoLidas += 1; conta.textContent = naoLidas; conta.hidden = false; if (X && X.on) X.tick() }
       },
       mostrar(sim) { raiz.hidden = !sim; if (!sim) abrir(false) },
-      limpar() { lista.innerHTML = '<li class="chat-vazio">Ninguém falou nada ainda. Começa a discussão!</li>'; naoLidas = 0; conta.hidden = true },
+      limpar() { lista.innerHTML = VAZIO(); naoLidas = 0; conta.hidden = true },
     }
   }
 

@@ -40,10 +40,17 @@ for (const t of temas) {
   assert.strictEqual(nome('Mistério'), 'Mysterio')
   assert.strictEqual(nome('Thanos'), null)
   assert.strictEqual(nome('Viúva Negra'), null)
-  // todo nome da lista se acha pelo próprio nome completo
+  // em inglês também vale
+  assert.strictEqual(nome('Green Goblin'), 'Duende Verde')
+  assert.strictEqual(nome('lizard'), 'Lagarto')
+  // todo nome da lista se acha pelo próprio nome completo, nas duas línguas
   for (const tema of temas) {
+    assert(tema.en, `${tema.id}: falta o título em inglês`)
     const m = T.montar(null, tema)
-    for (const [n] of tema.itens) assert.strictEqual(m.itens[M.achar(m, n)].n, n, `${tema.id}: ${n}`)
+    for (const [n, , en] of tema.itens) {
+      assert.strictEqual(m.itens[M.achar(m, n)].n, n, `${tema.id}: ${n}`)
+      if (en) assert.strictEqual(m.itens[M.achar(m, en)].n, n, `${tema.id}: ${en} (inglês)`)
+    }
   }
 }
 

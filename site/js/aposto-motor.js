@@ -135,7 +135,7 @@
     return true
   }
 
-  // procura o nome digitado na lista do tema (sem acento, sem maiúscula, aceita apelido entre parênteses e erro de digitação pequeno)
+  // procura o nome digitado na lista do tema (sem acento, sem maiúscula, em português ou inglês, aceita apelido entre parênteses e erro de digitação pequeno)
   const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
   const formas = (nome) => [norm(nome), ...[nome.replace(/\([^)]*\)/g, ' '), ...(nome.match(/\(([^)]*)\)/g) || []).map((x) => x.slice(1, -1))]
     .flatMap((x) => x.split(/\s*[/,]\s*/)).map(norm)].filter(Boolean)
@@ -151,7 +151,7 @@
     let melhor = -1
     let nota = 9
     tema.itens.forEach((it, i) => {
-      for (const f of formas(it.n)) {
+      for (const f of [...formas(it.n), ...(it.en ? formas(it.en) : [])]) {
         const n = f === t ? 0 : t.length >= 4 && (f.startsWith(t) || f.split(' ').includes(t)) ? 1 : distancia(f, t) <= (t.length > 8 ? 2 : 1) ? 2 : 9
         if (n < nota) { nota = n; melhor = i }
       }

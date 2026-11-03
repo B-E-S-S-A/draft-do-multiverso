@@ -66,7 +66,7 @@
       shown = S.screen
       document.body.dataset.screen = S.screen
       app.innerHTML = S.screen === 'setup' ? V.setup(S) : S.screen === 'auction' ? V.auction(S) : V.result(S)
-      window.scrollTo({ top: 0 })
+      if (!app.hidden) window.scrollTo({ top: 0 })
     }
     if (S.screen === 'setup') {
       set('resume', V.resume(S))
@@ -102,7 +102,7 @@
         el.classList.toggle('won', won)
         const ph = el.querySelector('.ph')
         const flag = ph.querySelector('.flag')
-        if (won && !flag) ph.insertAdjacentHTML('beforeend', '<span class="flag">venceu</span>')
+        if (won && !flag) ph.insertAdjacentHTML('beforeend', `<span class="flag">${window.Lingua.t('venceu', 'won')}</span>`)
         if (!won && flag) flag.remove()
       })
     }
@@ -159,7 +159,7 @@
     // sem dinheiro, quem tem a vez abre sozinho por R$0
     if (g.leader < 0 && g.money[op] === 0) {
       E.bid(g, op, 0)
-      S.note = `${nm(op)} está sem dinheiro e abriu por R$0.`
+      S.note = { k: 'abriu0', p: op }
       checkStuck()
     }
   }
@@ -172,7 +172,7 @@
     if (E.open(g, other) > 0 && g.money[other] < g.bid + 1) {
       clearInterval(tick)
       S.timer = null
-      S.note = `${nm(other)} não tem dinheiro pra cobrir. Vendendo…`
+      S.note = { k: 'semCobrir', p: other }
       clearTimeout(autoT)
       autoT = setTimeout(() => hammer(), 1400)
       return true
@@ -240,13 +240,12 @@
   }
 
   // martelo automático: 5 s depois do último lance
-  const STEPS = ['Dou-lhe uma…', 'Dou-lhe duas…', 'Dou-lhe três…']
   function armTimer() {
     clearInterval(tick)
     S.timer = null
     if (style() !== 'auto') return
     const end = Date.now() + 5000
-    S.timer = { step: 0, label: 'Alguém cobre?' }
+    S.timer = { step: 0 }
     tick = setInterval(() => {
       const left = end - Date.now()
       if (left <= 0) {
@@ -257,7 +256,7 @@
       }
       const step = left <= 3000 ? Math.min(3, Math.floor((3000 - left) / 1000) + 1) : 0
       if (step !== S.timer.step) {
-        S.timer = { step, label: step ? STEPS[step - 1] : 'Alguém cobre?' }
+        S.timer = { step }
         if (step) fx('tick')
         render()
       }
@@ -382,7 +381,7 @@
         out.querySelector('textarea').select()
       }
       try {
-        navigator.clipboard.writeText(text).then(() => { out.textContent = 'Times copiados. É só colar no WhatsApp.' }, fallback)
+        navigator.clipboard.writeText(text).then(() => { out.textContent = window.Lingua.t('Times copiados. É só colar no WhatsApp.', 'Teams copied. Just paste them in WhatsApp.') }, fallback)
       } catch (e) { fallback() }
     },
     // com um leilão no meio, primeiro pergunta: continuar ele online ou apagar e começar outro
@@ -398,14 +397,15 @@
     // convite com o link do site que já entra na sala
     invite: () => {
       const link = location.origin + location.pathname + '#sala-' + S.net.code
-      const text = `Bora jogar o Draft do Multiverso! Abre esse link que você já entra na minha sala: ${link} (código ${S.net.code})`
+      const text = window.Lingua.t(`Bora jogar o Draft do Multiverso! Abre esse link que você já entra na minha sala: ${link} (código ${S.net.code})`,
+        `Let’s play Multiverse Draft! Open this link and you join my room right away: ${link} (code ${S.net.code})`)
       const out = document.getElementById('invited')
       const fallback = () => {
         out.innerHTML = `<textarea class="copybox" readonly rows="3">${V.esc(text)}</textarea>`
         out.querySelector('textarea').select()
       }
       try {
-        navigator.clipboard.writeText(text).then(() => { out.textContent = 'Convite copiado. É só colar no WhatsApp.' }, fallback)
+        navigator.clipboard.writeText(text).then(() => { out.textContent = window.Lingua.t('Convite copiado. É só colar no WhatsApp.', 'Invite copied. Just paste it in WhatsApp.') }, fallback)
       } catch (e) { fallback() }
     },
     // do meio do leilão pra parte da sala online (o leilão fica salvo pra continuar)
@@ -485,7 +485,7 @@
     if (msg.type === 'chat' && msg.m) { chat.receber({ nome: String(msg.m.nome || '').slice(0, 20), txt: String(msg.m.txt || '').slice(0, 160), cor: msg.m.cor }); return }
     if (msg.type === 'act' && S.me === 0 && typeof msg.act === 'string') run(msg.act, msg.data || {}, 1)
     else if (msg.type === 'state' && S.me === 1 && msg.s) applyState(msg.s)
-    else if (msg.type === 'full') { Net.leave(); S.net.error = 'Essa sala já tem dois jogadores.'; render() }
+    else if (msg.type === 'full') { Net.leave(); S.net.error = window.Lingua.t('Essa sala já tem dois jogadores.', 'This room already has two players.'); render() }
   })
 
   // ---------- eventos ----------
@@ -545,11 +545,13 @@
 
   const sound = document.getElementById('sound')
   function paintSound() {
-    sound.textContent = 'Som: ' + (window.Sfx.on ? 'ligado' : 'desligado')
+    sound.textContent = window.Lingua.t('Som: ', 'Sound: ') + (window.Sfx.on ? window.Lingua.t('ligado', 'on') : window.Lingua.t('desligado', 'off'))
     sound.setAttribute('aria-pressed', String(window.Sfx.on))
   }
   sound.addEventListener('click', () => { window.Sfx.on = !window.Sfx.on; paintSound(); if (window.Sfx.on) window.Sfx.tick() })
   paintSound()
+  // trocou a língua: o botão de som e a tela do Draft inteira (o jogo não muda, só a escrita)
+  window.Lingua.aoMudar(() => { paintSound(); shown = null; render() })
 
   // ---------- início ----------
   function pick(src, n) {
