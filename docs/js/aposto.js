@@ -73,7 +73,10 @@
     const J = H.J
     const agora = Date.now()
     const fs = () => [J.rodada, J.fase, J.vez, J.hist.length, J.truco ? J.truco.gritos.length : '', J.prova ? J.prova.comecou : ''].join('|')
-    if (fs() !== H.fs) { H.fs = fs(); entrou(agora) }
+    if (fs() !== H.fs) { H.fs = fs(); entrou(agora); H.pausa = null }
+    // quem duvidou está digitando: o relógio da prova para (no máximo 40 s)
+    if (H.pausa && (J.fase !== 'prova' || agora >= H.pausa.ate)) retomar()
+    if (H.pausa) { const s = sigDe(J); if (s !== H.sig) { H.sig = s; enviarTudo() } return }
     if (J.fase === 'lances') {
       if (J.js[J.vez].bot && agora >= H.botEm) M.botVez(J, J.vez)
       else if (agora >= H.prazo) M.tempoAcabou(J)
@@ -87,9 +90,14 @@
       else if (P.comecou && H.prazo && agora >= H.prazo) M.tempoAcabou(J)
     } else if (J.fase === 'resultado' && !H.local && agora >= H.seguirEm) M.proximo(J)
     if (fs() !== H.fs) { H.fs = fs(); entrou(agora) }
-    const sig = [H.fs, J.lance ? J.lance.n : 0, J.prova ? J.prova.marcados.length + '/' + J.prova.falas.length + '/' + (J.prova.ultimaDuvida ? J.prova.ultimaDuvida.seq : 0) : 0, J.js.map((p) => p.pts + (p.bot ? 'b' : '')).join(), H.pessoas.map((p) => p.on).join()].join('|')
+    const sig = sigDe(J)
     if (sig !== H.sig) { H.sig = sig; enviarTudo() }
   }
+
+  const sigDe = (J) => [H.fs, J.lance ? J.lance.n : 0, J.prova ? J.prova.marcados.length + '/' + J.prova.falas.length + '/' + (J.prova.ultimaDuvida ? J.prova.ultimaDuvida.seq : 0) : 0,
+    J.js.map((p) => p.pts + (p.bot ? 'b' : '')).join(), H.pessoas.map((p) => p.on).join(), H.pausa ? 'p' + H.pausa.quem : ''].join('|')
+  function pausar(quem) { if (H.J.fase === 'prova' && H.J.prova.comecou && !H.pausa && H.prazo) H.pausa = { quem, resto: Math.max(1000, H.prazo - Date.now()), ate: Date.now() + 40000 } }
+  function retomar() { if (!H.pausa) return; H.prazo = Date.now() + H.pausa.resto; H.botEm = Math.max(H.botEm, Date.now() + 1000); H.pausa = null }
 
   function visao(p) {
     const base = { code: sala.st.code, dono: p === H.pessoas[0], meta: H.meta, raridade: H.raridade, truco: H.truco, local: H.local }
@@ -101,7 +109,7 @@
       lance: J.lance && { ...J.lance }, hist: J.hist.map((h) => ({ ...h })), truco: J.truco && { ...J.truco, gritos: J.truco.gritos.map((g) => ({ ...g })) },
       js: J.js.map((x, i) => ({ nome: x.nome, pts: x.pts, bot: x.bot, provas: x.provas, acertou: x.acertou, on: (pessoaDe(i) || {}).on !== false })),
       tema: { titulo: J.tema.titulo }, prova: J.prova && { ...J.prova, marcados: [...J.prova.marcados], falas: J.prova.falas.map((f) => ({ ...f })) },
-      resultado: J.resultado && { ...J.resultado }, resta: H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur,
+      resultado: J.resultado && { ...J.resultado }, resta: H.pausa ? H.pausa.resto : H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur, pausa: H.pausa ? H.pausa.quem : -1,
       fimLogo: !!J.resultado && J.js.some((x) => x.pts >= J.meta) }
     if (J.prova) {
       const juiz = H.local ? juizLocal(J) : p.j
@@ -138,9 +146,11 @@
     if (msg.type === 'marcar') M.marcar(J, quem, msg.i)
     if (msg.type === 'desmarcar') M.desmarcar(J, quem)
     if (msg.type === 'errou') M.errou(J, quem)
-    if (msg.type === 'contar') M.contar(J, quem)
+    if (msg.type === 'pausa') pausar(quem)
+    if (msg.type === 'retoma') retomar()
+    if (msg.type === 'contar' && !H.pausa) M.contar(J, quem)
     if (msg.type === 'descontar') M.descontar(J, quem)
-    if (msg.type === 'duvidar') M.duvidar(J, quem, String(msg.texto || '').slice(0, 40))
+    if (msg.type === 'duvidar') { retomar(); M.duvidar(J, quem, String(msg.texto || '').slice(0, 40)) }
     tick()
   }
   const fazer = (msg) => { if (H) acao(H.pessoas[0], msg); else sala.enviar(msg) }
@@ -264,7 +274,7 @@
   let ultimoSeg = -1
   function relogio() {
     if (!vis || !vis.dur) { el.querySelectorAll('.ap-relogio').forEach((r) => { r.hidden = true }); return }
-    const resta = Math.max(0, prazoLocal - performance.now())
+    const resta = vis.pausa >= 0 ? vis.resta : Math.max(0, prazoLocal - performance.now())
     const seg = Math.ceil(resta / 1000)
     el.querySelectorAll('[data-x="barra"]').forEach((b) => { b.style.width = (100 * resta) / vis.dur + '%' })
     el.querySelectorAll('[data-x="seg"]').forEach((b) => { b.textContent = seg })
@@ -319,8 +329,8 @@
     errou: () => fazer({ type: 'errou' }),
     contar: () => fazer({ type: 'contar' }),
     descontar: () => fazer({ type: 'descontar' }),
-    'abrir-duvida': () => { ui.digitando = true; ui.duvida = ''; ui.focar = true; render() },
-    'fechar-duvida': () => { ui.digitando = false; ui.duvida = ''; render() },
+    'abrir-duvida': () => { ui.digitando = true; ui.duvida = ''; ui.focar = true; render(); fazer({ type: 'pausa' }) },
+    'fechar-duvida': () => { ui.digitando = false; ui.duvida = ''; render(); fazer({ type: 'retoma' }) },
     duvidar: () => {
       const txt = (document.getElementById('ap-duvida-txt') || {}).value || ui.duvida || ''
       if (txt.trim().length < 2) return

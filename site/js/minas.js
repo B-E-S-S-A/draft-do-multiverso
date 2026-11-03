@@ -61,17 +61,22 @@
     const J = H.J
     const agora = Date.now()
     const fs = () => [J.rodada, J.fase, J.vez, J.falas.length].join('|')
-    if (fs() !== H.fs) { H.fs = fs(); entrou(agora) }
-    if (J.fase === 'plantar' && H.prazo && agora >= H.prazo) M.tempoPlantio(J)
+    if (fs() !== H.fs) { H.fs = fs(); entrou(agora); H.pausa = null }
+    // alguém está digitando um duvido: o relógio para (no máximo 40 s)
+    if (H.pausa && (J.fase !== 'duelo' || agora >= H.pausa.ate)) retomar()
+    if (H.pausa) { /* parado */ } else if (J.fase === 'plantar' && H.prazo && agora >= H.prazo) M.tempoPlantio(J)
     else if (J.fase === 'duelo') {
       const f = M.falando(J)
       if (J.js[f].bot && agora >= H.botEm) M.botFala(J, f)
       else if (agora >= H.prazo) M.tempoVez(J)
     } else if ((J.fase === 'resultado' || J.fase === 'toaa') && !H.local && agora >= H.seguirEm) M.proximo(J)
     if (fs() !== H.fs) { H.fs = fs(); entrou(agora) }
-    const sig = [H.fs, J.js.map((p) => p.vidas + '/' + p.minas.length + (p.bot ? 'b' : '')).join(), J.plantando, H.pessoas.map((p) => p.on).join()].join('|')
+    const sig = [H.fs, J.js.map((p) => p.vidas + '/' + p.minas.length + (p.bot ? 'b' : '')).join(), J.plantando, H.pessoas.map((p) => p.on).join(), H.pausa ? 'p' + H.pausa.quem : ''].join('|')
     if (sig !== H.sig) { H.sig = sig; enviarTudo() }
   }
+
+  function pausar(quem) { if (H.J.fase === 'duelo' && !H.pausa && H.prazo) H.pausa = { quem, resto: Math.max(1000, H.prazo - Date.now()), ate: Date.now() + 40000 } }
+  function retomar() { if (!H.pausa) return; H.prazo = Date.now() + H.pausa.resto; H.botEm = Math.max(H.botEm, Date.now() + 1000); H.pausa = null }
 
   function visao(p) {
     const base = { code: sala.st.code, dono: p === H.pessoas[0], vidas: H.vidas, local: H.local }
@@ -81,7 +86,7 @@
     const v = { ...base, fase: J.fase, eu: p.j, rodada: J.rodada, vidasIni: J.vidas, tema: { titulo: J.tema.titulo }, par: [...J.par], falando: J.par[J.vez], dobro: J.dobro,
       ultimo: J.ultimo && { ...J.ultimo }, falas: J.falas.map((f) => ({ ...f })), plantando: J.plantando, evento: J.evento && { ...J.evento },
       js: J.js.map((x) => ({ nome: x.nome, vidas: x.vidas, bot: x.bot, plantou: x.minas.length >= 2, boomsDados: x.boomsDados })),
-      resta: H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur }
+      resta: H.pausa ? H.pausa.resto : H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur, pausa: H.pausa ? H.pausa.quem : -1 }
     // cada um só vê as próprias minas; num celular só o aparelho guarda todas (e a tela mostra só a de quem está com ele)
     if (H.local) v.todas = J.js.map((x) => copia(x.minas))
     else if (p.j >= 0) v.minhas = copia(J.js[p.j].minas)
@@ -102,8 +107,11 @@
     // num celular só, quem age é quem está com o aparelho na vez: planta quem está plantando, fala quem está falando
     const quem = (padrao) => (H.local ? padrao : p.j)
     if (msg.type === 'plantar') r = M.plantar(J, quem(Number(msg.j)), String(msg.texto || '').slice(0, 40))
-    if (msg.type === 'falei') M.falei(J, quem(M.falando(J)))
+    if (msg.type === 'falei' && !H.pausa) M.falei(J, quem(M.falando(J)))
+    if (msg.type === 'pausa') pausar(quem(J.ultimo ? J.par.find((x) => x !== J.ultimo.j) : -1))
+    if (msg.type === 'retoma') retomar()
     if (msg.type === 'boom') M.boom(J, quem(Number(msg.dono)), Number(msg.mina), Number(msg.seq))
+    if (msg.type === 'duvidar') H.pausa = null
     if (msg.type === 'duvidar') M.duvidar(J, quem(J.ultimo ? J.par.find((x) => x !== J.ultimo.j) : -1), String(msg.texto || '').slice(0, 40))
     if (msg.type === 'proxima' && (H.local || p === H.pessoas[0])) M.proximo(J)
     tick()
@@ -198,7 +206,7 @@
     if (vis.fase === 'fim') { el.innerHTML = T.fim(vis, ui); return }
     // digitando (mina ou dúvida): não redesenha a tela inteira, pra não apagar o que está sendo escrito
     const campo = document.activeElement && ['mn-mina', 'mn-duvida'].includes(document.activeElement.id) ? document.activeElement : null
-    const chave = [vis.fase, vis.rodada, vis.falas.length, vis.plantando, ui.vendo, ui.aviso, ui.boomDono, ui.digitando, ui.estouro, JSON.stringify(vis.minhas || (vis.todas && vis.todas[ui.vendo]) || [])].join('|')
+    const chave = [vis.fase, vis.rodada, vis.falas.length, vis.plantando, ui.vendo, ui.aviso, ui.boomDono, ui.digitando, ui.estouro, vis.pausa, JSON.stringify(vis.minhas || (vis.todas && vis.todas[ui.vendo]) || [])].join('|')
     if (campo && chave === ui.chave) { relogio(); return }
     ui.chave = chave
     el.innerHTML = T.jogo(vis, ui)
@@ -209,7 +217,7 @@
   let ultimoSeg = -1
   function relogio() {
     if (!vis || !vis.dur) { el.querySelectorAll('.mn-relogio').forEach((r) => { r.hidden = true }); return }
-    const resta = Math.max(0, prazoLocal - performance.now())
+    const resta = vis.pausa >= 0 ? vis.resta : Math.max(0, prazoLocal - performance.now())
     const seg = Math.ceil(resta / 1000)
     el.querySelectorAll('[data-x="barra"]').forEach((b) => { b.style.width = (100 * resta) / vis.dur + '%' })
     el.querySelectorAll('[data-x="seg"]').forEach((b) => { b.textContent = seg })
@@ -254,8 +262,8 @@
     'boom-dono': (v) => { ui.boomDono = Number(v); render() },
     'boom-fecha': () => { ui.boomDono = undefined; render() },
     boom: (v, b) => { fazer({ type: 'boom', dono: Number(b.dataset.dono), mina: Number(v), seq: vis.ultimo ? vis.ultimo.seq : 0 }); ui.boomDono = undefined },
-    'abre-duvida': () => { ui.digitando = true; ui.duvida = ''; ui.focar = 'mn-duvida'; render() },
-    'fecha-duvida': () => { ui.digitando = false; render() },
+    'abre-duvida': () => { ui.digitando = true; ui.duvida = ''; ui.focar = 'mn-duvida'; render(); fazer({ type: 'pausa' }) },
+    'fecha-duvida': () => { ui.digitando = false; render(); fazer({ type: 'retoma' }) },
     duvidar: () => { const t = valor('mn-duvida'); if (t.trim().length < 2) return; ui.digitando = false; fazer({ type: 'duvidar', texto: t }) },
     proxima: () => { if (H && H.J) fazer({ type: 'proxima' }) },
     denovo: () => { if (H) comecar() },

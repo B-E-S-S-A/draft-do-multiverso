@@ -144,7 +144,8 @@
         <span class="mn-lado dir${fala === b ? ' vez' : ''}" style="${cor(b)}"><small>${fala === b ? 'falando' : 'escutando'}</small>${esc(nome(v, b))}<b class="mn-coracoes">${coracoes(v.js[b].vidas, v.vidasIni)}</b></span>
       </div>
       <div class="mn-vez" style="${cor(fala)}"><span class="lbl">vez de ${esc(nome(v, fala))}</span>${relogio()}</div>
-      ${souFala ? `<button class="mn-falei" type="button" data-m="falei" style="${cor(fala)}"><b>FALEI!</b><small>${ui.local ? esc(nome(v, fala)) + ' fala um nome e toca' : 'fale um nome e toque'}</small></button>` : ''}
+      ${v.pausa >= 0 ? `<p class="mn-pausa" role="status">relógio parado: ${esc(nome(v, v.pausa))} está digitando um duvido…</p>` : ''}
+      ${souFala && v.pausa < 0 ? `<button class="mn-falei" type="button" data-m="falei" style="${cor(fala)}"><b>FALEI!</b><small>${ui.local ? esc(nome(v, fala)) + ' fala um nome e toca' : 'fale um nome e toque'}</small></button>` : ''}
       ${ult && ult.nome ? `<p class="mn-ultimo" style="${cor(ult.j)}">${esc(nome(v, ult.j))} falou: <b>${esc(ult.nome)}</b></p>` : ''}
       <div class="mn-falas">${falas || '<small>ninguém falou ainda</small>'}</div>
       ${boom}${duvida}

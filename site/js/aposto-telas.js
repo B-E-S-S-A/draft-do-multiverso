@@ -166,13 +166,14 @@
     </div>`
     const rodando = P.comecou && !v.js[P.j].bot
     // sem Raridade: quem prova toca +1 a cada nome; com Raridade, quem duvidou marca na lista
-    const conta = rodando && !v.raridade && ui.souProva
+    const conta = rodando && !v.raridade && ui.souProva && v.pausa < 0
       ? `<div class="ap-conta"><button class="btn big ap-mais" type="button" data-a="contar">+1 <small>falei um nome</small></button>
           <button class="btn paper" type="button" data-a="descontar"${P.falas.length && P.falas[P.falas.length - 1].n === '' ? '' : ' disabled'}>desfazer</button></div>` : ''
     const fala = rodando && ui.souProva && !ui.local && v.raridade ? '<p class="ap-fala">FALA! Diga os nomes em voz alta.</p>' : ''
     const juiz = rodando && v.raridade && ui.souJuiz ? lista(v, ui) : ''
     const duvida = rodando && !v.raridade && ui.souDuvida ? `<div class="ap-juiz ap-duvido">${caixaDuvida(v, ui)}</div>` : ''
-    return `${cab}${fala}
+    const pausa = v.pausa >= 0 && P.comecou ? `<p class="mn-pausa ap-pausa" role="status">relógio parado: ${esc(nome(v, v.pausa))} está digitando um nome pra conferir…</p>` : ''
+    return `${cab}${fala}${pausa}
       ${D ? `<p class="ap-duvida-res ${D.vale ? 'ok' : 'erro'}">${esc(nome(v, D.quem))} duvidou de "${esc(D.texto)}": <b>${D.vale ? `✓ vale (${esc(D.nome)})` : '✗ não vale'}</b></p>` : ''}
       <div class="ap-falas" id="ap-falas">${falas(v)}</div>
       ${conta}${juiz}${duvida}
