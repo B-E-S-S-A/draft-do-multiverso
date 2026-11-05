@@ -1,11 +1,11 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei, as Minas e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei, as Minas, a Grade e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
   const L = window.Lingua
   const t = L.t
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), minas: document.getElementById('minas'), missao: document.getElementById('missao') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), minas: document.getElementById('minas'), grade: document.getElementById('grade'), missao: document.getElementById('missao') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
@@ -16,7 +16,7 @@
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'minas' ? window.Minas.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'minas' ? window.Minas.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
     h1.innerHTML = l[0]
     sub.textContent = l[1]
     voltar.textContent = t('← Jogos', '← Games')
@@ -25,6 +25,7 @@
   function ir(jogo) {
     if (atual === 'aposto' && jogo !== 'aposto') window.Aposto.esconder()
     if (atual === 'minas' && jogo !== 'minas') window.Minas.esconder()
+    if (atual === 'grade' && jogo !== 'grade') window.Grade.esconder()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
     for (const [k, el] of Object.entries(telas)) el.hidden = k !== atual
@@ -33,6 +34,7 @@
     if (atual === 'impostor') window.Impostor.abrir()
     if (atual === 'aposto') window.Aposto.abrir()
     if (atual === 'minas') window.Minas.abrir()
+    if (atual === 'grade') window.Grade.abrir()
     if (atual === 'missao') window.Missao.abrir()
     window.scrollTo(0, 0)
   }
@@ -74,6 +76,11 @@
           'Everyone hides 2 mines in names from the theme. Two players duel saying names, one at a time. Said someone\'s mine? BOOM, you lose a life. Last one alive wins.'),
         t('2 a 7 jogadores · num celular só ou online · ninguém fica de fora', '2 to 7 players · on one phone or online · nobody sits out'),
         `<button class="btn big red" type="button" data-ir="minas">${t('Jogar Minas', 'Play Mines')}</button>${online('minas-online')}`)}
+      ${jogo(leque([hq('wolverine'), hq('scarlet-witch'), hq('thanos')]), t('Grade do Multiverso', 'Multiverse Grid'),
+        t('Um grid com uma categoria em cada linha e coluna ("Fase 4 do MCU" × "Tem irmão"). Diga um personagem que vale nas duas e a casa é sua. Quem fechar a linha primeiro ganha.',
+          'A grid with a category on every row and column ("MCU Phase 4" × "Has a sibling"). Name a character who fits both and the square is yours. First to fill a line wins.'),
+        t('1 contra 1 · de 3×3 (jogo da velha) até 5×5 · num celular só ou online', '1 vs 1 · from 3×3 (tic-tac-toe) up to 5×5 · on one phone or online'),
+        `<button class="btn big" type="button" data-ir="grade">${t('Jogar Grade', 'Play Grid')}</button>${online('grade-online')}`)}
       <h2 class="home-secao">${t('Pra noite toda', 'For the whole night')} <small>${t('rola enquanto vocês fazem outra coisa', 'runs while you do something else')}</small></h2>
       ${jogo(leque([hq('black-widow'), hq('nick-fury'), hq('mystique')]), t('Missão Secreta', 'Secret Mission'),
         t('Cada um recebe uma missão com um alvo: "faça o Lipe dizer Wakanda". Cumpra sem ninguém perceber. Desconfiou de alguém? Te peguei!',
@@ -91,6 +98,7 @@
     else if (b.dataset.ir === 'impostor-online') { ir('impostor'); foca('imp-on-nome') }
     else if (b.dataset.ir === 'minas-online') { ir('minas'); foca('mn-meu') }
     else if (b.dataset.ir === 'aposto-online') { ir('aposto'); foca('ap-meu') }
+    else if (b.dataset.ir === 'grade-online') { ir('grade'); foca('gd-meu') }
     else ir(b.dataset.ir)
   })
   voltar.addEventListener('click', () => ir('home'))
@@ -111,6 +119,8 @@
     if (salaAp) { ir('aposto'); window.Aposto.entrar(salaAp[1]); return }
     const salaMn = pedido.match(/^minas-([A-Za-z0-9]{4})$/)
     if (salaMn) { ir('minas'); window.Minas.entrar(salaMn[1]); return }
+    const salaGd = pedido.match(/^grade-([A-Za-z0-9]{4})$/)
+    if (salaGd) { ir('grade'); window.Grade.entrar(salaGd[1]); return }
     const salaMi = pedido.match(/^missao-([A-Za-z0-9]{4})$/)
     if (salaMi) { ir('missao'); window.Missao.entrar(salaMi[1]); return }
     ir(telas[pedido] ? pedido : 'home')
