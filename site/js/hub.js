@@ -47,6 +47,13 @@
     return { draft: [sorteio[0], filme, sorteio[1]], impostor: [hq('thor'), hq('thor'), hq('loki')] }
   }
 
+  // a capa da Grade: um jogo da velha de verdade, com capas nas casas e o risco na diagonal de quem ganhou
+  function capaGrade() {
+    const casas = [['spider-man', 'p1'], [], ['doctor-doom', 'p2'], ['magneto', 'p2'], ['hulk', 'p1'], [], [], ['loki', 'p2'], ['captain-america', 'p1']]
+    return `<div class="capa-grade" aria-hidden="true"><div>${casas.map(([k, cor]) => (k ? `<i class="${cor}">${V.cover(hq(k))}</i>` : '<i></i>')).join('')}</div>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none"><line class="t" x1="8" y1="8" x2="92" y2="92"/><line x1="8" y1="8" x2="92" y2="92"/></svg></div>`
+  }
+
   let v = null
   function home() {
     v = v || vitrine()
@@ -76,10 +83,10 @@
           'Everyone hides 2 mines in names from the theme. Two players duel saying names, one at a time. Said someone\'s mine? BOOM, you lose a life. Last one alive wins.'),
         t('2 a 7 jogadores · num celular só ou online · ninguém fica de fora', '2 to 7 players · on one phone or online · nobody sits out'),
         `<button class="btn big red" type="button" data-ir="minas">${t('Jogar Minas', 'Play Mines')}</button>${online('minas-online')}`)}
-      ${jogo(leque([hq('wolverine'), hq('scarlet-witch'), hq('thanos')]), t('Grade do Multiverso', 'Multiverse Grid'),
+      ${jogo(capaGrade(), t('Grade do Multiverso', 'Multiverse Grid'),
         t('Um grid com uma categoria em cada linha e coluna ("Fase 4 do MCU" × "Tem irmão"). Diga um personagem que vale nas duas e a casa é sua. Quem fechar a linha primeiro ganha.',
           'A grid with a category on every row and column ("MCU Phase 4" × "Has a sibling"). Name a character who fits both and the square is yours. First to fill a line wins.'),
-        t('1 contra 1 · de 3×3 (jogo da velha) até 5×5 · num celular só ou online', '1 vs 1 · from 3×3 (tic-tac-toe) up to 5×5 · on one phone or online'),
+        t('1 contra 1 · grid do tamanho que quiser · num celular só ou online', '1 vs 1 · any grid size you want · on one phone or online'),
         `<button class="btn big" type="button" data-ir="grade">${t('Jogar Grade', 'Play Grid')}</button>${online('grade-online')}`)}
       <h2 class="home-secao">${t('Pra noite toda', 'For the whole night')} <small>${t('rola enquanto vocês fazem outra coisa', 'runs while you do something else')}</small></h2>
       ${jogo(leque([hq('black-widow'), hq('nick-fury'), hq('mystique')]), t('Missão Secreta', 'Secret Mission'),

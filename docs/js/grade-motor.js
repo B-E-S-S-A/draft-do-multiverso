@@ -1,12 +1,14 @@
 // Grade do Multiverso: o jogo em si, sem tela. Testável no node (tests/grade.test.mjs).
-// Um grid N x N: cada linha e cada coluna tem uma categoria. Na sua vez você escolhe uma casa e diz um personagem que
-// vale nas duas. Acertou, a casa é sua (com a capa do personagem). Errou, passa a vez. Cada personagem só vale uma vez.
-// Ganha quem fechar N casas em linha (linha, coluna ou diagonal). Se ninguém conseguir, ganha quem tiver mais casas.
-// Com "pode roubar", dá pra tomar a casa do outro dizendo outro personagem que também vale ali.
+// Um grid de L linhas x C colunas: cada linha e cada coluna tem uma categoria. Na sua vez você escolhe uma casa e diz
+// um personagem que vale nas duas. Acertou, a casa é sua (com a capa do personagem). Errou, passa a vez.
+// Cada personagem só vale uma vez. Ganha quem fechar K casas seguidas (de lado, de cima pra baixo ou na diagonal).
+// Se ninguém conseguir, ganha quem tiver mais casas. Com "pode roubar", dá pra tomar a casa do outro dizendo outro
+// personagem que também vale ali. E tem umas Joias do Infinito escondidas em casas do grid (só aparecem quando alguém pega).
 (function (raiz) {
   const G = () => raiz.GradeDados
   const MIN_RESPOSTAS = 2   // toda casa sorteada tem pelo menos isso de respostas certas
   const SEM_JOGAR = 6       // tantas vezes seguidas sem ninguém pegar casa: acaba e conta as casas
+  const TAM = { min: 2, max: 6, casas: 30 }
 
   const cat = (id) => G().porId[id]
   const vale = (id, key) => cat(id).m.has(key)
@@ -17,55 +19,83 @@
     return a
   }
 
+  // tamanho e "em linha" sempre dentro do que dá pra jogar
+  function medidas({ L = 3, C = 3, K } = {}) {
+    L = Math.min(TAM.max, Math.max(TAM.min, Math.round(L) || 3))
+    C = Math.min(TAM.max, Math.max(TAM.min, Math.round(C) || 3))
+    while (L * C > TAM.casas) { if (L >= C) L--; else C-- }
+    K = Math.min(Math.max(L, C), Math.max(2, Math.round(K) || Math.min(L, C)))
+    return { L, C, K }
+  }
+
   // sorteia as categorias: um terço simples, o resto mais esperto, nenhum par do mesmo grupo se cruzando,
   // toda casa com resposta suficiente. Tenta várias vezes e fica com a melhor.
-  function sortearGrade(N, rnd = Math.random) {
+  function sortearGrade(L, C, rnd = Math.random) {
+    if (C === undefined || typeof C === 'function') { rnd = C || rnd; C = L } // sortearGrade(N) = N x N
     const todas = G().categorias
     const simples = todas.filter((c) => c.nivel === 1)
     const espertas = todas.filter((c) => c.nivel === 2)
+    const total = L + C
+    const quer = MIN_RESPOSTAS + (L * C <= 16 ? 1 : 0)
     let melhor = null
     for (let t = 0; t < 4000; t++) {
-      const nS = Math.max(1, Math.round((2 * N) / 3) - Math.floor(rnd() * 2))
-      const escolha = [...embaralha([...simples], rnd).slice(0, nS), ...embaralha([...espertas], rnd).slice(0, 2 * N - nS)]
+      const nS = Math.max(1, Math.round(total / 3) - Math.floor(rnd() * 2))
+      const escolha = [...embaralha([...simples], rnd).slice(0, nS), ...embaralha([...espertas], rnd).slice(0, total - nS)]
       embaralha(escolha, rnd)
       // grupos repetidos no mesmo lado tudo bem; o que não pode é linha x coluna do mesmo grupo
-      const linhas = escolha.slice(0, N)
-      const colunas = escolha.slice(N)
+      const linhas = escolha.slice(0, L)
+      const colunas = escolha.slice(L)
       if (linhas.some((l) => colunas.some((c) => l.grupo === c.grupo))) continue
       let pior = Infinity
       for (const l of linhas) for (const c of colunas) pior = Math.min(pior, respostas(l.id, c.id).length)
-      if (pior >= MIN_RESPOSTAS + (N <= 4 ? 1 : 0)) return { linhas: linhas.map((c) => c.id), colunas: colunas.map((c) => c.id) }
+      if (pior >= quer) return { linhas: linhas.map((c) => c.id), colunas: colunas.map((c) => c.id) }
       if (!melhor || pior > melhor.pior) melhor = { pior, linhas: linhas.map((c) => c.id), colunas: colunas.map((c) => c.id) }
     }
     return { linhas: melhor.linhas, colunas: melhor.colunas }
   }
 
-  // todas as linhas que ganham: N linhas, N colunas e as 2 diagonais
-  function retas(N) {
+  // todas as sequências que ganham: K casas seguidas de lado, de cima pra baixo e nas duas diagonais
+  function retas(L, C, K) {
+    if (C === undefined) { C = L; K = L } // retas(N) = N x N, N em linha
     const r = []
-    for (let i = 0; i < N; i++) { r.push(Array.from({ length: N }, (_, k) => i * N + k)); r.push(Array.from({ length: N }, (_, k) => k * N + i)) }
-    r.push(Array.from({ length: N }, (_, k) => k * N + k))
-    r.push(Array.from({ length: N }, (_, k) => k * N + (N - 1 - k)))
+    const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]]
+    for (let y = 0; y < L; y++) for (let x = 0; x < C; x++) for (const [dy, dx] of dirs) {
+      const fimY = y + dy * (K - 1)
+      const fimX = x + dx * (K - 1)
+      if (fimY < 0 || fimY >= L || fimX < 0 || fimX >= C) continue
+      r.push(Array.from({ length: K }, (_, k) => (y + dy * k) * C + (x + dx * k)))
+    }
     return r
   }
 
-  function novoJogo({ N = 3, roubar = false, jogadores, comeca = 0, grade, aleatorio }) {
+  // as Joias escondidas: Tempo = joga de novo; Poder = toma uma casa do outro
+  function esconderJoias(n, rnd) {
+    const q = n <= 12 ? 1 : n <= 20 ? 2 : 3
+    const casas = embaralha(Array.from({ length: n }, (_, i) => i), rnd).slice(0, q)
+    const tipos = embaralha(['tempo', 'poder', rnd() < 0.5 ? 'tempo' : 'poder'], rnd)
+    return Object.fromEntries(casas.map((c, i) => [c, tipos[i]]))
+  }
+
+  function novoJogo({ L, C, K, N, roubar = false, jogadores, comeca = 0, grade, joias, aleatorio }) {
     const rnd = aleatorio || Math.random
-    const g = grade || sortearGrade(N, rnd)
+    const m = medidas(N ? { L: N, C: N, K: K || N } : { L, C, K })
+    const g = grade || sortearGrade(m.L, m.C, rnd)
     return {
-      N, roubar: !!roubar, linhas: g.linhas, colunas: g.colunas, casas: Array(N * N).fill(null), usados: [],
+      L: m.L, C: m.C, K: m.K, roubar: !!roubar, linhas: g.linhas, colunas: g.colunas, casas: Array(m.L * m.C).fill(null), usados: [],
+      joias: joias || esconderJoias(m.L * m.C, rnd), achadas: [], poder: -1,
       js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, nivel: p.nivel || 0.75 })),
-      vez: comeca, fase: 'jogo', ultimo: null, seq: 0, semJogar: 0, vence: null, fim: null,
+      vez: comeca, fase: 'jogo', ultimo: null, seq: 0, semJogar: 0, fim: null,
     }
   }
 
-  const linCol = (J, casa) => [J.linhas[Math.floor(casa / J.N)], J.colunas[casa % J.N]]
+  const linCol = (J, casa) => [J.linhas[Math.floor(casa / J.C)], J.colunas[casa % J.C]]
   const contaCasas = (J, j) => J.casas.filter((c) => c && c.dono === j).length
   // a casa está aberta pra j? (vazia, ou do outro se pode roubar)
   const aberta = (J, j, casa) => !J.casas[casa] || (J.roubar && J.casas[casa].dono !== j)
   // ainda tem resposta que ninguém usou pra essa casa?
   const sobra = (J, casa) => { const [l, c] = linCol(J, casa); return respostas(l, c).filter((k) => !J.usados.includes(k)) }
   const podeJogar = (J, j) => J.casas.some((_, i) => aberta(J, j, i) && sobra(J, i).length > 0)
+  const retaDe = (J, j) => retas(J.L, J.C, J.K).find((r) => r.every((i) => J.casas[i] && J.casas[i].dono === j))
 
   function proximaVez(J) {
     if (J.fase !== 'jogo') return
@@ -80,9 +110,18 @@
     J.fim = { motivo: 'casas', ganhou: a === b ? -1 : a > b ? 0 : 1, casas: [a, b] }
   }
 
+  // depois de pegar (ou tomar) uma casa: fechou a linha? acabou o grid? senão, próxima vez
+  function depoisDePegar(J, j, extra) {
+    const reta = retaDe(J, j)
+    if (reta) { J.fase = 'fim'; J.fim = { motivo: 'linha', ganhou: j, reta, casas: [contaCasas(J, 0), contaCasas(J, 1)] }; return }
+    if (!J.roubar && J.casas.every(Boolean)) { terminarPorCasas(J); return }
+    if (extra) { if (!podeJogar(J, j)) proximaVez(J); return }
+    proximaVez(J)
+  }
+
   // a jogada: j escolheu a casa e disse o personagem key
   function jogar(J, j, casa, key) {
-    if (J.fase !== 'jogo' || j !== J.vez || !(casa >= 0 && casa < J.casas.length) || !aberta(J, j, casa)) return null
+    if (J.fase !== 'jogo' || j !== J.vez || J.poder >= 0 || !(casa >= 0 && casa < J.casas.length) || !aberta(J, j, casa)) return null
     if (!G().chaves.includes(key)) return null
     if (J.usados.includes(key)) return { ok: false, usado: true } // já foi usado: não perde a vez, escolhe outro
     const [l, c] = linCol(J, casa)
@@ -99,10 +138,27 @@
     J.usados.push(key)
     J.semJogar = 0
     J.ultimo = { j, casa, key, ok: true, roubou: antes ? antes.dono : -1, seq: J.seq }
-    const reta = retas(J.N).find((r) => r.every((i) => J.casas[i] && J.casas[i].dono === j))
-    if (reta) { J.fase = 'fim'; J.fim = { motivo: 'linha', ganhou: j, reta, casas: [contaCasas(J, 0), contaCasas(J, 1)] } }
-    else if (!J.roubar && J.casas.every(Boolean)) terminarPorCasas(J)
-    else proximaVez(J)
+    // achou uma Joia escondida?
+    let joia = J.joias[casa]
+    if (joia) {
+      delete J.joias[casa]
+      if (joia === 'poder' && !contaCasas(J, 1 - j)) joia = 'tempo' // o outro não tem casa pra perder: vira Tempo
+      J.achadas.push({ casa, tipo: joia, j })
+      J.ultimo.joia = joia
+    }
+    if (joia === 'poder' && !retaDe(J, j)) { J.poder = j; return J.ultimo } // agora escolhe uma casa do outro pra tomar
+    depoisDePegar(J, j, joia === 'tempo')
+    return J.ultimo
+  }
+
+  // Joia do Poder: j toma uma casa do outro (o personagem continua lá, só muda de dono)
+  function tomar(J, j, casa) {
+    if (J.fase !== 'jogo' || J.poder !== j || !J.casas[casa] || J.casas[casa].dono === j) return null
+    J.casas[casa] = { ...J.casas[casa], dono: j }
+    J.poder = -1
+    J.seq += 1
+    J.ultimo = { j, casa, key: J.casas[casa].key, ok: true, tomou: true, roubou: 1 - j, seq: J.seq }
+    depoisDePegar(J, j, false)
     return J.ultimo
   }
 
@@ -110,32 +166,36 @@
     if (J.fase !== 'jogo' || j !== J.vez) return null
     J.seq += 1
     J.ultimo = { j, passou: true, tempo: !!tempo, seq: J.seq }
-    J.semJogar += 1
+    if (J.poder >= 0) { J.poder = -1; J.ultimo.desistiu = true } // não quis tomar casa nenhuma
+    else J.semJogar += 1
     proximaVez(J)
     return J.ultimo
   }
 
   // ---------- bot (pra testar sozinho) ----------
-  // escolhe a casa: fecha a linha se der, senão bloqueia o outro, senão a que mais ajuda a montar uma linha
-  function botJogada(J, j, rnd = Math.random) {
+  // nota de uma casa pra j: fecha a linha, bloqueia o outro, ajuda a montar uma linha
+  function notaCasa(J, j, i, rnd) {
     const outro = 1 - j
+    let n = rnd()
+    for (const r of retas(J.L, J.C, J.K)) {
+      if (!r.includes(i)) continue
+      const meus = r.filter((k) => J.casas[k] && J.casas[k].dono === j).length
+      const dele = r.filter((k) => J.casas[k] && J.casas[k].dono === outro).length
+      const minha = J.casas[i] && J.casas[i].dono === outro ? 1 : 0
+      if (meus === J.K - 1) n += 100
+      if (dele - minha === J.K - 1) n += 50
+      if (!dele || minha) n += 1 + meus
+    }
+    return n
+  }
+  function botJogada(J, j, rnd = Math.random) {
+    if (J.poder === j) {
+      const dele = J.casas.map((c, i) => (c && c.dono !== j ? i : -1)).filter((i) => i >= 0)
+      return dele.length ? { tomar: dele.sort((a, b) => notaCasa(J, j, b, rnd) - notaCasa(J, j, a, rnd))[0] } : { passar: true }
+    }
     const abertas = J.casas.map((_, i) => i).filter((i) => aberta(J, j, i) && sobra(J, i).length)
     if (!abertas.length) return { passar: true }
-    const R = retas(J.N)
-    const nota = (i) => {
-      let n = rnd()
-      for (const r of R) {
-        if (!r.includes(i)) continue
-        const meus = r.filter((k) => J.casas[k] && J.casas[k].dono === j).length
-        const dele = r.filter((k) => J.casas[k] && J.casas[k].dono === outro).length
-        if (meus === J.N - 1) n += 100
-        if (dele === J.N - 1 && !(J.casas[i] && J.casas[i].dono === outro)) n += 50
-        if (J.casas[i] && J.casas[i].dono === outro && dele === J.N) n += 0
-        if (!dele) n += 1 + meus
-      }
-      return n
-    }
-    const casa = abertas.sort((a, b) => nota(b) - nota(a))[0]
+    const casa = abertas.sort((a, b) => notaCasa(J, j, b, rnd) - notaCasa(J, j, a, rnd))[0]
     if (rnd() < J.js[j].nivel) {
       const certas = sobra(J, casa)
       return { casa, key: certas[Math.floor(rnd() * certas.length)] }
@@ -146,5 +206,5 @@
     return { casa, key: erradas[Math.floor(rnd() * erradas.length)] }
   }
 
-  raiz.GradeMotor = { sortearGrade, respostas, retas, novoJogo, jogar, passar, botJogada, linCol, aberta, sobra, podeJogar, contaCasas, vale, MIN_RESPOSTAS }
+  raiz.GradeMotor = { medidas, sortearGrade, respostas, retas, novoJogo, jogar, tomar, passar, botJogada, linCol, aberta, sobra, podeJogar, contaCasas, vale, MIN_RESPOSTAS, TAM }
 })(typeof window !== 'undefined' ? window : globalThis)

@@ -25,23 +25,25 @@
   })()
 
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-grade') || '{}') } catch (e) { return {} } })()
-  const ui = { tam: [3, 4, 5].includes(salvo.tam) ? salvo.tam : 3, roubar: salvo.roubar === true, relogio: [0, 30, 60].includes(salvo.relogio) ? salvo.relogio : 0,
+  // o tamanho guardado (ou o Clássico: 5 linhas x 4 colunas, 4 seguidas)
+  const tam0 = M.medidas(salvo.L ? { L: salvo.L, C: salvo.C, K: salvo.K } : { L: 5, C: 4, K: 4 })
+  const ui = { L: tam0.L, C: tam0.C, K: tam0.K, roubar: salvo.roubar === true, relogio: [0, 30, 60].includes(salvo.relogio) ? salvo.relogio : 0,
     nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 2) : [], meuNome: guarda('mvd-imp-nome'), codigo: '', erro: '', status: '', msg: '',
     casa: -1, busca: '', aviso: '', dica: '', revela: -1, nova: -1, treme: -1, estouro: '', visto: 0 }
-  const salvar = () => guarda('mvd-grade', JSON.stringify({ tam: ui.tam, roubar: ui.roubar, relogio: ui.relogio, nomes: ui.nomes }))
+  const salvar = () => guarda('mvd-grade', JSON.stringify({ L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, nomes: ui.nomes }))
   let H = null
   let vis = null
   let prazoLocal = 0
 
   // ---------- anfitrião ----------
-  function novoHost(local, pessoas) { H = { local, pessoas, tam: ui.tam, roubar: ui.roubar, relogio: ui.relogio, J: null, comeca: Math.round(Math.random()), vitorias: [0, 0], prazo: 0, dur: 0, botEm: 0, fs: '', sig: '', laco: 0, contou: false } }
+  function novoHost(local, pessoas) { H = { local, pessoas, L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, J: null, comeca: Math.round(Math.random()), vitorias: [0, 0], prazo: 0, dur: 0, botEm: 0, fs: '', sig: '', laco: 0, contou: false } }
   const poeBot = () => H.pessoas.push({ id: 'bot-' + Math.random().toString(36).slice(2, 7), nome: 'JARVIS', bot: true, on: true })
 
   function comecar() {
     const jogam = H.pessoas.filter((p) => p.on).slice(0, 2)
     if (jogam.length < 2) return
     H.pessoas.forEach((p) => { p.j = jogam.indexOf(p) })
-    H.J = M.novoJogo({ N: H.tam, roubar: H.roubar, comeca: H.comeca, jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: 0.72 })) })
+    H.J = M.novoJogo({ L: H.L, C: H.C, K: H.K, roubar: H.roubar, comeca: H.comeca, jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: 0.72 })) })
     H.comeca = 1 - H.comeca // na próxima, começa o outro
     H.fs = ''
     H.contou = false
@@ -64,7 +66,8 @@
     if (J.fase === 'jogo') {
       if (J.js[J.vez].bot && agora >= H.botEm) {
         const b = M.botJogada(J, J.vez)
-        if (b.passar) M.passar(J, J.vez)
+        if (b.tomar !== undefined) M.tomar(J, J.vez, b.tomar)
+        else if (b.passar) M.passar(J, J.vez)
         else M.jogar(J, J.vez, b.casa, b.key)
       } else if (H.prazo && agora >= H.prazo) M.passar(J, J.vez, true)
     }
@@ -74,10 +77,11 @@
   }
 
   function visao(p) {
-    const base = { code: sala.st.code, dono: p === H.pessoas[0], local: H.local, tam: H.tam, roubar: H.roubar, relogio: H.relogio }
+    const base = { code: sala.st.code, dono: p === H.pessoas[0], local: H.local, L: H.L, C: H.C, K: H.K, roubar: H.roubar, relogio: H.relogio }
     if (!H.J) return { ...base, fase: 'sala', pessoas: H.pessoas.map((x) => ({ nome: x.nome, bot: !!x.bot, on: x.on, voce: x === p, dono: x === H.pessoas[0] })) }
     const J = H.J
-    return { ...base, fase: J.fase, eu: p.j, N: J.N, roubar: J.roubar, linhas: [...J.linhas], colunas: [...J.colunas],
+    return { ...base, fase: J.fase, eu: p.j, L: J.L, C: J.C, K: J.K, roubar: J.roubar, linhas: [...J.linhas], colunas: [...J.colunas],
+      poder: J.poder, achadas: J.achadas.map((a) => ({ ...a })),
       casas: J.casas.map((c) => c && { ...c }), usados: [...J.usados], vez: J.vez, ultimo: J.ultimo && { ...J.ultimo, falhou: J.ultimo.falhou && [...J.ultimo.falhou] },
       fim: J.fim && { ...J.fim }, vitorias: [...H.vitorias],
       js: J.js.map((x, i) => ({ nome: x.nome, bot: x.bot, casas: M.contaCasas(J, i) })),
@@ -102,6 +106,7 @@
       if (r && r.usado) avisar(p, String(msg.key))
     }
     if (msg.type === 'passar') M.passar(J, quem)
+    if (msg.type === 'tomar') M.tomar(J, quem, Number(msg.casa))
     tick()
   }
   const fazer = (msg) => { if (H) acao(H.pessoas[0], msg); else sala.enviar(msg) }
@@ -167,14 +172,20 @@
     if (v.fase === 'jogo' || v.fase === 'fim') novidades(a, v)
     render()
   }
-  function estoura(txt) { ui.estouro = txt; clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, 1300) }
+  function estoura(txt, joia) { ui.estouro = txt; ui.estouroJoia = joia || ''; clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, joia ? 1900 : 1300) }
   function novidades(a, v) {
     const u = v.ultimo
     if (!a || a.fase === 'sala' || (a.fase === 'fim' && v.fase === 'jogo')) { ui.casa = -1; ui.busca = ''; ui.revela = -1; ui.visto = u ? u.seq : 0; som('draw'); return }
     if (u && u.seq !== ui.visto) {
       ui.visto = u.seq
       ui.aviso = ''
-      if (u.ok) { ui.nova = u.casa; som('sold'); if (u.roubou >= 0) estoura(t('ROUBOU!', 'STOLEN!')) }
+      if (u.ok) {
+        ui.nova = u.casa
+        som('sold')
+        if (u.joia) { estoura(T.joiaNome(u.joia).toUpperCase() + '!', u.joia); setTimeout(() => som('win'), 250) }
+        else if (u.tomou) estoura(t('TOMOU!', 'TAKEN!'))
+        else if (u.roubou >= 0) estoura(t('ROUBOU!', 'STOLEN!'))
+      }
       else if (u.passou) som('tick')
       else { ui.treme = u.casa; som('undo') }
       clearTimeout(ui._n)
@@ -264,8 +275,21 @@
     alvo[k] = v
     if (alvo === H) enviarTudo(); else { salvar(); render() }
   }
+  function medir(mudou) {
+    const alvo = H && !H.J ? H : ui
+    const base = { L: alvo.L, C: alvo.C, K: alvo.K, ...mudou }
+    // mexeu em linhas ou colunas: o "em linha" acompanha (vira o menor lado, como no jogo da velha)
+    if (base.K === null) base.K = Math.min(base.L, base.C)
+    const m = M.medidas(base)
+    alvo.L = m.L; alvo.C = m.C; alvo.K = m.K
+    if (alvo === H) enviarTudo(); else { salvar(); render() }
+  }
   const acoes = {
-    tam: (v) => opcao('tam', Math.min(5, Math.max(3, Number(v)))),
+    // tamanho: um modelo pronto, ou linhas / colunas / em linha nas barras (sempre dentro do que dá pra jogar)
+    modelo: (v) => { const m = T.MODELOS.find((x) => x.id === v); if (m) medir({ L: m.L, C: m.C, K: m.K }) },
+    L: (v) => medir({ L: Number(v), K: null }),
+    C: (v) => medir({ C: Number(v), K: null }),
+    K: (v) => medir({ K: Number(v) }),
     roubar: (v) => opcao('roubar', v === '1'),
     relogio: (v) => opcao('relogio', Number(v)),
     local: () => { novoHost(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true }))); comecar() },
@@ -287,6 +311,7 @@
       if (vis.fase === 'fim') { ui.revela = ui.revela === i ? -1 : i; render(); return }
       if (!ui.souVez) return
       const c = vis.casas[i]
+      if (vis.poder === vis.vez) { if (c && c.dono !== vis.vez) fazer({ type: 'tomar', casa: i }); return }
       if (c && !(vis.roubar && c.dono !== vis.vez)) { ui.aviso = c.dono === vis.vez ? t('Essa casa já é sua.', 'That square is already yours.') : t('Essa casa já tem dono (no clássico não dá pra roubar).', 'That square is taken (no stealing in classic).'); limpaAviso(); render(); return }
       ui.casa = ui.casa === i ? -1 : i
       ui.busca = ''
@@ -311,14 +336,14 @@
     if (ev.target.id === 'gd-meu') { ui.meuNome = ev.target.value.slice(0, 14); guarda('mvd-imp-nome', ui.meuNome) }
     if (ev.target.id === 'gd-codigo') ui.codigo = ev.target.value
     if (ev.target.id === 'gd-busca') { ui.busca = ev.target.value; sugerir() }
-    if (ev.target.dataset && ev.target.dataset.g === 'tam') {
-      // o rótulo do slider acompanha o dedo; a mudança vale quando solta
-      const n = Number(ev.target.value)
-      const box = ev.target.closest('.gd-slider')
-      if (box) { box.querySelector('b').textContent = n + '×' + n; box.querySelector('small').textContent = (n === 3 ? t('jogo da velha · ', 'tic-tac-toe · ') : '') + t(`faça ${n} em linha`, `get ${n} in a row`) }
+    const g = ev.target.dataset && ev.target.dataset.g
+    if (['L', 'C', 'K'].includes(g)) {
+      // o número da barra acompanha o dedo; a mudança vale quando solta
+      const b = ev.target.closest('.gd-barra')
+      if (b) b.querySelector('b').textContent = ev.target.value
     }
   })
-  el.addEventListener('change', (ev) => { if (ev.target.dataset && ev.target.dataset.g === 'tam') acoes.tam(ev.target.value) })
+  el.addEventListener('change', (ev) => { const g = ev.target.dataset && ev.target.dataset.g; if (['L', 'C', 'K'].includes(g)) acoes[g](ev.target.value) })
   el.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Enter') return
     if (ev.target.id === 'gd-codigo') acoes.entrar()
