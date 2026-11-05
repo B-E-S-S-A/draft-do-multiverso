@@ -11,15 +11,18 @@
   const LINHAS = META.map((m) => m + m.split('').reverse().join(''))
   const P = 10
   const COR = { k: '#1d1b2c', s: '#f1ead8', w: '#ffffff', c: '#4b5b8c' }
-  // cada linha vira poucos retângulos (um por trecho da mesma cor)
+  // cada linha vira poucos retângulos (um por trecho da mesma cor); os olhos ficam numa camada à parte, bem mais visível
   let rects = ''
+  let olhos = ''
   LINHAS.forEach((linha, y) => {
     let x = 0
     while (x < linha.length) {
       const ch = linha[x]
       let fim = x
       while (fim < linha.length && linha[fim] === ch) fim++
-      if (COR[ch]) rects += `<rect x="${x * P}" y="${y * P}" width="${(fim - x) * P}" height="${P}" fill="${COR[ch]}"/>`
+      const r = `<rect x="${x * P}" y="${y * P}" width="${(fim - x) * P}" height="${P}" fill="${COR[ch]}"/>`
+      if (ch === 'w') olhos += r
+      else if (COR[ch]) rects += r
       x = fim
     }
   })
@@ -38,15 +41,18 @@
   const caixa = document.createElement('div')
   caixa.className = 'uatu'
   caixa.setAttribute('aria-hidden', 'true')
-  caixa.innerHTML = `<p class="uatu-fala"></p><svg viewBox="0 0 200 270" shape-rendering="crispEdges"><g class="u-corpo">${rects}</g><g class="u-olhos">${pupila(4)}${pupila(14)}</g></svg>`
+  caixa.innerHTML = `<p class="uatu-fala"></p><svg viewBox="0 0 200 270" shape-rendering="crispEdges"><g class="u-corpo">${rects}</g><g class="u-olhos">${olhos}${pupila(4)}${pupila(14)}</g></svg>`
   document.body.prepend(caixa)
   const estilo = document.createElement('style')
   estilo.textContent = `
-    .uatu { position: fixed; right: -26px; bottom: -34px; z-index: -1; width: clamp(150px, 20vw, 240px); pointer-events: none; opacity: .13;
-      transition: opacity .8s, transform .8s cubic-bezier(.2, 1.4, .4, 1); transform: translateY(18%) }
+    .uatu { position: fixed; right: -18px; bottom: -30px; z-index: -1; width: clamp(160px, 21vw, 250px); pointer-events: none;
+      transition: transform .8s cubic-bezier(.2, 1.4, .4, 1); transform: translateY(16%) }
+    .u-corpo { opacity: .24; transition: opacity .8s }
+    .u-olhos { opacity: .9 }
     .uatu svg { display: block; width: 100%; height: auto }
     .u-olhos rect { transition: transform .25s }
-    .uatu.acordado { z-index: 70; opacity: 1; transform: none }
+    .uatu.acordado { z-index: 70; transform: none }
+    .uatu.acordado .u-corpo { opacity: 1 }
     .uatu-fala { position: absolute; right: 70%; bottom: 72%; width: max-content; max-width: min(64vw, 260px); margin: 0; padding: 8px 12px; font-size: 15px;
       background: var(--paper); border: 3px solid var(--ink); border-radius: 14px 14px 0 14px; box-shadow: 3px 3px 0 var(--ink); opacity: 0; transition: opacity .4s .3s }
     .uatu.acordado .uatu-fala { opacity: 1 }

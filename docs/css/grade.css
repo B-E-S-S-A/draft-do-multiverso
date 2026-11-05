@@ -44,27 +44,26 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 .gd-placar .gd-vs { font-size: 20px }
 
 /* ---------- o grid ---------- */
-.gd-mesa { padding: 10px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink) }
-.gd-tab { --cab: 96px; position: relative; display: grid; grid-template-columns: var(--cab) repeat(var(--c), minmax(0, 1fr)); gap: 6px }
+/* as casas são quadradas e têm tamanho máximo: o grid inteiro cabe na tela (de largura e de altura) e fica no meio */
+.gd-mesa { justify-self: center; max-width: 100%; padding: 10px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink) }
+.gd-tab { --cab: 96px; --cel: max(44px, min(104px, calc((100svh - 300px) / var(--l)))); position: relative; display: grid;
+  grid-template-columns: var(--cab) repeat(var(--c), minmax(0, var(--cel))); justify-content: center; gap: 6px }
 .gd-tab.c4 { --cab: 88px; gap: 5px }
 .gd-tab.c5 { --cab: 80px; gap: 5px }
 .gd-tab.c6 { --cab: 72px; gap: 4px }
-/* poucas colunas e muitas linhas: as casas não ficam gigantes */
-.gd-tab.alto { max-width: 460px; margin: 0 auto }
 .gd-canto { display: grid; place-content: center; text-align: center; color: var(--ink) }
 .gd-canto b { font-family: var(--display); font-weight: 400; font-size: 32px; line-height: .85 }
 .gd-canto small { font-family: var(--label); font-size: 8px; text-transform: uppercase }
-.gd-cab { display: grid; place-items: center; min-height: 54px; padding: 6px 4px; text-align: center; color: var(--ink); background: #fff;
+.gd-cab { display: grid; place-items: center; min-height: 44px; padding: 6px 4px; text-align: center; color: var(--ink); background: #fff;
   border: 2px solid var(--ink); font-family: var(--label); font-size: 10.5px; line-height: 1.2; letter-spacing: .01em; text-transform: uppercase;
   overflow-wrap: anywhere; hyphens: auto; text-wrap: balance; cursor: help }
 .gd-cab.col { border-bottom-width: 4px }
-.gd-cab.lin { place-items: center start; text-align: left; padding: 4px 7px; border-right-width: 4px }
+.gd-cab.lin { place-items: center start; text-align: left; padding: 4px 7px; border-right-width: 4px; min-height: 0 }
 .gd-cab.aberta { background: var(--sun) }
 .c5 .gd-cab, .c6 .gd-cab { font-size: 9px; padding: 4px 3px }
 
-.gd-casa { --cor: var(--ink); position: relative; display: grid; place-items: center; aspect-ratio: 3 / 4; padding: 0; overflow: hidden;
+.gd-casa { --cor: var(--ink); position: relative; display: grid; place-items: center; aspect-ratio: 1; padding: 0; overflow: hidden;
   border: 2px solid #b9b19c; background: #f4efe2; cursor: default; transition: background .15s, transform .15s }
-.c5 .gd-casa, .c6 .gd-casa { aspect-ratio: 4 / 5 }
 .gd-casa.pode { cursor: pointer; border-color: var(--ink); background: #fff }
 .gd-casa.pode:hover { background: #fff6d6 }
 .gd-mais { font-style: normal; font-family: var(--display); font-size: 28px; line-height: 1; color: #c9c0a6; transition: transform .15s, color .15s }
@@ -163,7 +162,7 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
   .gd-tab.c4 { --cab: 66px }
   .gd-tab.c5 { --cab: 58px; gap: 3px }
   .gd-tab.c6 { --cab: 50px; gap: 3px }
-  .gd-cab { font-size: 9px; min-height: 48px; padding: 4px 2px }
+  .gd-cab { font-size: 9px; min-height: 42px; padding: 4px 2px }
   .gd-cab.lin { padding: 3px 4px }
   .c5 .gd-cab, .c6 .gd-cab { font-size: 7.5px; letter-spacing: 0; padding: 2px }
   .gd-casa { border-width: 2px }

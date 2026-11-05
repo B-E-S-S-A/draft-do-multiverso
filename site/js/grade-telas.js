@@ -148,7 +148,7 @@
         h += `<button class="${cls}" type="button" data-g="casa" data-v="${i}" aria-label="${esc(rotulo(v.linhas[r]) + ' × ' + rotulo(v.colunas[c]) + (casa ? ': ' + nome(casa.key) : ''))}">${dentro}</button>`
       }
     }
-    return `<div class="gd-mesa"><div class="gd-tab c${Math.max(C, 3)}${L >= 5 && C <= 3 ? ' alto' : ''}" style="--c:${C}">${h}</div></div>`
+    return `<div class="gd-mesa"><div class="gd-tab c${Math.max(C, 3)}" style="--c:${C};--l:${L}">${h}</div></div>`
   }
 
   // a ficha de quem está jogando: as duas categorias da casa e o campo com os nomes aparecendo
