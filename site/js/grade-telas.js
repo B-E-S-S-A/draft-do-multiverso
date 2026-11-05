@@ -20,6 +20,13 @@
   const rotulo = (id) => (cat(id) ? cat(id)[en() ? 'en' : 'pt'][0] : id)
   const dica = (id) => (cat(id) ? cat(id)[en() ? 'en' : 'pt'][1] : '')
   const nomeJ = (v, j) => (v.js[j] ? v.js[j].nome : '?')
+  // cada tipo de categoria tem a sua cor e um ícone (o \uFE0E pede o símbolo em texto, não em emoji)
+  const ICONE = { mcu: '▶', tv: '▶', genero: '♀', origem: '✦', lado: '☠', titulo: '♛', familia: '♥', equipe: '★', poder: '⚡', visual: '◐',
+    trivia: '◆', 'titulo-obra': '▤', nome: 'Aa', decada: '◷', criador: '✎', revista: '❏' }
+  const icone = (id) => (cat(id) ? (ICONE[cat(id).grupo] || '◆') + '\uFE0E' : '')
+  const grupo = (id) => (cat(id) ? cat(id).grupo : '')
+  // o porquê de um acerto que surpreende ("Tem irmão: Arno Stark, na HQ")
+  const nota = (id, key) => { const n = ((window.GradeNotas || {})[id] || {})[key]; return !n ? '' : Array.isArray(n) ? n[en() ? 1 : 0] : n }
 
   // ---------- opções (tamanho, roubar, relógio) ----------
   function opcoes(o, pode, attr) {
@@ -113,22 +120,26 @@
     const N = v.N
     const reta = v.fim && v.fim.reta ? v.fim.reta : []
     const minha = ui.souVez && v.fase === 'jogo'
-    const cab = (id, lado, k) => `<button class="gd-cab ${lado}${ui.dica === id ? ' aberta' : ''}" type="button" data-g="dica" data-v="${id}" title="${esc(dica(id))}"><span>${esc(rotulo(id))}</span></button>`
-    let h = `<div class="gd-canto"><b>${N}</b><small>${t('em linha', 'in a row')}</small></div>`
-    h += v.colunas.map((id, k) => cab(id, 'col', k)).join('')
+    const cab = (id, lado) => `<button class="gd-cab ${lado} g-${grupo(id)}${ui.dica === id ? ' aberta' : ''}" type="button" data-g="dica" data-v="${id}" title="${esc(dica(id))}"><i class="gd-ico" aria-hidden="true">${icone(id)}</i><span>${esc(rotulo(id))}</span></button>`
+    // no canto, um mini jogo da velha com a linha marcada
+    const mini = Array.from({ length: 9 }, (_, k) => `<i class="${[0, 4, 8].includes(k) ? 'on' : ''}"></i>`).join('')
+    let h = `<div class="gd-canto"><span class="gd-velha" aria-hidden="true">${mini}</span><b>${N}</b><small>${t('em linha', 'in a row')}</small></div>`
+    h += v.colunas.map((id) => cab(id, 'col')).join('')
     for (let r = 0; r < N; r++) {
-      h += cab(v.linhas[r], 'lin', r)
+      h += cab(v.linhas[r], 'lin')
       for (let c = 0; c < N; c++) {
         const i = r * N + c
         const casa = v.casas[i]
         const aberta = minha && (!casa || (v.roubar && casa.dono !== v.vez))
         const cls = ['gd-casa', casa ? 'cheia ' + COR[casa.dono] : 'vazia', aberta ? 'pode' : '', ui.casa === i ? 'escolhida' : '',
           reta.includes(i) ? 'reta' : '', ui.nova === i ? 'nova' : '', ui.treme === i ? 'treme' : '', ui.revela === i ? 'revelada' : ''].filter(Boolean).join(' ')
-        const dentro = casa ? `${capa(casa.key)}<span class="gd-tarja">${esc(nome(casa.key))}</span>` : aberta ? '<i class="gd-mais">+</i>' : ''
+        const inicial = (nomeJ(v, casa ? casa.dono : 0).trim()[0] || '?').toUpperCase()
+        const dentro = casa ? `${capa(casa.key)}<i class="gd-selo" aria-hidden="true">${esc(inicial)}</i><span class="gd-tarja">${esc(nome(casa.key))}</span>` : aberta ? '<i class="gd-mais">+</i>' : ''
         h += `<button class="${cls}" type="button" data-g="casa" data-v="${i}" aria-label="${esc(rotulo(v.linhas[r]) + ' × ' + rotulo(v.colunas[c]) + (casa ? ': ' + nome(casa.key) : ''))}">${dentro}</button>`
       }
     }
-    return `<div class="gd-tab n${N}" style="--n:${N}">${h}</div>`
+    const vez = v.fase === 'fim' ? (v.fim.ganhou >= 0 ? 'vez-' + COR[v.fim.ganhou] : 'vez-empate') : 'vez-' + COR[v.vez]
+    return `<div class="gd-mesa ${vez}"><div class="gd-tab n${N}" style="--n:${N}">${h}</div></div>`
   }
 
   // a ficha de quem está jogando: as duas categorias da casa e o campo com os nomes aparecendo
@@ -139,7 +150,7 @@
     const c = v.colunas[ui.casa % N]
     const dono = v.casas[ui.casa]
     return `<div class="gd-ficha-box panel" id="gd-ficha">
-      <div class="gd-regras"><span><b>${esc(rotulo(l))}</b><small>${esc(dica(l))}</small></span><i>×</i><span><b>${esc(rotulo(c))}</b><small>${esc(dica(c))}</small></span></div>
+      <div class="gd-regras"><span class="g-${grupo(l)}"><b><i class="gd-ico" aria-hidden="true">${icone(l)}</i>${esc(rotulo(l))}</b><small>${esc(dica(l))}</small></span><i>×</i><span class="g-${grupo(c)}"><b><i class="gd-ico" aria-hidden="true">${icone(c)}</i>${esc(rotulo(c))}</b><small>${esc(dica(c))}</small></span></div>
       ${dono ? `<p class="gd-roubo">${t(`Roubando de ${esc(nomeJ(v, dono.dono))}: diga outro personagem que vale aqui.`, `Stealing from ${esc(nomeJ(v, dono.dono))}: name another character who fits here.`)}</p>` : ''}
       <label class="gd-busca"><span class="sr-only">${t('Personagem', 'Character')}</span>
         <input id="gd-busca" maxlength="30" autocomplete="off" autocapitalize="words" enterkeyhint="go" placeholder="${t('Comece a digitar um nome…', 'Start typing a name…')}" value="${esc(ui.busca)}"></label>
@@ -183,8 +194,12 @@
     if (!u) return `<p class="gd-aviso calmo" role="status">${t(`${esc(nomeJ(v, v.vez))} começa. Escolha uma casa!`, `${esc(nomeJ(v, v.vez))} goes first. Pick a square!`)}</p>`
     const quem = esc(nomeJ(v, u.j))
     if (u.passou) return `<p class="gd-aviso calmo" role="status">${u.tempo ? t(`Acabou o tempo de ${quem}.`, `${quem} ran out of time.`) : t(`${quem} passou a vez.`, `${quem} passed.`)}</p>`
-    if (u.ok) return `<p class="gd-aviso ok ${COR[u.j]}" role="status">${u.roubou >= 0 ? t(`${quem} roubou a casa com <b>${esc(nome(u.key))}</b>!`, `${quem} stole the square with <b>${esc(nome(u.key))}</b>!`)
-      : t(`${quem} pegou a casa com <b>${esc(nome(u.key))}</b>.`, `${quem} took the square with <b>${esc(nome(u.key))}</b>.`)}</p>`
+    if (u.ok) {
+      const ids = [v.linhas[Math.floor(u.casa / v.N)], v.colunas[u.casa % v.N]]
+      const porque = ids.map((id) => nota(id, u.key) && `<span class="gd-porque"><b>${esc(rotulo(id))}:</b> ${esc(nota(id, u.key))}</span>`).filter(Boolean).join('')
+      return `<p class="gd-aviso ok ${COR[u.j]}" role="status">${u.roubou >= 0 ? t(`${quem} roubou a casa com <b>${esc(nome(u.key))}</b>!`, `${quem} stole the square with <b>${esc(nome(u.key))}</b>!`)
+        : t(`${quem} pegou a casa com <b>${esc(nome(u.key))}</b>.`, `${quem} took the square with <b>${esc(nome(u.key))}</b>.`)}${porque}</p>`
+    }
     const porque = u.falhou.map((id) => `<b>${esc(rotulo(id))}</b>`).join(t(' nem ', ' nor '))
     return `<p class="gd-aviso erro" role="status">✗ ${t(`${quem} disse ${esc(nome(u.key))}, mas não vale: não é ${porque}.`, `${quem} said ${esc(nome(u.key))}, but it does not fit: not ${porque}.`)}</p>`
   }
@@ -214,7 +229,7 @@
     const N = v.N
     const certas = window.GradeMotor.respostas(v.linhas[Math.floor(i / N)], v.colunas[i % N])
     return `<div class="gd-valia"><span class="lbl">${esc(rotulo(v.linhas[Math.floor(i / N)]))} × ${esc(rotulo(v.colunas[i % N]))}</span>
-      <div>${certas.map((k) => `<span class="${v.usados.includes(k) ? 'foi' : ''}">${esc(nome(k))}</span>`).join('')}</div></div>`
+      <div>${certas.map((k) => { const n = [nota(v.linhas[Math.floor(i / N)], k), nota(v.colunas[i % N], k)].filter(Boolean).join(' · '); return `<span class="${v.usados.includes(k) ? 'foi' : ''}"${n ? ` title="${esc(n)}"` : ''}>${esc(nome(k))}${n ? ' *' : ''}</span>` }).join('')}</div></div>`
   }
 
   function jogo(v, ui) {

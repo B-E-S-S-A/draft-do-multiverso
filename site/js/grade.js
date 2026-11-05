@@ -203,8 +203,30 @@
     el.innerHTML = T.jogo(vis, ui)
     const busca = document.getElementById('gd-busca')
     if (busca && (campo || ui.focar)) { ui.focar = false; busca.focus(); busca.setSelectionRange(busca.value.length, busca.value.length) }
+    if (vis.fim && vis.fim.reta) { riscar(vis.fim.reta, ui.riscado === vis.ultimo.seq); ui.riscado = vis.ultimo.seq }
     relogio()
   }
+
+  // o risco de caneta por cima da linha que ganhou (do meio da primeira casa ao meio da última, passando um pouco)
+  function riscar(reta, ja) {
+    const tab = el.querySelector('.gd-tab')
+    const a = tab && tab.querySelector(`.gd-casa[data-v="${reta[0]}"]`)
+    const b = tab && tab.querySelector(`.gd-casa[data-v="${reta[reta.length - 1]}"]`)
+    if (!a || !b) return
+    const base = tab.getBoundingClientRect()
+    const meio = (c) => { const r = c.getBoundingClientRect(); return [r.left - base.left + r.width / 2, r.top - base.top + r.height / 2, r.width] }
+    const [x1, y1, w] = meio(a)
+    const [x2, y2] = meio(b)
+    const len = Math.hypot(x2 - x1, y2 - y1) || 1
+    const sobra = w * 0.35
+    const dx = ((x2 - x1) / len) * sobra
+    const dy = ((y2 - y1) / len) * sobra
+    const total = Math.round(len + 2 * sobra)
+    const linha = (cls) => `<line class="${cls}" x1="${x1 - dx}" y1="${y1 - dy}" x2="${x2 + dx}" y2="${y2 + dy}"/>`
+    tab.insertAdjacentHTML('beforeend', `<svg class="gd-risco${ja ? ' ja' : ''}" style="--len:${total}" aria-hidden="true">${linha('tinta')}${linha('cor')}</svg>`)
+  }
+  // o grid muda de tamanho com a tela: o risco acompanha
+  window.addEventListener('resize', () => { if (vis && vis.fim && vis.fim.reta && !el.hidden) { ui.chave = ''; render() } })
   function sugerir() {
     const s = document.getElementById('gd-sugestoes')
     if (s && vis) s.innerHTML = T.sugestoes(vis, ui)

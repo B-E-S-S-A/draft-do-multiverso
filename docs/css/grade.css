@@ -29,52 +29,97 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 @keyframes gd-pulsa { to { transform: scale(1.35) } }
 .gd-placar .gd-vs { font-size: 20px }
 
-/* ---------- o grid ---------- */
-.gd-tab { --cab: 104px; display: grid; grid-template-columns: var(--cab) repeat(var(--n), minmax(0, 1fr)); gap: 6px }
-.gd-tab.n4 { --cab: 92px; gap: 5px }
-.gd-tab.n5 { --cab: 80px; gap: 4px }
-.gd-canto { display: grid; place-content: center; text-align: center; background: var(--ink); color: var(--sun); border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink) }
-.gd-canto b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: .9 }
-.gd-canto small { font-family: var(--label); font-size: 9px; color: var(--paper); text-transform: uppercase }
-.gd-cab { display: grid; place-items: center; text-align: center; min-height: 58px; padding: 6px 4px; color: var(--ink); background: var(--sun);
-  border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); font-family: var(--label); font-size: 11px; line-height: 1.15; letter-spacing: .02em;
-  text-transform: uppercase; overflow-wrap: anywhere; hyphens: auto; cursor: help }
-.gd-cab.lin { place-items: center start; text-align: left; padding: 4px 6px }
-.gd-cab.aberta { background: var(--paper) }
-.gd-cab:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink) }
-.n4 .gd-cab { font-size: 10px }
-.n5 .gd-cab { font-size: 9px; padding: 3px; min-height: 52px }
+/* ---------- o grid: uma página de gibi ---------- */
+/* a mesa é a página: papel com retícula, tinta grossa e a faixa de cima na cor de quem joga agora */
+.gd-mesa { --vez: var(--ink); position: relative; padding: 12px; background-color: var(--paper);
+  background-image: radial-gradient(rgba(29, 27, 44, .09) 1.2px, transparent 1.6px); background-size: 9px 9px;
+  border: 4px solid var(--ink); border-top: 12px solid var(--vez); box-shadow: 6px 6px 0 var(--ink); transition: border-color .3s }
+.gd-mesa.vez-p1 { --vez: var(--p1) } .gd-mesa.vez-p2 { --vez: var(--p2) } .gd-mesa.vez-empate { --vez: var(--sun) }
+.gd-tab { --cab: 104px; position: relative; display: grid; grid-template-columns: var(--cab) repeat(var(--n), minmax(0, 1fr)); gap: 7px }
+.gd-tab.n4 { --cab: 92px; gap: 6px }
+.gd-tab.n5 { --cab: 80px; gap: 5px }
 
+/* canto: mini jogo da velha com a linha marcada */
+.gd-canto { display: grid; place-content: center; justify-items: center; gap: 2px; text-align: center; background: var(--ink); color: var(--sun);
+  border: 3px solid var(--ink); box-shadow: 3px 3px 0 rgba(29, 27, 44, .35) }
+.gd-velha { display: grid; grid-template-columns: repeat(3, 7px); gap: 2px; margin-bottom: 2px }
+.gd-velha i { width: 7px; height: 7px; background: #3b3850 }
+.gd-velha i.on { background: var(--vez, var(--sun)) }
+.gd-canto b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: .8 }
+.gd-canto small { font-family: var(--label); font-size: 8px; color: var(--paper); text-transform: uppercase }
+
+/* as categorias: caixas de legenda, cada tipo com a sua cor e um ícone */
+.gd-cab { position: relative; display: grid; align-content: center; justify-items: center; gap: 3px; text-align: center;
+  min-height: 62px; padding: 6px 4px; color: var(--gt, var(--ink)); background: var(--g, var(--sun)); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+  font-family: var(--label); font-size: 11px; line-height: 1.15; letter-spacing: .02em; text-transform: uppercase; overflow-wrap: anywhere; hyphens: auto; cursor: help }
+.gd-cab span { text-wrap: balance }
+.gd-ico { font-style: normal; display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; font-family: var(--body); font-size: 13px; line-height: 1;
+  color: var(--g, var(--ink)); background: var(--paper); border: 2px solid var(--ink); border-radius: 11px; text-transform: none; letter-spacing: 0 }
+/* setinha da legenda apontando pra coluna (embaixo) ou pra linha (à direita) */
+.gd-cab.col::after, .gd-cab.lin::after { content: ''; position: absolute; width: 10px; height: 10px; background: var(--g, var(--sun)); border: 3px solid var(--ink); border-top: 0; border-left: 0 }
+.gd-cab.col::after { left: calc(50% - 5px); bottom: -7px; transform: rotate(45deg) }
+.gd-cab.lin::after { right: -7px; top: calc(50% - 5px); transform: rotate(-45deg) }
+.gd-cab.lin { grid-template-columns: auto minmax(0, 1fr); justify-items: start; text-align: left; padding: 4px 8px 4px 6px }
+.gd-cab.aberta { outline: 3px dashed var(--ink); outline-offset: 2px }
+.gd-cab:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink) }
+.g-mcu { --g: #db3b2b; --gt: #fff } .g-tv { --g: #c73c7e; --gt: #fff } .g-genero { --g: #c73c7e; --gt: #fff } .g-origem { --g: #23744f; --gt: #fff }
+.g-lado { --g: #1d1b2c; --gt: var(--sun) } .g-titulo { --g: #ffc83d; --gt: var(--ink) } .g-familia { --g: #d9731a; --gt: #fff } .g-equipe { --g: #2b62d9; --gt: #fff }
+.g-poder { --g: #8c52ce; --gt: #fff } .g-visual { --g: #148c8c; --gt: #fff } .g-trivia { --g: #5b6476; --gt: #fff } .g-titulo-obra { --g: #7a5a3a; --gt: #fff }
+.g-nome { --g: #ffc83d; --gt: var(--ink) } .g-decada { --g: #4f5a6b; --gt: #fff } .g-criador { --g: #a3251a; --gt: #fff } .g-revista { --g: #17543a; --gt: #fff }
+.n4 .gd-cab { font-size: 10px }
+.n5 .gd-cab { font-size: 9px; padding: 3px; min-height: 56px }
+.n5 .gd-ico { min-width: 18px; height: 18px; font-size: 11px }
+
+/* as casas: painéis vazios de gibi; a sua vez acende as que dá pra pegar na sua cor */
 .gd-casa { --cor: var(--ink); position: relative; display: grid; place-items: center; aspect-ratio: 3 / 4; padding: 0; overflow: hidden;
-  border: 3px solid var(--ink); background: #efe7d2 repeating-linear-gradient(45deg, transparent 0 7px, rgba(29, 27, 44, .04) 7px 14px); cursor: default }
+  border: 3px solid var(--ink); background: #f3ecda repeating-linear-gradient(135deg, transparent 0 8px, rgba(29, 27, 44, .045) 8px 16px); cursor: default;
+  box-shadow: inset 0 0 0 3px #fffdf6; transition: transform .15s, box-shadow .15s }
 .n5 .gd-casa { aspect-ratio: 4 / 5 }
-.gd-casa.pode { cursor: pointer; background-color: var(--paper) }
-.gd-casa.pode:hover { background-color: #fff3c4 }
-.gd-mais { font-style: normal; font-family: var(--display); font-size: 30px; color: #c9c0a6; transition: transform .15s }
-.gd-casa.pode:hover .gd-mais { transform: scale(1.3); color: var(--ink) }
-.gd-casa.escolhida { z-index: 1; outline: 4px solid var(--sun); outline-offset: -2px; box-shadow: 0 0 0 3px var(--ink), 4px 4px 0 3px var(--ink); animation: gd-escolhida .7s ease-in-out infinite alternate }
-@keyframes gd-escolhida { to { outline-color: #fff6d0 } }
-.gd-casa.cheia { --cor: var(--p1); border: 4px solid var(--cor); box-shadow: inset 0 0 0 2px var(--ink) }
+.gd-casa.pode { cursor: pointer; background-color: #fffdf6; border-style: dashed; border-color: var(--vez) }
+.gd-casa.pode:hover { transform: translate(-2px, -2px); box-shadow: inset 0 0 0 3px #fffdf6, 4px 4px 0 var(--ink) }
+.gd-mais { font-style: normal; font-family: var(--display); font-size: 34px; line-height: 1; color: var(--vez); opacity: .45; transition: transform .15s, opacity .15s }
+.gd-casa.pode:hover .gd-mais { transform: scale(1.35) rotate(90deg); opacity: 1 }
+.gd-casa.escolhida { z-index: 1; border-style: solid; border-color: var(--ink); background: #fff3c4; transform: translate(-2px, -2px);
+  box-shadow: inset 0 0 0 3px var(--vez), 0 0 0 3px var(--sun), 5px 5px 0 3px var(--ink); animation: gd-escolhida .8s ease-in-out infinite alternate }
+.gd-casa.escolhida .gd-mais { opacity: 1; transform: scale(1.4) }
+@keyframes gd-escolhida { to { box-shadow: inset 0 0 0 5px var(--vez), 0 0 0 3px var(--sun), 5px 5px 0 3px var(--ink) } }
+/* casa pega: vira carta com a capa, moldura na cor de quem pegou, selo com a inicial e o nome embaixo */
+.gd-casa.cheia { --cor: var(--p1); border: 4px solid var(--cor); box-shadow: inset 0 0 0 2px #fff, 3px 3px 0 var(--ink); background: var(--ink) }
 .gd-casa.cheia.p2 { --cor: var(--p2) }
-.gd-casa .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top }
-.gd-tarja { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 3px 4px; background: var(--cor); color: #fff; font-family: var(--label); font-size: 10px;
-  line-height: 1.1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.n5 .gd-tarja { font-size: 8px; padding: 2px }
+.gd-casa .cv { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; object-position: top }
+.gd-selo { position: absolute; z-index: 2; top: 3px; left: 3px; display: grid; place-items: center; width: 20px; height: 20px; font-style: normal;
+  font-family: var(--display); font-size: 16px; line-height: 1; color: #fff; background: var(--cor); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 1px 1px 0 var(--ink) }
+.gd-tarja { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; padding: 12px 3px 4px; color: #fff; font-family: var(--label); font-size: 10px; line-height: 1.1;
+  text-align: center; text-shadow: 1px 1px 0 var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(transparent, var(--cor) 55%) }
+.n5 .gd-tarja { font-size: 8px; padding: 8px 2px 2px }
+.n5 .gd-selo { width: 16px; height: 16px; font-size: 13px }
 /* com "pode roubar", a casa do outro ganha a setinha de troca */
-.gd-casa.cheia.pode::before { content: '⇄'; position: absolute; z-index: 2; top: 3px; right: 3px; padding: 0 4px; font-size: 13px; line-height: 1.3;
+.gd-casa.cheia.pode { border-style: solid; border-color: var(--cor) }
+.gd-casa.cheia.pode::before { content: '⇄'; position: absolute; z-index: 3; top: 3px; right: 3px; padding: 0 4px; font-size: 13px; line-height: 1.3;
   background: var(--sun); color: var(--ink); border: 2px solid var(--ink) }
 .gd-casa.reta { z-index: 1; animation: gd-reta .6s ease-in-out infinite alternate }
-@keyframes gd-reta { from { box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 0 var(--sun) } to { box-shadow: inset 0 0 0 2px var(--ink), 0 0 0 6px var(--sun) } }
+@keyframes gd-reta { from { box-shadow: inset 0 0 0 2px #fff, 0 0 0 0 var(--sun) } to { box-shadow: inset 0 0 0 2px #fff, 0 0 0 6px var(--sun) } }
 .gd-casa.nova { animation: gd-nova .6s cubic-bezier(.2, 1.6, .4, 1) }
 @keyframes gd-nova { from { transform: scale(.3) rotate(-10deg) } to { transform: none } }
 .gd-casa.treme { animation: gd-treme .45s; background-color: #ffcfc4 }
 @keyframes gd-treme { 20%, 60% { transform: translateX(-5px) } 40%, 80% { transform: translateX(5px) } }
 .gd-casa.revelada { outline: 4px dashed var(--ink); outline-offset: 2px; z-index: 1 }
 
+/* o risco de caneta na linha que ganhou */
+.gd-risco { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; overflow: visible; pointer-events: none }
+.gd-risco line { fill: none; stroke-linecap: round; stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: gd-risca .7s .15s cubic-bezier(.6, 0, .3, 1) forwards }
+.gd-risco .tinta { stroke: var(--ink); stroke-width: 18px }
+.gd-risco .cor { stroke: var(--vez); stroke-width: 10px }
+@keyframes gd-risca { to { stroke-dashoffset: 0 } }
+.gd-risco.ja line { animation: none; stroke-dashoffset: 0 }
+
 /* ---------- avisos ---------- */
 .gd-aviso { margin: 0; padding: 8px 12px; font-size: 15px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); animation: gd-sobe .25s ease-out }
 .gd-aviso.ok.p1 { border-left: 10px solid var(--p1) } .gd-aviso.ok.p2 { border-left: 10px solid var(--p2) }
 .gd-aviso.erro { background: #fde3dc; border-left: 10px solid var(--p1-dk) }
+.gd-porque { display: block; margin-top: 4px; padding: 3px 8px; font-size: 13px; background: #fff3c4; border-left: 4px solid var(--sun-dk) }
+.gd-porque::before { content: '★ '; color: var(--sun-dk) }
 .gd-dica { margin: 0; padding: 7px 12px; font-size: 14px; background: var(--sun); border: 3px solid var(--ink) }
 .gd-relogio { position: relative; display: block; height: 16px; background: var(--paper); border: 3px solid var(--ink) }
 .gd-relogio i { position: absolute; inset: 0 auto 0 0; background: var(--banca); transition: width .1s linear }
@@ -85,8 +130,8 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 /* ---------- a ficha: as duas categorias e o campo com os nomes ---------- */
 .gd-ficha-box { display: grid; gap: 10px; padding: 14px; animation: gd-sobe .25s ease-out }
 .gd-regras { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: stretch }
-.gd-regras span { display: grid; align-content: start; gap: 3px; padding: 6px 8px; background: var(--sun); border: 3px solid var(--ink) }
-.gd-regras b { font-family: var(--label); font-size: 12px; text-transform: uppercase; line-height: 1.15 }
+.gd-regras span { display: grid; align-content: start; gap: 4px; padding: 6px 8px; color: var(--gt, var(--ink)); background: var(--g, var(--sun)); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink) }
+.gd-regras b { display: flex; align-items: center; gap: 6px; font-family: var(--label); font-size: 12px; text-transform: uppercase; line-height: 1.15 }
 .gd-regras small { font-size: 12px; line-height: 1.25 }
 .gd-regras i { align-self: center; font-family: var(--display); font-style: normal; font-size: 28px }
 .gd-roubo { margin: 0; padding: 6px 10px; background: var(--ink); color: var(--sun); font-family: var(--label); font-size: 12px }
@@ -118,14 +163,23 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 .gd-estouro b { background: var(--banca) }
 
 @media (max-width: 560px) {
-  .gd-tab { --cab: 82px; gap: 4px }
-  .gd-tab.n4 { --cab: 70px; gap: 4px }
-  .gd-tab.n5 { --cab: 60px; gap: 3px }
-  .gd-cab { font-size: 9.5px; min-height: 50px; border-width: 2px }
+  .gd-mesa { padding: 7px; border-top-width: 10px; box-shadow: 4px 4px 0 var(--ink) }
+  .gd-tab { --cab: 80px; gap: 5px }
+  .gd-tab.n4 { --cab: 68px; gap: 4px }
+  .gd-tab.n5 { --cab: 58px; gap: 3px }
+  .gd-cab { font-size: 9.5px; min-height: 54px; border-width: 2px; box-shadow: 2px 2px 0 var(--ink); padding: 4px 3px }
+  .gd-cab.lin { grid-template-columns: 1fr; padding: 4px 5px }
+  .gd-ico { min-width: 18px; height: 18px; font-size: 11px }
+  .n4 .gd-ico, .n5 .gd-ico { min-width: 14px; height: 14px; font-size: 9px; border-width: 1px; padding: 0 2px }
+  .gd-cab.col::after, .gd-cab.lin::after { width: 8px; height: 8px; border-width: 2px }
+  .gd-cab.col::after { bottom: -5px; left: calc(50% - 4px) } .gd-cab.lin::after { right: -5px; top: calc(50% - 4px) }
+  .gd-selo { width: 16px; height: 16px; font-size: 13px }
+  .n5 .gd-selo { display: none }
+  .gd-velha { display: none }
   .n4 .gd-cab { font-size: 8.5px }
   .n5 .gd-cab { font-size: 7.5px; min-height: 46px; padding: 2px; letter-spacing: 0 }
-  .gd-casa { border-width: 2px }
-  .gd-casa.cheia { border-width: 3px }
+  .gd-casa { border-width: 2px; box-shadow: inset 0 0 0 2px #fffdf6 }
+  .gd-casa.cheia { border-width: 3px; box-shadow: inset 0 0 0 1px #fff, 2px 2px 0 var(--ink) }
   .n4 .gd-tarja { font-size: 8px }
   .n5 .gd-tarja { display: none }
   .gd-mais { font-size: 22px }
@@ -135,5 +189,6 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
   .gd-regras i { justify-self: center; line-height: .6 }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gd-casa.reta, .gd-casa.nova, .gd-casa.treme, .gd-casa.escolhida, .gd-jog.vez .gd-ficha, .gd-sug, .gd-aviso, .gd-fim, .gd-ficha-box { animation: none }
+  .gd-casa.reta, .gd-casa.nova, .gd-casa.treme, .gd-casa.escolhida, .gd-risco line, .gd-jog.vez .gd-ficha, .gd-sug, .gd-aviso, .gd-fim, .gd-ficha-box { animation: none }
+  .gd-risco line { stroke-dashoffset: 0 }
 }
