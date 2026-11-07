@@ -43,35 +43,46 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 @keyframes gd-pulsa { to { transform: scale(1.35) } }
 .gd-placar .gd-vs { font-size: 20px }
 
-/* ---------- o grid ---------- */
-/* as casas são quadradas e têm tamanho máximo: o grid inteiro cabe na tela (de largura e de altura) e fica no meio */
-.gd-mesa { justify-self: center; max-width: 100%; padding: 10px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink) }
-.gd-tab { --cab: 96px; --cel: max(44px, min(104px, calc((100svh - 300px) / var(--l)))); position: relative; display: grid;
-  grid-template-columns: var(--cab) repeat(var(--c), minmax(0, var(--cel))); justify-content: center; gap: 6px }
-.gd-tab.c4 { --cab: 88px; gap: 5px }
-.gd-tab.c5 { --cab: 80px; gap: 5px }
-.gd-tab.c6 { --cab: 72px; gap: 4px }
-.gd-canto { display: grid; place-content: center; text-align: center; color: var(--ink) }
-.gd-canto b { font-family: var(--display); font-weight: 400; font-size: 32px; line-height: .85 }
-.gd-canto small { font-family: var(--label); font-size: 8px; text-transform: uppercase }
-.gd-cab { display: grid; place-items: center; min-height: 44px; padding: 6px 4px; text-align: center; color: var(--ink); background: #fff;
-  border: 2px solid var(--ink); font-family: var(--label); font-size: 10.5px; line-height: 1.2; letter-spacing: .01em; text-transform: uppercase;
-  overflow-wrap: anywhere; hyphens: auto; text-wrap: balance; cursor: help }
-.gd-cab.col { border-bottom-width: 4px }
-.gd-cab.lin { place-items: center start; text-align: left; padding: 4px 7px; border-right-width: 4px; min-height: 0 }
-.gd-cab.aberta { background: var(--sun) }
+/* ---------- o grid: a mesa de feltro verde da banca ---------- */
+/* o grid de um lado e o painel da jogada do outro; no celular, um embaixo do outro */
+.gd-palco { display: grid; gap: 14px; align-items: start }
+.gd-lado { display: grid; gap: 12px; min-width: 0 }
+@media (min-width: 900px) {
+  .gd-jogo { max-width: 1060px }
+  .gd-palco { grid-template-columns: auto minmax(300px, 360px); justify-content: center }
+  .gd-lado { position: sticky; top: 12px }
+}
+/* as casas são quadradas e têm tamanho máximo: o grid inteiro cabe na tela (de largura e de altura) */
+.gd-mesa { justify-self: center; max-width: 100%; padding: 12px; background-color: var(--banca);
+  background-image: radial-gradient(rgba(255, 253, 246, .07) 1px, transparent 1.5px); background-size: 6px 6px;
+  border: 4px solid var(--ink); box-shadow: inset 0 0 0 3px var(--banca-dk), 5px 5px 0 var(--ink) }
+.gd-tab { --cab: 96px; --cel: max(44px, min(112px, calc((100svh - 200px) / var(--l)))); position: relative; display: grid;
+  grid-template-columns: var(--cab) repeat(var(--c), minmax(0, var(--cel))); justify-content: center; gap: 7px }
+.gd-tab.c4 { --cab: 90px; gap: 6px }
+.gd-tab.c5 { --cab: 80px; gap: 6px }
+.gd-tab.c6 { --cab: 72px; gap: 5px }
+.gd-canto { display: grid; place-content: center; text-align: center; color: var(--sun) }
+.gd-canto b { font-family: var(--display); font-weight: 400; font-size: 36px; line-height: .8; text-shadow: 2px 2px 0 var(--ink) }
+.gd-canto small { font-family: var(--label); font-size: 8px; color: #cfe9da; text-transform: uppercase }
+/* as categorias: etiquetas de papel presas na mesa */
+.gd-cab { display: grid; place-items: center; min-height: 46px; padding: 6px 4px; text-align: center; color: var(--ink); background: var(--paper);
+  border: 2px solid var(--ink); box-shadow: 3px 3px 0 rgba(11, 10, 18, .45); font-family: var(--label); font-size: 10.5px; line-height: 1.2;
+  letter-spacing: .01em; text-transform: uppercase; overflow-wrap: anywhere; hyphens: auto; text-wrap: balance; cursor: help; transition: background .15s }
+.gd-cab.lin { place-items: center start; text-align: left; padding: 4px 7px; min-height: 0 }
+.gd-cab:hover, .gd-cab.aberta { background: var(--sun) }
 .c5 .gd-cab, .c6 .gd-cab { font-size: 9px; padding: 4px 3px }
 
-.gd-casa { --cor: var(--ink); position: relative; display: grid; place-items: center; aspect-ratio: 1; padding: 0; overflow: hidden;
-  border: 2px solid #b9b19c; background: #f4efe2; cursor: default; transition: background .15s, transform .15s }
-.gd-casa.pode { cursor: pointer; border-color: var(--ink); background: #fff }
-.gd-casa.pode:hover { background: #fff6d6 }
-.gd-mais { font-style: normal; font-family: var(--display); font-size: 28px; line-height: 1; color: #c9c0a6; transition: transform .15s, color .15s }
-.gd-casa.pode:hover .gd-mais { transform: scale(1.3); color: var(--ink) }
-.gd-casa.escolhida { z-index: 1; border: 3px solid var(--ink); background: var(--sun) }
+/* casa vazia: o encaixe da carta, afundado no feltro */
+.gd-casa { --cor: var(--ink); position: relative; display: grid; place-items: center; aspect-ratio: 1; padding: 0; overflow: hidden; cursor: default;
+  background: var(--banca-dk); border: 2px dashed rgba(255, 253, 246, .18); box-shadow: inset 0 4px 0 rgba(0, 0, 0, .22); transition: background .15s, border-color .15s, transform .15s }
+.gd-casa.pode { cursor: pointer; border-color: rgba(255, 253, 246, .5) }
+.gd-casa.pode:hover { background: #1f6a49; border-color: var(--sun) }
+.gd-mais { font-style: normal; font-family: var(--display); font-size: 30px; line-height: 1; color: rgba(255, 253, 246, .35); transition: transform .15s, color .15s }
+.gd-casa.pode:hover .gd-mais { transform: scale(1.3); color: var(--sun) }
+.gd-casa.escolhida { z-index: 1; border: 3px solid var(--ink); background: var(--sun); box-shadow: 0 0 0 3px var(--paper), 4px 4px 0 3px var(--ink); transform: translate(-1px, -1px) }
 .gd-casa.escolhida .gd-mais { color: var(--ink); transform: scale(1.3) }
-/* casa pega: a capa, a moldura na cor de quem pegou e o nome embaixo */
-.gd-casa.cheia { --cor: var(--p1); border: 3px solid var(--cor); background: var(--ink) }
+/* casa pega: a carta com a capa, a moldura na cor de quem pegou e o nome embaixo */
+.gd-casa.cheia { --cor: var(--p1); border: 3px solid var(--cor); background: var(--ink); box-shadow: 3px 3px 0 rgba(11, 10, 18, .55) }
 .gd-casa.cheia.p2 { --cor: var(--p2) }
 .gd-casa .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top }
 .gd-tarja { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 3px 4px; background: var(--cor); color: #fff; font-family: var(--label); font-size: 9.5px;
@@ -83,13 +94,13 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 /* Joia do Poder: as casas do outro que dá pra tomar */
 .gd-casa.alvo { cursor: crosshair; animation: gd-alvo .8s ease-in-out infinite alternate }
 .gd-casa.cheia.alvo::before { content: '✋' }
-@keyframes gd-alvo { to { box-shadow: 0 0 0 4px #8c52ce } }
-.gd-casa.reta { z-index: 1; box-shadow: 0 0 0 3px var(--sun) }
+@keyframes gd-alvo { to { box-shadow: 0 0 0 4px #c9a6ff } }
+.gd-casa.reta { z-index: 1; box-shadow: 0 0 0 3px var(--sun), 3px 3px 0 3px var(--ink) }
 .gd-casa.nova { animation: gd-nova .5s cubic-bezier(.2, 1.5, .4, 1) }
 @keyframes gd-nova { from { transform: scale(.4) } to { transform: none } }
-.gd-casa.treme { animation: gd-treme .45s; background: #ffd9d0 }
+.gd-casa.treme { animation: gd-treme .45s; background: #8f2a1f; border-color: #ffb4a6 }
 @keyframes gd-treme { 20%, 60% { transform: translateX(-5px) } 40%, 80% { transform: translateX(5px) } }
-.gd-casa.revelada { outline: 3px dashed var(--ink); outline-offset: 2px; z-index: 1 }
+.gd-casa.revelada { outline: 3px dashed var(--sun); outline-offset: 2px; z-index: 1 }
 
 /* as Joias do Infinito (a pedrinha que fica na casa onde foi achada) */
 .gd-joia { --j: #2fae5b; position: absolute; z-index: 2; top: 4px; left: 4px; width: 14px; height: 14px; background: var(--j); border: 2px solid var(--ink);
@@ -127,6 +138,9 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 .gd-regras b { font-family: var(--label); font-size: 12px; text-transform: uppercase; line-height: 1.15 }
 .gd-regras small { font-size: 12px; line-height: 1.25; color: #5d5a6b }
 .gd-regras i { align-self: center; font-family: var(--display); font-style: normal; font-size: 26px }
+/* no painel do lado, as duas categorias ficam uma em cima da outra */
+.gd-lado .gd-regras { grid-template-columns: 1fr }
+.gd-lado .gd-regras i { justify-self: center; line-height: .6 }
 .gd-roubo { margin: 0; padding: 6px 10px; background: var(--ink); color: var(--sun); font-family: var(--label); font-size: 12px }
 .gd-busca input { width: 100%; padding: 10px 12px; font-family: var(--body); font-size: 20px; font-weight: 600; background: #fff; border: 3px solid var(--ink) }
 .gd-sugestoes { display: grid; gap: 6px }
@@ -157,16 +171,16 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 .gd-estouro.joia.poder b { background: #8c52ce }
 
 @media (max-width: 560px) {
-  .gd-mesa { padding: 6px; box-shadow: 3px 3px 0 var(--ink) }
+  .gd-mesa { padding: 7px; border-width: 3px; box-shadow: inset 0 0 0 2px var(--banca-dk), 3px 3px 0 var(--ink) }
   .gd-tab { --cab: 76px; gap: 4px }
   .gd-tab.c4 { --cab: 66px }
   .gd-tab.c5 { --cab: 58px; gap: 3px }
   .gd-tab.c6 { --cab: 50px; gap: 3px }
-  .gd-cab { font-size: 9px; min-height: 42px; padding: 4px 2px }
+  .gd-cab { font-size: 9px; min-height: 42px; padding: 4px 2px; letter-spacing: 0 }
   .gd-cab.lin { padding: 3px 4px }
   .c5 .gd-cab, .c6 .gd-cab { font-size: 7.5px; letter-spacing: 0; padding: 2px }
-  .gd-casa { border-width: 2px }
   .gd-casa.cheia { border-width: 2px }
+  .gd-cab { box-shadow: 2px 2px 0 rgba(11, 10, 18, .45) }
   .c4 .gd-tarja { font-size: 8px }
   .c5 .gd-tarja, .c6 .gd-tarja { display: none }
   .gd-mais { font-size: 20px }

@@ -251,13 +251,17 @@
     const relogio = v.dur && v.fase === 'jogo' ? '<span class="gd-relogio"><i data-x="barra"></i><b data-x="seg"></b></span>' : ''
     return `<section class="gd-jogo">
       <div class="imp-topo">${placar(v, ui)}<button class="linkish" type="button" data-g="sair">${t('sair', 'leave')}</button></div>
-      ${relogio}
-      ${v.fase === 'jogo' ? noticia(v, ui) : ''}
-      ${ui.dica ? `<p class="gd-dica" role="status"><b>${esc(rotulo(ui.dica))}:</b> ${esc(dica(ui.dica))}</p>` : ''}
-      ${grade(v, ui)}
-      ${ficha(v, ui)}
-      ${rodape(v, ui)}
-      ${final(v, ui)}
+      <div class="gd-palco">
+        ${grade(v, ui)}
+        <aside class="gd-lado">
+          ${relogio}
+          ${v.fase === 'jogo' ? noticia(v, ui) : ''}
+          ${ui.dica ? `<p class="gd-dica" role="status"><b>${esc(rotulo(ui.dica))}:</b> ${esc(dica(ui.dica))}</p>` : ''}
+          ${ficha(v, ui)}
+          ${rodape(v, ui)}
+          ${final(v, ui)}
+        </aside>
+      </div>
       ${ui.estouro ? `<div class="ap-estouro gd-estouro${ui.estouroJoia ? ' joia ' + ui.estouroJoia : ''}" aria-hidden="true"><b>${esc(ui.estouro)}</b></div>` : ''}
     </section>`
   }
