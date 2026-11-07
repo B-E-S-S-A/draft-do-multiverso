@@ -21,9 +21,10 @@
   document.body.prepend(caixa)
   const estilo = document.createElement('style')
   estilo.textContent = `
-    .uatu { position: fixed; right: -10px; bottom: 0; z-index: -1; width: clamp(170px, 22vw, 290px); pointer-events: none; opacity: .3;
-      transform: translateY(34%); transition: opacity .8s, transform .9s cubic-bezier(.2, 1.3, .4, 1) }
-    .uatu-cabeca { position: relative; transition: transform 1.2s ease-out }
+    /* a base da imagem (onde o manto é cortado) fica sempre abaixo do fim da tela: ele sobe sem passar do ponto e gira pela base */
+    .uatu { position: fixed; right: -10px; bottom: -28px; z-index: -1; width: clamp(170px, 22vw, 290px); pointer-events: none; opacity: .3;
+      transform: translateY(34%); transition: opacity .8s, transform .9s cubic-bezier(.2, .9, .3, 1) }
+    .uatu-cabeca { position: relative; transform-origin: 50% 100%; transition: transform 1.2s ease-out }
     .uatu img { display: block; width: 100%; height: auto; user-select: none }
     .uatu-olho { position: absolute; width: 16%; aspect-ratio: 1; margin: -8% 0 0 -8%; border-radius: 50%; mix-blend-mode: screen;
       background: radial-gradient(circle, #fff 0 12%, #7fe7ff 30%, rgba(60, 190, 255, .35) 55%, transparent 72%); animation: uatu-olha 4s ease-in-out infinite }
@@ -46,8 +47,7 @@
       pedido = 0
       const r = caixa.getBoundingClientRect()
       const dx = Math.max(-1, Math.min(1, (ev.clientX - (r.left + r.width / 2)) / (window.innerWidth / 2)))
-      const dy = Math.max(-1, Math.min(1, (ev.clientY - r.top) / (window.innerHeight / 2)))
-      cabeca.style.transform = `rotate(${dx * 5}deg) translate(${dx * 6}px, ${Math.min(0, dy) * 6}px)`
+      cabeca.style.transform = `rotate(${dx * 4}deg) translateX(${dx * 6}px)`
     })
   }
   window.addEventListener('pointermove', olhar, { passive: true })
