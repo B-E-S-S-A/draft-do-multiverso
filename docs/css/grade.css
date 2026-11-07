@@ -1,7 +1,6 @@
 /* Grade do Multiverso: um grid limpo de gibi. Categorias em papel com tinta, casas vazias claras, casa pega vira a
    capa do personagem com a moldura da cor de quem pegou, e um risco de caneta na sequência que ganhou. */
 .gd { padding-block: 22px 56px }
-body.gd-foco .awning, body.gd-foco .rodape { display: none }
 
 /* ---------- a capa na tela inicial: um jogo da velha com capas e o risco na diagonal ---------- */
 .capa-grade { position: relative; justify-self: center; width: 176px; height: 196px; padding-top: 12px }
@@ -43,9 +42,9 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 @keyframes gd-pulsa { to { transform: scale(1.35) } }
 .gd-placar .gd-vs { font-size: 20px }
 
-/* ---------- o grid: a mesa de feltro verde da banca ---------- */
+/* ---------- o grid: um painel de papel como os outros do site ---------- */
 /* o grid de um lado e o painel da jogada do outro; no celular, um embaixo do outro */
-.gd-palco { display: grid; gap: 14px; align-items: start }
+.gd-palco { display: grid; gap: 16px; align-items: start }
 .gd-lado { display: grid; gap: 12px; min-width: 0 }
 @media (min-width: 900px) {
   .gd-jogo { max-width: 1060px }
@@ -53,59 +52,50 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
   .gd-lado { position: sticky; top: 12px }
 }
 /* as casas são quadradas e têm tamanho máximo: o grid inteiro cabe na tela (de largura e de altura) */
-.gd-mesa { justify-self: center; max-width: 100%; padding: 12px; background-color: var(--banca);
-  background-image: radial-gradient(rgba(255, 253, 246, .07) 1px, transparent 1.5px); background-size: 6px 6px;
-  border: 4px solid var(--ink); box-shadow: inset 0 0 0 3px var(--banca-dk), 5px 5px 0 var(--ink) }
-.gd-tab { --cab: 96px; --cel: max(44px, min(112px, calc((100svh - 200px) / var(--l)))); position: relative; display: grid;
-  grid-template-columns: var(--cab) repeat(var(--c), minmax(0, var(--cel))); justify-content: center; gap: 7px }
-.gd-tab.c4 { --cab: 90px; gap: 6px }
+.gd-mesa { justify-self: center; max-width: 100%; padding: 14px }
+.gd-tab { --cab: 96px; --cel: max(44px, min(108px, calc((100svh - 330px) / var(--l)))); position: relative; display: grid;
+  grid-template-columns: var(--cab) repeat(var(--c), minmax(0, var(--cel))); justify-content: center; gap: 8px }
+.gd-tab.c4 { --cab: 90px; gap: 7px }
 .gd-tab.c5 { --cab: 80px; gap: 6px }
 .gd-tab.c6 { --cab: 72px; gap: 5px }
-.gd-canto { display: grid; place-content: center; text-align: center; color: var(--sun) }
-.gd-canto b { font-family: var(--display); font-weight: 400; font-size: 36px; line-height: .8; text-shadow: 2px 2px 0 var(--ink) }
-.gd-canto small { font-family: var(--label); font-size: 8px; color: #cfe9da; text-transform: uppercase }
-/* as categorias: etiquetas de papel presas na mesa */
-.gd-cab { display: grid; place-items: center; min-height: 46px; padding: 6px 4px; text-align: center; color: var(--ink); background: var(--paper);
-  border: 2px solid var(--ink); box-shadow: 3px 3px 0 rgba(11, 10, 18, .45); font-family: var(--label); font-size: 10.5px; line-height: 1.2;
+.gd-canto { display: grid; place-content: center; text-align: center }
+.gd-canto b { font-family: var(--display); font-weight: 400; font-size: 38px; line-height: .8 }
+.gd-canto small { font-family: var(--label); font-size: 8px; color: var(--muted); text-transform: uppercase }
+/* as categorias: etiquetas como os botões de opção do site */
+.gd-cab { display: grid; place-items: center; min-height: 46px; padding: 6px 4px; text-align: center; color: var(--ink); background: #fff;
+  border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); font-family: var(--label); font-size: 10.5px; line-height: 1.2;
   letter-spacing: .01em; text-transform: uppercase; overflow-wrap: anywhere; hyphens: auto; text-wrap: balance; cursor: help; transition: background .15s }
 .gd-cab.lin { place-items: center start; text-align: left; padding: 4px 7px; min-height: 0 }
 .gd-cab:hover, .gd-cab.aberta { background: var(--sun) }
 .c5 .gd-cab, .c6 .gd-cab { font-size: 9px; padding: 4px 3px }
 
-/* casa vazia: o encaixe da carta, afundado no feltro */
-.gd-casa { --cor: var(--ink); position: relative; display: grid; place-items: center; aspect-ratio: 1; padding: 0; overflow: hidden; cursor: default;
-  background: var(--banca-dk); border: 2px dashed rgba(255, 253, 246, .18); box-shadow: inset 0 4px 0 rgba(0, 0, 0, .22); transition: background .15s, border-color .15s, transform .15s }
-.gd-casa.pode { cursor: pointer; border-color: rgba(255, 253, 246, .5) }
-.gd-casa.pode:hover { background: #1f6a49; border-color: var(--sun) }
-.gd-mais { font-style: normal; font-family: var(--display); font-size: 30px; line-height: 1; color: rgba(255, 253, 246, .35); transition: transform .15s, color .15s }
-.gd-casa.pode:hover .gd-mais { transform: scale(1.3); color: var(--sun) }
-.gd-casa.escolhida { z-index: 1; border: 3px solid var(--ink); background: var(--sun); box-shadow: 0 0 0 3px var(--paper), 4px 4px 0 3px var(--ink); transform: translate(-1px, -1px) }
+/* casa vazia: o encaixe tracejado, igual aos do time no Draft */
+.gd-casa { --cor: var(--ink); position: relative; display: grid; place-items: center; aspect-ratio: 1; padding: 0; cursor: default;
+  background: none; border: 3px dashed #cfc9b8; transition: background .15s, border-color .15s, transform .15s }
+.gd-casa.pode { cursor: pointer; border-color: #a9a28c }
+.gd-casa.pode:hover { background: #fff6d6; border-color: var(--ink) }
+.gd-mais { font-style: normal; font-family: var(--display); font-size: 30px; line-height: 1; color: #bdb8a8; transition: transform .15s, color .15s }
+.gd-casa.pode:hover .gd-mais { transform: scale(1.3); color: var(--ink) }
+.gd-casa.escolhida { z-index: 1; border: 3px solid var(--ink); background: var(--sun); outline: 4px solid var(--sun); outline-offset: 2px }
 .gd-casa.escolhida .gd-mais { color: var(--ink); transform: scale(1.3) }
-/* casa pega: a carta com a capa, a moldura na cor de quem pegou e o nome embaixo */
-.gd-casa.cheia { --cor: var(--p1); border: 3px solid var(--cor); background: var(--ink); box-shadow: 3px 3px 0 rgba(11, 10, 18, .55) }
+/* casa pega: a carta do site (moldura branca e tinta) com a fita da cor de quem pegou e o nome */
+.gd-casa.cheia { --cor: var(--p1); border: 0; background: none }
 .gd-casa.cheia.p2 { --cor: var(--p2) }
-.gd-casa .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top }
-.gd-tarja { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 3px 4px; background: var(--cor); color: #fff; font-family: var(--label); font-size: 9.5px;
-  line-height: 1.1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.c5 .gd-tarja, .c6 .gd-tarja { font-size: 8px; padding: 2px }
+.gd-carta { position: absolute; inset: 0; overflow: hidden; background: #fff; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink) }
+.gd-carta .cv { position: absolute; inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); object-fit: cover; object-position: top }
+.gd-fita { position: absolute; z-index: 1; left: -5px; right: -5px; bottom: 8px; padding: 2px 3px 1px; color: #fff; background: var(--cor); border: 2px solid var(--ink);
+  font-family: var(--label); font-size: 8.5px; line-height: 1.2; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.c5 .gd-fita, .c6 .gd-fita { font-size: 7.5px; bottom: 5px }
 /* com "pode roubar", a casa do outro ganha a setinha de troca */
-.gd-casa.cheia.pode::before { content: '⇄'; position: absolute; z-index: 2; top: 3px; right: 3px; padding: 0 4px; font-size: 12px; line-height: 1.3;
+.gd-casa.cheia.pode::before { content: '⇄'; position: absolute; z-index: 2; top: -6px; right: -6px; padding: 0 4px; font-size: 12px; line-height: 1.3;
   background: var(--sun); color: var(--ink); border: 2px solid var(--ink) }
-/* Joia do Poder: as casas do outro que dá pra tomar */
-.gd-casa.alvo { cursor: crosshair; animation: gd-alvo .8s ease-in-out infinite alternate }
-.gd-casa.cheia.alvo::before { content: '✋' }
-@keyframes gd-alvo { to { box-shadow: 0 0 0 4px #c9a6ff } }
-.gd-casa.reta { z-index: 1; box-shadow: 0 0 0 3px var(--sun), 3px 3px 0 3px var(--ink) }
-.gd-casa.nova { animation: gd-nova .5s cubic-bezier(.2, 1.5, .4, 1) }
-@keyframes gd-nova { from { transform: scale(.4) } to { transform: none } }
-.gd-casa.treme { animation: gd-treme .45s; background: #8f2a1f; border-color: #ffb4a6 }
+.gd-casa.cheia.pode:hover .gd-carta { outline: 3px dashed var(--ink); outline-offset: 2px }
+.gd-casa.reta .gd-carta { outline: 4px solid var(--sun); outline-offset: 2px }
+.gd-casa.nova { animation: gd-nova .3s steps(3) }
+@keyframes gd-nova { from { transform: translateY(-14px) rotate(-4deg); opacity: 0 } to { transform: none; opacity: 1 } }
+.gd-casa.treme { animation: gd-treme .45s; background: #fde3dc; border-color: var(--p1) }
 @keyframes gd-treme { 20%, 60% { transform: translateX(-5px) } 40%, 80% { transform: translateX(5px) } }
-.gd-casa.revelada { outline: 3px dashed var(--sun); outline-offset: 2px; z-index: 1 }
-
-/* as Joias do Infinito (a pedrinha que fica na casa onde foi achada) */
-.gd-joia { --j: #2fae5b; position: absolute; z-index: 2; top: 4px; left: 4px; width: 14px; height: 14px; background: var(--j); border: 2px solid var(--ink);
-  transform: rotate(45deg); box-shadow: inset 2px 2px 0 rgba(255, 255, 255, .6) }
-.gd-joia.poder { --j: #8c52ce }
+.gd-casa.revelada { outline: 3px dashed var(--ink); outline-offset: 3px; z-index: 1 }
 
 /* o risco de caneta na sequência que ganhou */
 .gd-risco { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; overflow: visible; pointer-events: none }
@@ -121,9 +111,6 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 .gd-aviso.erro { background: #fde3dc; border-left: 10px solid var(--p1-dk) }
 .gd-porque { display: block; margin-top: 4px; font-size: 13px; color: #5d5a6b }
 .gd-porque::before { content: '↳ ' }
-.gd-achou { position: relative; display: block; margin-top: 6px; padding: 4px 8px 4px 30px; font-size: 14px; background: #efe6ff; border: 2px solid var(--ink) }
-.gd-achou.tempo { background: #dff5e6 }
-.gd-achou .gd-joia { top: 7px; left: 8px }
 .gd-dica { margin: 0; padding: 7px 12px; font-size: 14px; background: var(--sun); border: 3px solid var(--ink) }
 .gd-relogio { position: relative; display: block; height: 14px; background: var(--paper); border: 3px solid var(--ink) }
 .gd-relogio i { position: absolute; inset: 0 auto 0 0; background: var(--banca); transition: width .1s linear }
@@ -167,11 +154,9 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
 .gd-valia div span { font-size: 13px; background: #fff; border: 2px solid var(--ink); padding: 1px 6px }
 .gd-valia div span.foi { background: #e4e0d4; text-decoration: line-through }
 .gd-estouro b { background: var(--banca) }
-.gd-estouro.joia b { font-size: clamp(54px, 13vw, 120px); line-height: 1; padding: 10px 20px; background: #2fae5b }
-.gd-estouro.joia.poder b { background: #8c52ce }
 
 @media (max-width: 560px) {
-  .gd-mesa { padding: 7px; border-width: 3px; box-shadow: inset 0 0 0 2px var(--banca-dk), 3px 3px 0 var(--ink) }
+  .gd-mesa { padding: 8px }
   .gd-tab { --cab: 76px; gap: 4px }
   .gd-tab.c4 { --cab: 66px }
   .gd-tab.c5 { --cab: 58px; gap: 3px }
@@ -179,10 +164,12 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
   .gd-cab { font-size: 9px; min-height: 42px; padding: 4px 2px; letter-spacing: 0 }
   .gd-cab.lin { padding: 3px 4px }
   .c5 .gd-cab, .c6 .gd-cab { font-size: 7.5px; letter-spacing: 0; padding: 2px }
-  .gd-casa.cheia { border-width: 2px }
-  .gd-cab { box-shadow: 2px 2px 0 rgba(11, 10, 18, .45) }
-  .c4 .gd-tarja { font-size: 8px }
-  .c5 .gd-tarja, .c6 .gd-tarja { display: none }
+  .gd-casa { border-width: 2px }
+  .gd-carta { border-width: 2px; box-shadow: 2px 2px 0 var(--ink) }
+  .gd-carta .cv { inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px) }
+  .gd-cab { border-width: 2px }
+  .gd-fita { font-size: 7.5px; left: -3px; right: -3px; bottom: 5px }
+  .c5 .gd-fita, .c6 .gd-fita { display: none }
   .gd-mais { font-size: 20px }
   .gd-canto b { font-size: 26px }
   .gd-jog b { font-size: 18px }
@@ -191,6 +178,6 @@ body.gd-foco .awning, body.gd-foco .rodape { display: none }
   .gd-barra { grid-template-columns: 7.5em minmax(0, 1fr) 2ch; font-size: 13px }
 }
 @media (prefers-reduced-motion: reduce) {
-  .gd-casa.nova, .gd-casa.treme, .gd-casa.alvo, .gd-risco line, .gd-jog.vez .gd-ficha, .gd-aviso, .gd-fim, .gd-ficha-box { animation: none }
+  .gd-casa.nova, .gd-casa.treme, .gd-risco line, .gd-jog.vez .gd-ficha, .gd-aviso, .gd-fim, .gd-ficha-box { animation: none }
   .gd-risco line { stroke-dashoffset: 0 }
 }

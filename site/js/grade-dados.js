@@ -1,6 +1,6 @@
 // Grade do Multiverso: as categorias das linhas e colunas. Os personagens são os 154 de HQ do Draft (todos têm capa).
 // Cada categoria diz quem vale: uma lista de chaves escrita à mão, ou uma conta em cima dos dados do Draft.
-// nivel 1 = simples (mulher, voa, usa capa), nivel 2 = mais esperto (fase do MCU, tem irmão, já usou uma Joia).
+// nivel 1 = simples (mulher, voa, usa capa), nivel 2 = mais esperto (fase do MCU, tem irmão, mais de um ator).
 // grupo: duas categorias do mesmo grupo nunca se cruzam (Fase 3 x Fase 4, anos 60 x anos 70…).
 (function (raiz) {
   const D = raiz.DRAFT_DATA
@@ -81,8 +81,6 @@
       m: L('doctor-strange scarlet-witch agatha loki wong ancient-one clea dormammu mephisto enchantress shuma-gorath wiccan doctor-doom odin man-thing') },
     { id: 'cura', grupo: 'poder', nivel: 2, pt: ['Fator de cura', 'Se cura sozinho bem mais rápido que um humano.'], en: ['Healing factor', 'Heals much faster than a human.'],
       m: L('wolverine x-23 deadpool sabretooth hulk venom carnage groot ms-marvel blade') },
-    { id: 'joia', grupo: 'trivia', nivel: 2, pt: ['Usou uma Joia do Infinito', 'Já segurou ou usou uma Joia do Infinito (HQ ou filme).'], en: ['Used an Infinity Stone', 'Has held or used an Infinity Stone (comics or movie).'],
-      m: L('thanos iron-man hulk star-lord drax gamora ronan loki vision scarlet-witch doctor-strange red-skull adam-warlock nebula jane-foster captain-marvel mister-fantastic professor-x namor black-bolt') },
     { id: 'atores', grupo: 'trivia', nivel: 2, pt: ['Mais de um ator já fez', 'Já foi interpretado por mais de um ator (filme ou série, MCU ou não).'], en: ['Played by 2+ actors', 'Has been played by more than one actor (movie or series, MCU or not).'],
       m: L('spider-man hulk human-torch mister-fantastic invisible-woman thing professor-x magneto mystique beast jean-grey cyclops storm quicksilver war-machine venom punisher daredevil elektra kingpin bullseye sabretooth red-skull silver-surfer doctor-doom captain-america thanos kitty-pryde nightcrawler colossus psylocke emma-frost mephisto green-goblin blade ghost-rider nick-fury doctor-strange thor') },
     { id: 'filme', grupo: 'titulo-obra', nivel: 2, pt: ['Nome em título de filme', 'Tem um filme com o nome dele no título (MCU ou não).'], en: ['Name in a movie title', 'Has a movie with their name in the title (MCU or not).'],

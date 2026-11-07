@@ -66,8 +66,7 @@
     if (J.fase === 'jogo') {
       if (J.js[J.vez].bot && agora >= H.botEm) {
         const b = M.botJogada(J, J.vez)
-        if (b.tomar !== undefined) M.tomar(J, J.vez, b.tomar)
-        else if (b.passar) M.passar(J, J.vez)
+        if (b.passar) M.passar(J, J.vez)
         else M.jogar(J, J.vez, b.casa, b.key)
       } else if (H.prazo && agora >= H.prazo) M.passar(J, J.vez, true)
     }
@@ -81,7 +80,7 @@
     if (!H.J) return { ...base, fase: 'sala', pessoas: H.pessoas.map((x) => ({ nome: x.nome, bot: !!x.bot, on: x.on, voce: x === p, dono: x === H.pessoas[0] })) }
     const J = H.J
     return { ...base, fase: J.fase, eu: p.j, L: J.L, C: J.C, K: J.K, roubar: J.roubar, linhas: [...J.linhas], colunas: [...J.colunas],
-      poder: J.poder, achadas: J.achadas.map((a) => ({ ...a })),
+
       casas: J.casas.map((c) => c && { ...c }), usados: [...J.usados], vez: J.vez, ultimo: J.ultimo && { ...J.ultimo, falhou: J.ultimo.falhou && [...J.ultimo.falhou] },
       fim: J.fim && { ...J.fim }, vitorias: [...H.vitorias],
       js: J.js.map((x, i) => ({ nome: x.nome, bot: x.bot, casas: M.contaCasas(J, i) })),
@@ -106,7 +105,6 @@
       if (r && r.usado) avisar(p, String(msg.key))
     }
     if (msg.type === 'passar') M.passar(J, quem)
-    if (msg.type === 'tomar') M.tomar(J, quem, Number(msg.casa))
     tick()
   }
   const fazer = (msg) => { if (H) acao(H.pessoas[0], msg); else sala.enviar(msg) }
@@ -172,7 +170,7 @@
     if (v.fase === 'jogo' || v.fase === 'fim') novidades(a, v)
     render()
   }
-  function estoura(txt, joia) { ui.estouro = txt; ui.estouroJoia = joia || ''; clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, joia ? 1900 : 1300) }
+  function estoura(txt) { ui.estouro = txt; clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, 1300) }
   function novidades(a, v) {
     const u = v.ultimo
     if (!a || a.fase === 'sala' || (a.fase === 'fim' && v.fase === 'jogo')) { ui.casa = -1; ui.busca = ''; ui.revela = -1; ui.visto = u ? u.seq : 0; som('draw'); return }
@@ -182,9 +180,7 @@
       if (u.ok) {
         ui.nova = u.casa
         som('sold')
-        if (u.joia) { estoura(T.joiaNome(u.joia).toUpperCase() + '!', u.joia); setTimeout(() => som('win'), 250) }
-        else if (u.tomou) estoura(t('TOMOU!', 'TAKEN!'))
-        else if (u.roubou >= 0) estoura(t('ROUBOU!', 'STOLEN!'))
+        if (u.roubou >= 0) estoura(t('ROUBOU!', 'STOLEN!'))
       }
       else if (u.passou) som('tick')
       else { ui.treme = u.casa; som('undo') }
@@ -198,8 +194,6 @@
   }
 
   function render() {
-    // durante a partida a tela é só do grid (sem o toldo), pra caber no celular
-    document.body.classList.toggle('gd-foco', !!vis && (vis.fase === 'jogo' || vis.fase === 'fim') && !el.hidden)
     if (!vis) { el.innerHTML = T.entrada(ui); return }
     if (vis.fase === 'sala') { el.innerHTML = T.sala(vis, ui); return }
     ui.local = vis.local
@@ -311,7 +305,6 @@
       if (vis.fase === 'fim') { ui.revela = ui.revela === i ? -1 : i; render(); return }
       if (!ui.souVez) return
       const c = vis.casas[i]
-      if (vis.poder === vis.vez) { if (c && c.dono !== vis.vez) fazer({ type: 'tomar', casa: i }); return }
       if (c && !(vis.roubar && c.dono !== vis.vez)) { ui.aviso = c.dono === vis.vez ? t('Essa casa já é sua.', 'That square is already yours.') : t('Essa casa já tem dono (no clássico não dá pra roubar).', 'That square is taken (no stealing in classic).'); limpaAviso(); render(); return }
       ui.casa = ui.casa === i ? -1 : i
       ui.busca = ''

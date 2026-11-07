@@ -43,17 +43,6 @@
       gamora: ['assassina do Thanos', 'Thanos\'s assassin'], 'captain-america': ['o Capitão Hidra de Império Secreto (2017)', 'Hydra Cap in Secret Empire (2017)'],
       'jean-grey': ['a Fênix Negra', 'Dark Phoenix'], cyclops: ['virou um dos Fênix Cinco (2012)', 'became one of the Phoenix Five (2012)'], 'silver-surfer': ['arauto de Galactus', 'Herald of Galactus'],
     },
-    joia: {
-      thanos: ['montou a Manopla', 'built the Gauntlet'], 'iron-man': ['o estalo de Ultimato', 'the snap in Endgame'], hulk: ['o estalo que trouxe todo mundo de volta', 'the snap that brought everyone back'],
-      'star-lord': ['Joia do Poder (Guardiões da Galáxia)', 'Power Stone (Guardians of the Galaxy)'], drax: ['segurou a Joia do Poder junto (Guardiões)', 'held the Power Stone together (Guardians)'],
-      gamora: ['segurou a Joia do Poder junto (Guardiões)', 'held the Power Stone together (Guardians)'], ronan: ['Joia do Poder no martelo', 'Power Stone in his hammer'],
-      loki: ['cetro com a Joia da Mente e o Tesseract', 'scepter with the Mind Stone, and the Tesseract'], vision: ['a Joia da Mente na testa', 'the Mind Stone on his forehead'],
-      'scarlet-witch': ['poderes da Joia da Mente; destruiu ela', 'powers from the Mind Stone; she destroyed it'], 'doctor-strange': ['Joia do Tempo no Olho de Agamotto', 'Time Stone in the Eye of Agamotto'],
-      'red-skull': ['o Tesseract (Joia do Espaço)', 'the Tesseract (Space Stone)'], 'adam-warlock': ['a Joia da Alma (HQ)', 'the Soul Gem (comics)'], nebula: ['roubou a Manopla do Thanos (HQ)', 'stole Thanos\'s Gauntlet (comics)'],
-      'jane-foster': ['o Éter, a Joia da Realidade (Thor 2)', 'the Aether, the Reality Stone (Thor 2)'], 'captain-marvel': ['poderes da energia do Tesseract', 'powers from the Tesseract\'s energy'],
-      'mister-fantastic': ['os Illuminati guardaram uma Joia cada (HQ)', 'the Illuminati each kept a Gem (comics)'], 'professor-x': ['os Illuminati guardaram uma Joia cada (HQ)', 'the Illuminati each kept a Gem (comics)'],
-      namor: ['os Illuminati guardaram uma Joia cada (HQ)', 'the Illuminati each kept a Gem (comics)'], 'black-bolt': ['os Illuminati guardaram uma Joia cada (HQ)', 'the Illuminati each kept a Gem (comics)'],
-    },
     atores: {
       thor: 'Eric Allan Kramer (TV, 1988) e Chris Hemsworth', 'doctor-strange': 'Peter Hooten (TV, 1978) e Benedict Cumberbatch', 'nick-fury': 'David Hasselhoff (TV, 1998) e Samuel L. Jackson',
       'captain-america': 'Reb Brown, Matt Salinger e Chris Evans', 'war-machine': 'Terrence Howard e Don Cheadle', quicksilver: 'Evan Peters e Aaron Taylor-Johnson',
