@@ -181,17 +181,22 @@
       if (u.ok) {
         ui.nova = u.casa
         som('sold')
-        if (u.roubou >= 0) estoura(t('ROUBOU!', 'STOLEN!'))
+        if (u.roubou >= 0) { estoura(t('ROUBOU!', 'STOLEN!')); if (window.Uatu) window.Uatu.momento('grade-roubo') }
       }
       else if (u.passou) som('tick')
-      else { ui.treme = u.casa; som('undo') }
+      else { ui.treme = u.casa; som('undo'); if (window.Uatu) window.Uatu.momento('grade-erro') }
       clearTimeout(ui._n)
       ui._n = setTimeout(() => { ui.nova = -1; ui.treme = -1; render() }, 900)
       // a vez passou: fecha a ficha
       ui.casa = -1
       ui.busca = ''
     }
-    if (v.fase === 'fim' && a.fase !== 'fim') { ui.casa = -1; setTimeout(() => som('win'), 350); if (v.fim.motivo === 'linha') estoura(t('LINHA!', 'LINE!')) }
+    if (v.fase === 'fim' && a.fase !== 'fim') {
+      ui.casa = -1
+      setTimeout(() => som('win'), 350)
+      if (v.fim.motivo === 'linha') estoura(t('LINHA!', 'LINE!'))
+      if (window.Uatu) window.Uatu.momento(v.fim.ganhou >= 0 ? 'grade-fim' : 'grade-empate', { nome: v.fim.ganhou >= 0 ? v.js[v.fim.ganhou].nome : '' })
+    }
   }
 
   function render() {

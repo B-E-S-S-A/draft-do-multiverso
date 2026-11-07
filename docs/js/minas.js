@@ -195,11 +195,11 @@
     if ((v.fase === 'resultado' || v.fase === 'toaa') && a.fase === 'duelo' && v.evento) {
       ui.boomDono = undefined
       ui.digitando = false
-      if (v.evento.tipo === 'boom') { estoura('BOOM!'); som('hammer'); setTimeout(() => som('undo'), 200); try { if (navigator.vibrate) navigator.vibrate([120, 60, 200]) } catch (e) {} }
+      if (v.evento.tipo === 'boom') { estoura('BOOM!'); if (window.Uatu) window.Uatu.momento('minas-boom'); som('hammer'); setTimeout(() => som('undo'), 200); try { if (navigator.vibrate) navigator.vibrate([120, 60, 200]) } catch (e) {} }
       else som(v.evento.tipo === 'duvido' && v.evento.vale ? 'tick' : 'hammer')
     }
-    if (v.fase === 'toaa' && a.fase !== 'toaa') setTimeout(() => som('win'), 900)
-    if (v.fase === 'fim' && a.fase !== 'fim') som('win')
+    if (v.fase === 'toaa' && a.fase !== 'toaa') { setTimeout(() => som('win'), 900); if (window.Uatu) window.Uatu.momento('minas-toaa') }
+    if (v.fase === 'fim' && a.fase !== 'fim') { som('win'); const vivo = v.js.find((p) => p.vidas > 0); if (window.Uatu) window.Uatu.momento('minas-fim', { nome: vivo ? vivo.nome : '' }) }
   }
 
   function render() {

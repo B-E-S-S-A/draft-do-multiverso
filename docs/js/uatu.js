@@ -57,15 +57,99 @@
   const vazio = (alvo) => alvo === document.documentElement || alvo === document.body || (alvo.matches && alvo.matches('main, .wrap, .home, .setup, .setup-grid, .gd-jogo, .gd-palco, .ap-coluna'))
   let toques = []
   let dormir = 0
+  let ultima = 0
+  // ele sobe, fala e volta pro canto (fica mais tempo quando a fala é comprida)
+  function falar(txt) {
+    ultima = Date.now()
+    caixa.querySelector('.uatu-fala').textContent = txt
+    caixa.classList.remove('acordado')
+    void caixa.offsetWidth
+    caixa.classList.add('acordado')
+    clearTimeout(dormir)
+    dormir = setTimeout(() => caixa.classList.remove('acordado'), Math.min(8000, 3500 + txt.length * 45))
+  }
+  const sorteia = (lista) => lista[Math.floor(Math.random() * lista.length)]
   document.addEventListener('click', (ev) => {
     if (!vazio(ev.target)) return
     const agora = Date.now()
     toques = toques.filter((x) => agora - x < 1500).concat(agora)
     if (toques.length < 3) return
     toques = []
-    caixa.querySelector('.uatu-fala').textContent = FALAS[Math.floor(Math.random() * FALAS.length)]()
-    caixa.classList.add('acordado')
-    clearTimeout(dormir)
-    dormir = setTimeout(() => caixa.classList.remove('acordado'), 5000)
+    falar(sorteia(FALAS)())
   })
+
+  // ---------- ele também aparece sozinho nos momentos grandes dos jogos ----------
+  // cada momento tem algumas falas e uma chance; entre uma aparição e outra ele espera um pouco, pra não cansar
+  const MOMENTOS = {
+    'grade-fim': [1, [
+      (d) => t(`Em 14 milhões de universos, ${d.nome} ganhou essa. Neste também.`, `In 14 million universes, ${d.nome} won this one. In this one too.`),
+      (d) => t(`${d.nome} fechou a linha. Anotei no meu livro.`, `${d.nome} filled the line. I wrote it in my book.`),
+      (d) => t(`Eu juro que não ajudei ${d.nome}.`, `I swear I did not help ${d.nome}.`)]],
+    'grade-empate': [0.8, [() => t('Empate. Num universo vizinho alguém ganhou… mas não foi neste.', 'A tie. In a neighboring universe someone won… but not in this one.')]],
+    'grade-roubo': [0.45, [
+      () => t('Roubar casa alheia… o Multiverso viu isso.', 'Stealing someone else’s square… the Multiverse saw that.'),
+      () => t('Eu não interfiro. Mas essa casa tinha dono.', 'I do not interfere. But that square had an owner.')]],
+    'grade-erro': [0.15, [
+      () => t('Hmm. Num universo vizinho esse personagem valia.', 'Hmm. In a neighboring universe, that character counted.'),
+      () => t('Eu sei a resposta. Você sabe que eu não posso dizer.', 'I know the answer. You know I cannot say it.')]],
+    'minas-boom': [0.35, [
+      () => t('BOOM. Essa eu vi chegando há três universos.', 'BOOM. I saw that one coming three universes ago.'),
+      () => t('Eu não interfiro. Mas eu ri.', 'I do not interfere. But I laughed.')]],
+    'minas-toaa': [1, [() => t('Até eu me ajoelho diante d’Aquele Acima de Todos.', 'Even I kneel before the One Above All.')]],
+    'minas-fim': [0.9, [(d) => t(`${d.nome} sobreviveu ao campo minado. Registrado.`, `${d.nome} survived the minefield. Recorded.`)]],
+    'aposto-provou': [0.35, [
+      (d) => t(`${d.nome} provou. Eu estava contando também.`, `${d.nome} proved it. I was counting too.`),
+      () => t('Nenhum nome errado. Eu teria percebido.', 'Not one wrong name. I would have noticed.')]],
+    'aposto-errou': [0.35, [
+      (d) => t(`Ah, ${d.nome}… eu sabia o nome que faltou.`, `Oh, ${d.nome}… I knew the name you were missing.`),
+      () => t('Apostar alto é corajoso. Eu só observo.', 'Betting high is brave. I only observe.')]],
+    'aposto-truco': [0.6, [() => t('Truco no Multiverso? Isso eu nunca tinha visto.', 'Truco across the Multiverse? I had never seen that.')]],
+    'aposto-fim': [0.9, [(d) => t(`${d.nome} sabe mais de Marvel que alguns Vigias.`, `${d.nome} knows more Marvel than some Watchers.`)]],
+    'impostor-pego': [0.6, [
+      () => t('O impostor caiu. Eu sabia desde o começo, claro.', 'The impostor got caught. I knew from the start, of course.'),
+      () => t('Pegaram o impostor. Nem precisei quebrar meu juramento.', 'You caught the impostor. I did not even have to break my oath.')]],
+    'impostor-escapou': [0.6, [
+      () => t('O impostor escapou. Eu vi tudo e não falei nada.', 'The impostor got away. I saw everything and said nothing.'),
+      () => t('Enganou todo mundo. Menos eu.', 'Fooled everyone. Except me.')]],
+    'draft-caro': [0.5, [
+      (d) => t(`R$${d.preco} por ${d.lote}? Eu não interfiro… mas eu teria esperado.`, `R$${d.preco} for ${d.lote}? I do not interfere… but I would have waited.`)]],
+    'draft-fim': [0.7, [
+      () => t('Times montados. Em outro universo, os dois perderam pro Thanos.', 'Teams assembled. In another universe, both lost to Thanos.'),
+      () => t('Eu já sei quem montou o melhor time. Discutam à vontade.', 'I already know who built the best team. Argue all you want.')]],
+    'missao-pegou': [0.5, [() => t('Te peguei! …eu também estava de olho.', 'Gotcha! …I was watching too.')]],
+  }
+  const ESPERA = 35000
+  function momento(tipo, dados = {}) {
+    const m = MOMENTOS[tipo]
+    if (!m || document.hidden) return
+    const [chance, falas] = m
+    if (chance < 1 && (Date.now() - ultima < ESPERA || Math.random() > chance)) return
+    setTimeout(() => falar(sorteia(falas)(dados)), 900)
+  }
+
+  // parado na tela inicial sem saber o que jogar: uma vez por visita ele dá o ar da graça
+  let parado = 0
+  let jaFalouParado = false
+  function reinicia() {
+    if (jaFalouParado) return
+    clearTimeout(parado)
+    parado = setTimeout(() => {
+      if (document.body.dataset.jogo !== 'home' || document.hidden || Date.now() - ultima < ESPERA) return reinicia()
+      jaFalouParado = true
+      falar(t('Não sabe o que jogar? Eu já vi o que você escolhe… mas não posso contar.', 'Can’t decide what to play? I have seen what you pick… but I cannot tell.'))
+    }, 45000)
+  }
+  ;['pointerdown', 'keydown'].forEach((e) => window.addEventListener(e, reinicia, { passive: true }))
+  reinicia()
+
+  // escrever "uatu", "vigia" ou "watcher" em qualquer lugar (fora de um campo de texto) chama ele
+  let digitado = ''
+  window.addEventListener('keydown', (ev) => {
+    if (ev.target.closest && ev.target.closest('input, textarea')) return
+    if (ev.key.length !== 1) return
+    digitado = (digitado + ev.key.toLowerCase()).slice(-7)
+    if (/(uatu|vigia|watcher)$/.test(digitado)) { digitado = ''; falar(t('Você me chamou? Eu estava aqui o tempo todo.', 'You called? I was here all along.')) }
+  })
+
+  window.Uatu = { falar, momento }
 })()

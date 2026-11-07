@@ -105,6 +105,7 @@
     pararRelogio()
     tela = 'fim'
     som(R.fim.pego || semVotos ? 'win' : 'undo')
+    if (!semVotos) if (window.Uatu) window.Uatu.momento(R.fim.pego ? 'impostor-pego' : 'impostor-escapou')
     render()
   }
 

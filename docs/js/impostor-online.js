@@ -217,7 +217,10 @@
       V.recebida = Date.now()
       if (!antes || antes.fase !== V.fase) {
         if (V.fase === 'cartas') { escondida = false; som('draw') }
-        if (V.fase === 'fim' && V.rodada && V.rodada.fim) som(V.rodada.fim.pego || V.rodada.fim.semVotos ? 'win' : 'undo')
+        if (V.fase === 'fim' && V.rodada && V.rodada.fim) {
+          som(V.rodada.fim.pego || V.rodada.fim.semVotos ? 'win' : 'undo')
+          if (!V.rodada.fim.semVotos) if (window.Uatu) window.Uatu.momento(V.rodada.fim.pego ? 'impostor-pego' : 'impostor-escapou')
+        }
         window.scrollTo(0, 0)
       }
       redesenhar()

@@ -231,16 +231,20 @@
   function sons(a, v) {
     const mesma = v.rodada === a.rodada
     if (mesma && v.hist.length > a.hist.length) { const h = v.hist[v.hist.length - 1]; if (h.prova) estoura(t('DUVIDO!', 'PROVE IT!')); else som('bid', h.j % 2) }
-    if (mesma && v.truco && (!a.truco || v.truco.gritos.length > a.truco.gritos.length)) { const g = v.truco.gritos[v.truco.gritos.length - 1]; if (g) { if (g.grito === 'ACEITO') som('draw'); else if (g.grito !== 'CORRO') estoura(T.grito(g.grito) + '!') } }
+    if (mesma && v.truco && (!a.truco || v.truco.gritos.length > a.truco.gritos.length)) { const g = v.truco.gritos[v.truco.gritos.length - 1]; if (g) { if (g.grito === 'ACEITO') som('draw'); else if (g.grito !== 'CORRO') { estoura(T.grito(g.grito) + '!'); if (['NOVE', 'DOZE'].includes(g.grito)) if (window.Uatu) window.Uatu.momento('aposto-truco') } } }
     const fa = a.prova ? a.prova.falas.length : 0
     const fv = v.prova ? v.prova.falas.length : 0
     if (mesma && v.prova && fv > fa) som(v.prova.falas[fv - 1].v ? 'bid' : 'undo', 0)
     if (v.fase === 'prova' && v.prova.comecou && !(a.prova && a.prova.comecou)) { som('draw'); ui.letra = ''; ui.digitando = false; ui.duvida = '' }
     const dv = v.prova && v.prova.ultimaDuvida
     if (mesma && dv && (!a.prova || !a.prova.ultimaDuvida || a.prova.ultimaDuvida.seq !== dv.seq)) som(dv.vale ? 'tick' : 'hammer')
-    if (v.fase === 'resultado' && a.fase !== 'resultado') setTimeout(() => som(v.resultado.ok ? 'sold' : 'undo'), 250)
+    if (v.fase === 'resultado' && a.fase !== 'resultado') {
+      setTimeout(() => som(v.resultado.ok ? 'sold' : 'undo'), 250)
+      const R = v.resultado
+      if (R.motivo !== 'correu') if (window.Uatu) window.Uatu.momento(R.ok ? 'aposto-provou' : 'aposto-errou', { nome: v.js[R.j] ? v.js[R.j].nome : '' })
+    }
     if (v.fase === 'lances' && a.fase !== 'lances') som('draw')
-    if (v.fase === 'fim' && a.fase !== 'fim') som('win')
+    if (v.fase === 'fim' && a.fase !== 'fim') { som('win'); const w = v.js.reduce((m, p, i) => (p.pts > v.js[m].pts ? i : m), 0); if (window.Uatu) window.Uatu.momento('aposto-fim', { nome: v.js[w].nome }) }
   }
 
   function render() {

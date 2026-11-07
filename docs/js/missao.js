@@ -295,6 +295,7 @@
     if (v.meu && v.meu.nota) {
       ui.nota = v.meu.nota
       som(['cumpriu', 'pegou'].includes(v.meu.nota.k) ? 'sold' : 'undo')
+      if (v.meu.nota.k === 'pegou') if (window.Uatu) window.Uatu.momento('missao-pegou')
       clearTimeout(ui._nt)
       ui._nt = setTimeout(() => { ui.nota = ''; render() }, 7000)
     }

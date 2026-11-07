@@ -63,6 +63,7 @@
   let shown = null
   function render() {
     if (shown !== S.screen) {
+      if (shown === 'auction' && S.screen === 'result') if (window.Uatu) window.Uatu.momento('draft-fim')
       shown = S.screen
       document.body.dataset.screen = S.screen
       app.innerHTML = S.screen === 'setup' ? V.setup(S) : S.screen === 'auction' ? V.auction(S) : V.result(S)
@@ -209,6 +210,8 @@
     clearTimers()
     S.busy = E.sell(g)
     fx('hammer')
+    // pagou caro (mais da metade do dinheiro do começo): o Vigia comenta
+    if (S.busy && S.busy.price >= Math.max(6, g.cfg.money * 0.5)) if (window.Uatu) window.Uatu.momento('draft-caro', { preco: S.busy.price, lote: V.nomeDe(E.lotOf(g.lots[S.busy.lot])) })
     busyT = setTimeout(() => {
       S.busy = null
       E.advance(g)
