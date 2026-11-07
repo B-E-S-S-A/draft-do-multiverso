@@ -11,7 +11,7 @@
   // os modelos prontos; mexer nas barras vira "do seu jeito"
   const MODELOS = [
     { id: 'velha', L: 3, C: 3, K: 3, pt: 'Jogo da velha', en: 'Tic-tac-toe' },
-    { id: 'classico', L: 5, C: 4, K: 4, pt: 'Clássico', en: 'Classic' },
+    { id: 'classico', L: 4, C: 4, K: 4, pt: 'Clássico', en: 'Classic' },
     { id: 'grandao', L: 5, C: 5, K: 5, pt: 'Grandão', en: 'Big one' },
   ]
 

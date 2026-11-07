@@ -25,8 +25,9 @@
   })()
 
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-grade') || '{}') } catch (e) { return {} } })()
-  // o tamanho guardado (ou o Clássico: 5 linhas x 4 colunas, 4 seguidas)
-  const tam0 = M.medidas(salvo.L ? { L: salvo.L, C: salvo.C, K: salvo.K } : { L: 5, C: 4, K: 4 })
+  // o tamanho guardado (ou o Clássico: 4 linhas x 4 colunas, 4 seguidas; quem tinha o Clássico antigo, 5x4, passa pro novo)
+  const antigo = salvo.L === 5 && salvo.C === 4 && salvo.K === 4
+  const tam0 = M.medidas(salvo.L && !antigo ? { L: salvo.L, C: salvo.C, K: salvo.K } : { L: 4, C: 4, K: 4 })
   const ui = { L: tam0.L, C: tam0.C, K: tam0.K, roubar: salvo.roubar === true, relogio: [0, 30, 60].includes(salvo.relogio) ? salvo.relogio : 0,
     nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 2) : [], meuNome: guarda('mvd-imp-nome'), codigo: '', erro: '', status: '', msg: '',
     casa: -1, busca: '', aviso: '', dica: '', revela: -1, nova: -1, treme: -1, estouro: '', visto: 0 }
