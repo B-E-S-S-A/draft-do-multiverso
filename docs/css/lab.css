@@ -17,33 +17,72 @@
 .lab-slot .lbl { margin: 0; font-size: 10px }
 .lab-slot > span:last-child { min-width: 0 }
 .lab-slot b { display: block; font-size: 15px; line-height: 1.1; overflow-wrap: anywhere }
-.lab-slot.livre { justify-content: center; text-align: center; cursor: pointer; background: var(--paper); box-shadow: 3px 3px 0 var(--ink); transition: transform .08s steps(2) }
-.lab-slot.livre .lbl { font-size: 13px }
+.lab-slot.livre { justify-content: center; text-align: center; cursor: pointer; font-family: var(--display); font-size: clamp(22px, 3.4vw, 30px); line-height: 1; background: var(--paper); box-shadow: 3px 3px 0 var(--ink); transition: transform .08s steps(2) }
 .lab-slot.livre:hover { background: var(--sun) }
 .lab-slot.livre:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink) }
-.lab-slot.vazio { justify-content: center; border-style: dashed; border-color: #b9b19c; background: transparent; color: #8b8778 }
+.lab-slot.vazio { justify-content: center; font-family: var(--display); font-size: clamp(22px, 3.4vw, 30px); line-height: 1; border-style: dashed; border-color: #b9b19c; background: transparent; color: #8b8778 }
+.lab-pips { display: flex; gap: 5px }
+.lab-pips i { flex: 1; height: 10px; background: var(--paper); border: 2px solid var(--ink) }
+.lab-pips .foi { background: var(--banca) }
+.lab-pips .agora { background: var(--sun) }
+.lab-saiu { display: inline-block; margin-bottom: 4px; padding: 2px 8px; font-family: var(--label); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--paper); background: var(--ink) }
+.lab-fim .lab-slot { background: #ffe9a6 }
 .lab-mini { position: relative; flex: 0 0 auto; display: block; width: 40px; height: 52px; overflow: hidden; border: 2px solid var(--ink) }
 .lab-mini .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top }
-/* o duelo: uma tabela de três colunas, herói A, tópico, herói B */
-.lab-duelo { display: grid; gap: 0; padding: 10px; max-width: 760px; width: 100%; margin: 0 auto }
-.lab-cab, .lab-linha { display: grid; grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr); gap: 6px; align-items: center }
-.lab-cab { padding-bottom: 8px; border-bottom: 3px solid var(--ink) }
-.lab-cab i { justify-self: center; font-family: var(--display); font-style: normal; font-size: 30px; line-height: 1; color: var(--paper); background: var(--ink); padding: 0 8px 4px; transform: rotate(-4deg) }
-.lab-nome { display: grid; gap: 2px; min-width: 0; padding: 4px 8px }
-.lab-nome:last-child { text-align: right }
-.lab-nome b { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 4.5vw, 32px); line-height: .95; overflow-wrap: anywhere }
+/* o duelo: herói A (vermelho), tópico, herói B (azul). No resultado: amarelo ganhou, cinza perdeu. */
+.lab-duelo { display: grid; gap: 0; padding: 0; max-width: 760px; width: 100%; margin: 0 auto; overflow: hidden }
+.lab-cab, .lab-linha { display: grid; grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr); align-items: stretch }
+.lab-cab { border-bottom: 3px solid var(--ink) }
+.lab-cab i { display: grid; place-items: center; font-family: var(--display); font-style: normal; font-size: 32px; line-height: 1; color: var(--paper); background: var(--ink) }
+.lab-nome { display: grid; gap: 2px; align-content: center; min-width: 0; padding: 10px 12px; color: #fff }
+.lab-nome.a { background: var(--p1) }
+.lab-nome.b { background: var(--p2); text-align: right }
+.lab-nome small { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase }
+.lab-nome b { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 4.5vw, 34px); line-height: .95; overflow-wrap: anywhere }
 .lab-nome em { font-style: normal; font-family: var(--label); font-size: 11px }
-.lab-nome.venceu { background: var(--sun); border: 3px solid var(--ink) }
-.lab-nome.perdeu { opacity: .55 }
-.lab-linha { padding: 6px 0; border-bottom: 2px dashed #cfc9b8 }
-.lab-linha:last-child { border-bottom: 0 }
-.lab-top { font-family: var(--label); font-size: 10px; letter-spacing: .02em; text-align: center; text-transform: uppercase; overflow-wrap: anywhere }
-.lab-pers { display: flex; align-items: center; gap: 8px; min-width: 0 }
-.lab-pers.dir { flex-direction: row-reverse; text-align: right }
+.lab-linha + .lab-linha { border-top: 2px solid var(--ink) }
+.lab-top { display: grid; place-items: center; padding: 0 2px; font-family: var(--label); font-size: 10px; letter-spacing: .02em; text-align: center; text-transform: uppercase; background: var(--paper) }
+.lab-pers { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 10px }
+.lab-pers.a { background: #fbe3df }
+.lab-pers.b { background: #dfe7fa; flex-direction: row-reverse; text-align: right }
 .lab-pers b { min-width: 0; font-size: 15px; line-height: 1.1; overflow-wrap: anywhere }
-.lab-duelo.g-a .lab-pers.dir, .lab-duelo.g-b .lab-pers:not(.dir) { opacity: .55 }
+.g-a .lab-nome.a, .g-b .lab-nome.b { background: var(--sun); color: var(--ink) }
+.g-a .lab-pers.a, .g-b .lab-pers.b { background: #ffe9a6 }
+.g-a .lab-nome.b, .g-b .lab-nome.a { background: #8b8778 }
+.g-a .lab-pers.b, .g-b .lab-pers.a { background: #e4e1d8; color: #77736a }
+.g-a .lab-pers.b .lab-mini, .g-b .lab-pers.a .lab-mini { filter: grayscale(1); opacity: .6 }
+.lab-veredito { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center; max-width: 760px; width: 100%; margin: 0 auto; padding: 10px 16px; background: var(--sun); border: 4px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); animation: lab-entra .25s cubic-bezier(.3, 1.5, .5, 1) }
+.lab-veredito small { grid-column: 1; font-family: var(--label); font-size: 12px; letter-spacing: .06em; text-transform: uppercase }
+.lab-veredito b { grid-column: 1; font-family: var(--display); font-weight: 400; font-size: clamp(32px, 7vw, 54px); line-height: .95; overflow-wrap: anywhere }
+.lab-veredito span { grid-column: 2; grid-row: 1 / span 2; font-family: var(--display); font-size: clamp(36px, 8vw, 60px); line-height: 1; white-space: nowrap }
+.lab-pergunta { margin: 0; text-align: center; font-size: 18px; font-weight: 700 }
 .lab-votos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 760px; width: 100%; margin: 0 auto }
 .lab-votos .btn { justify-content: center; text-align: center }
+/* o desempate: o Vigia em tela cheia */
+.lab-vigia { position: fixed; inset: 0; z-index: 80; display: grid; justify-items: center; align-content: start; gap: clamp(8px, 2vh, 18px); padding: 5vh 16px 0; overflow: hidden; color: #fff; text-align: center;
+  background: radial-gradient(circle at 50% 105%, #24508a 0, #101a33 42%, #0b0a12 72%); animation: lab-vg-entra .35s ease-out; cursor: pointer }
+@keyframes lab-vg-entra { from { opacity: 0 } }
+.lab-vg-empate { font-family: var(--display); font-weight: 400; font-size: clamp(72px, 20vw, 170px); line-height: .85; color: var(--sun); text-shadow: 6px 6px 0 #000; animation: lab-vg-bate .4s cubic-bezier(.3, 1.6, .5, 1) }
+@keyframes lab-vg-bate { from { transform: scale(2.6); opacity: 0 } }
+.lab-vg-fala { margin: 0; max-width: 26em; font-size: clamp(19px, 4.4vw, 28px); font-weight: 700; opacity: 0; transition: opacity .5s }
+.lab-vigia.fala .lab-vg-fala { opacity: 1 }
+.lab-vg-opcoes { display: flex; gap: 16px; opacity: 0 }
+.lab-vigia.escolhe .lab-vg-opcoes { opacity: 1 }
+.lab-vg-opcoes span { display: grid; place-items: center; width: clamp(66px, 16vw, 96px); aspect-ratio: 1; font-family: var(--display); font-size: clamp(44px, 11vw, 66px); line-height: 1; color: #fff; border: 4px solid #fff; opacity: .28 }
+.lab-vg-opcoes .a { background: var(--p1) }
+.lab-vg-opcoes .b { background: var(--p2) }
+.lab-vg-opcoes .on { opacity: 1; transform: scale(1.14); box-shadow: 0 0 36px #7fe7ff }
+.lab-vg-veredito { display: grid; gap: 2px; opacity: 0; transform: scale(1.7); transition: opacity .25s, transform .3s cubic-bezier(.3, 1.6, .5, 1) }
+.lab-vigia.decidiu .lab-vg-veredito { opacity: 1; transform: none }
+.lab-vg-veredito small { font-family: var(--label); font-size: 13px; letter-spacing: .08em; text-transform: uppercase }
+.lab-vg-veredito b { font-family: var(--display); font-weight: 400; font-size: clamp(38px, 9vw, 74px); line-height: .95; color: var(--sun); text-shadow: 4px 4px 0 #000 }
+/* a base da imagem (onde o manto é cortado) fica sempre abaixo do fim da tela */
+.lab-vg-uatu { position: absolute; left: 50%; bottom: 0; width: min(68vw, 46vh, 400px); transform: translate(-50%, 12%); animation: lab-vg-sobe 1s cubic-bezier(.2, .9, .3, 1) }
+@keyframes lab-vg-sobe { from { transform: translate(-50%, 100%) } }
+.lab-vg-uatu img { display: block; width: 100%; height: auto; user-select: none }
+.lab-vigia.decidiu .uatu-olho { animation: lab-vg-clarao .7s ease-out both }
+@keyframes lab-vg-clarao { 0% { opacity: 1; transform: scale(1) } 35% { opacity: 1; transform: scale(5) } 100% { opacity: 1; transform: scale(1.6) } }
+@media (prefers-reduced-motion: reduce) { .lab-vigia, .lab-vg-empate, .lab-vg-uatu, .lab-veredito, .lab-foto.entrou { animation: none } .lab-vigia.decidiu .uatu-olho { animation: none } }
 .lab-fim { display: grid; gap: 14px; justify-items: center; max-width: 620px; width: 100%; margin: 0 auto }
 .lab-fim h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(30px, 6vw, 44px); line-height: .95; text-align: center }
 .lab-grito { font-family: var(--display); font-weight: 400; font-size: clamp(54px, 13vw, 88px); line-height: .9; color: var(--p1) }
@@ -56,9 +95,10 @@
   .lab-sorteado { grid-template-columns: 112px minmax(0, 1fr); align-items: center }
   .lab-sorteado h3 { font-size: 30px }
   .lab-slot { min-height: 58px; padding: 4px 8px }
-  .lab-cab, .lab-linha { grid-template-columns: minmax(0, 1fr) 62px minmax(0, 1fr); gap: 4px }
+  .lab-cab, .lab-linha { grid-template-columns: minmax(0, 1fr) 58px minmax(0, 1fr) }
+  .lab-nome { padding: 8px }
   .lab-top { font-size: 8px }
-  .lab-pers { gap: 5px }
+  .lab-pers { gap: 5px; padding: 5px 6px }
   .lab-pers b { font-size: 13px }
   .lab-mini { width: 32px; height: 42px }
 }

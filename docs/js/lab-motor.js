@@ -3,7 +3,7 @@
 // Todo mundo recebe os mesmos personagens, na mesma ordem. Depois os heróis se enfrentam em mata-mata: em cada duelo vota todo
 // mundo menos os dois criadores, e quem já caiu continua votando. Empate: o Vigia decide. Só regras aqui (dá pra testar no Node).
 (function (raiz) {
-  const D = () => raiz.DRAFT_DATA
+  const elenco = () => raiz.LabElenco.chaves
   const TOPICOS = ['corpo', 'poder', 'forca', 'agilidade', 'inteligencia', 'arma', 'traje', 'parceiro']
   const PRAZO_COLOCAR = 15000
   const PRAZO_VOTAR = 30000
@@ -13,7 +13,7 @@
 
   // modo 'junto': cada um no seu celular, todos veem o mesmo personagem ao mesmo tempo; 'turno': num celular só, um monta o herói inteiro de cada vez
   function novoJogo({ modo = 'junto', jogadores, rnd = Math.random }) {
-    return { modo, rnd, fase: 'montar', seq: 0, vez: 0, baralho: embaralha(D().hq.map((h) => h.key), rnd).slice(0, TOPICOS.length),
+    return { modo, rnd, fase: 'montar', seq: 0, vez: 0, baralho: embaralha(elenco(), rnd).slice(0, TOPICOS.length),
       js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, heroi: {} })),
       fila: [], proxima: [], vivos: 0, nDuelo: 0, totalRodada: 0, duelo: null, campeao: -1, historia: [] }
   }

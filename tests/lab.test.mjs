@@ -4,9 +4,17 @@ import assert from 'assert'
 const require = createRequire(import.meta.url)
 globalThis.window = globalThis
 require('../site/data.js')
+require('../site/js/lab-elenco.js')
 require('../site/js/lab-motor.js')
 const M = globalThis.LabMotor
 const T = M.TOPICOS
+const EL = globalThis.LabElenco
+const DD = globalThis.DRAFT_DATA
+
+// o elenco: ninguém repetido, e todo mundo tem de onde tirar a capa
+assert.strictEqual(new Set(EL.chaves).size, EL.chaves.length, 'personagem repetido no elenco')
+assert(EL.chaves.length >= 240, `elenco pequeno (${EL.chaves.length})`)
+for (const x of Object.values(EL.extras)) { assert(DD.works[x.w], `${x.key}: obra ${x.w} não existe`); assert(x.n && x.en, `${x.key}: falta nome`) }
 
 const gente = (n) => Array.from({ length: n }, (_, i) => ({ nome: 'p' + i }))
 // todos colocam os personagens nos tópicos, na ordem

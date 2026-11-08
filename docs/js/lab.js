@@ -118,16 +118,51 @@
     ui.novo = !!pers && pers !== ui.pers
     if (ui.novo) { som('draw'); ui.trava = Date.now() + 350 }
     if (v.fase === 'montar') ui.pers = pers
+    if (v.fase !== 'resultado') fecharVigia()
     const duelo = (x) => (x && x.duelo ? x.duelo.vivos + '-' + x.duelo.nDuelo : '')
     if (v.fase === 'duelo' && duelo(a) !== duelo(v)) { som('draw'); ui.viu = -1; if (U) U.momento('lab-duelo') }
     if (v.fase === 'resultado' && (!a || a.fase !== 'resultado')) {
       som('sold')
-      if (U && v.resultado.desempate) U.momento('lab-desempate', { nome: v.resultado.donos[v.resultado.ganhou === 'a' ? 0 : 1] })
+      if (v.resultado.desempate) abrirVigia(v)
     }
     if (v.fase === 'fim' && (!a || a.fase !== 'fim')) {
       setTimeout(() => som('win'), 200)
       if (U) U.momento('lab-campeao', { nome: v.campeao.donoNome })
     }
+  }
+
+  // deu empate: tela cheia com o Vigia. Ele aparece, fala, fica indo de um herói pro outro e escolhe. Toque pra pular.
+  let vigia = null
+  function fecharVigia() {
+    if (!vigia) return
+    vigia.tempos.forEach(clearTimeout)
+    vigia.el.remove()
+    vigia = null
+  }
+  function abrirVigia(v) {
+    fecharVigia()
+    const caixa = document.createElement('div')
+    caixa.className = 'lab-vigia'
+    caixa.setAttribute('role', 'dialog')
+    caixa.innerHTML = T.vigia(v)
+    document.body.appendChild(caixa)
+    const eu = { el: caixa, tempos: [] }
+    vigia = eu
+    const aos = (ms, f) => eu.tempos.push(setTimeout(f, ms))
+    const op = (x) => caixa.querySelector(`[data-x="${x}"]`)
+    const acende = (x) => { op('a').classList.toggle('on', x === 'a'); op('b').classList.toggle('on', x === 'b') }
+    som('draw')
+    aos(1100, () => caixa.classList.add('fala'))
+    aos(2400, () => caixa.classList.add('escolhe'))
+    // vai de um pro outro, cada vez mais devagar, e termina em quem ganhou
+    const g = v.resultado.ganhou
+    const outro = g === 'a' ? 'b' : 'a'
+    const passos = [g, outro, g, outro, g, outro, g, outro, g]
+    let quando = 2500
+    passos.forEach((x, i) => { aos(quando, () => { acende(x); som('tick') }); quando += 130 + i * 42 })
+    aos(quando + 250, () => { caixa.classList.add('decidiu'); som('win') })
+    aos(quando + 3400, fecharVigia)
+    aos(900, () => caixa.addEventListener('click', fecharVigia))
   }
 
   function render() {
@@ -176,7 +211,7 @@
     voto: (v) => m.fazer({ type: 'voto', lado: v }),
     seguir: () => m.fazer({ type: 'seguir' }),
     denovo: () => m.fazer({ type: 'denovo' }),
-    sair: () => { m.sair(); ui.pers = ''; render() },
+    sair: () => { m.sair(); ui.pers = ''; fecharVigia(); render() },
   }
   el.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-l]')

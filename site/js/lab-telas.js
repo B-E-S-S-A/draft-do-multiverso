@@ -8,10 +8,14 @@
   const cor = (i) => `--cor: var(--c${i % 10})`
   const indice = {}
   E.D.hq.forEach((h, i) => { indice[h.key] = i })
-  const lote = (key) => E.lotOf('hq:' + indice[key])
+  // os personagens de HQ têm capa própria; os dos filmes e séries usam o cartaz da obra
+  const EL = window.LabElenco
+  const soMcu = {}
+  EL.soMcu.forEach((x) => { soMcu[x.key] = x.i })
+  const lote = (key) => (indice[key] !== undefined ? E.lotOf('hq:' + indice[key]) : soMcu[key] !== undefined ? E.lotOf('mcu:' + soMcu[key]) : { src: 'mcu', ...EL.extras[key] })
   const capa = (key) => V.cover(lote(key))
-  const nomePers = (key) => V.nomeDe(lote(key))
-  const ident = (key) => V.idDe(lote(key)) || ''
+  const nomePers = (key) => (EL.extras[key] ? EL.extras[key][window.Lingua.en() ? 'en' : 'n'] : V.nomeDe(lote(key)))
+  const ident = (key) => { const l = lote(key); return l.src === 'hq' ? V.idDe(l) || '' : t('em ', 'in ') + V.obraDe(l.w) }
   const NOMES = { corpo: ['Corpo', 'Body'], poder: ['Poder', 'Power'], forca: ['Força', 'Strength'], agilidade: ['Agilidade', 'Agility'],
     inteligencia: ['Inteligência', 'Intelligence'], arma: ['Arma', 'Weapon'], traje: ['Traje', 'Suit'], parceiro: ['Parceiro', 'Sidekick'] }
   const topico = (k) => t(NOMES[k][0], NOMES[k][1])
@@ -97,52 +101,76 @@
   // ---------- montar: sai um personagem, você escolhe o tópico ----------
   function montar(v, ui) {
     const n = v.meu ? v.meu.n : 0
+    const pips = `<div class="lab-pips" aria-hidden="true">${M.TOPICOS.map((_, i) => `<i class="${i < n ? 'foi' : i === n ? 'agora' : ''}"></i>`).join('')}</div>`
     const titulo = topo(`${t('Personagem', 'Character')} ${Math.min(n + 1, M.TOPICOS.length)} ${t('de', 'of')} ${M.TOPICOS.length}`)
     if (!v.meu) return `<section class="lab-jogo">${titulo}<p class="gd-aviso calmo" id="lab-faltam">${faltam(v)}</p></section>`
     const k = v.meu.pers
     const slots = M.TOPICOS.map((top) => {
       const dono = v.meu.heroi[top]
       if (dono) return `<div class="lab-slot cheio">${mini(dono)}<span><span class="lbl">${topico(top)}</span><b>${esc(nomePers(dono))}</b></span></div>`
-      if (k) return `<button class="lab-slot livre" type="button" data-l="coloca" data-v="${top}"><span class="lbl">${topico(top)}</span></button>`
-      return `<div class="lab-slot vazio"><span class="lbl">${topico(top)}</span></div>`
+      if (k) return `<button class="lab-slot livre" type="button" data-l="coloca" data-v="${top}">${topico(top)}</button>`
+      return `<div class="lab-slot vazio">${topico(top)}</div>`
     }).join('')
     const sorteado = k ? `<div class="panel lab-sorteado">
         <div class="lab-foto${ui.novo ? ' entrou' : ''}">${capa(k)}</div>
-        <div><h3>${esc(nomePers(k))}</h3><small>${esc(ident(k))}</small>
+        <div><span class="lab-saiu">${t('Saiu', 'Drawn')}</span><h3>${esc(nomePers(k))}</h3><small>${esc(ident(k))}</small>
           <p class="note">${t('Onde ele entra no seu herói? Não dá pra trocar.', 'Where do they go in your hero? No changing it later.')}</p></div>
       </div>` : `<p class="gd-aviso calmo" id="lab-faltam">${n >= M.TOPICOS.length ? t('Seu herói está pronto.', 'Your hero is done.') + ' ' : ''}${faltam(v)}</p>`
-    return `<section class="lab-jogo">${titulo}${relogio(v)}
+    return `<section class="lab-jogo">${titulo}${pips}${relogio(v)}
       <div class="lab-bancada">${sorteado}<div class="panel lab-slots"><span class="lbl">${t('Seu herói', 'Your hero')}</span><div class="lab-grade">${slots}</div></div></div>
       ${ui.precisaPassar ? passa(v, t('Monte seu herói sem ninguém olhar.', 'Build your hero with nobody looking.')) : ''}
     </section>`
   }
 
   // ---------- os duelos: os dois heróis lado a lado, tópico contra tópico ----------
-  const celula = (key, dir) => `<span class="lab-pers${dir ? ' dir' : ''}">${mini(key)}<b>${esc(nomePers(key))}</b></span>`
+  // votando: um lado vermelho e o outro azul. No resultado: quem ganhou fica amarelo, quem perdeu fica cinza.
+  const celula = (key, id) => `<span class="lab-pers ${id}">${mini(key)}<b>${esc(nomePers(key))}</b></span>`
+  const heroiDe = (nome) => t(`Herói de ${esc(nome)}`, `${esc(nome)}’s hero`)
   function duelo(v, ui) {
     const fim = v.fase === 'resultado'
     const d = v.duelo
     const g = fim ? v.resultado.ganhou : ''
-    const nome = (i) => (fim ? t(`Herói de ${esc(v.resultado.donos[i])}`, `${esc(v.resultado.donos[i])}’s hero`) : t(`Herói ${'AB'[i]}`, `Hero ${'AB'[i]}`))
+    const nome = (i) => (fim ? heroiDe(v.resultado.donos[i]) : t(`Herói ${'AB'[i]}`, `Hero ${'AB'[i]}`))
     const votos = (i) => (fim ? `<em>${v.resultado.placar[i]} ${v.resultado.placar[i] === 1 ? t('voto', 'vote') : t('votos', 'votes')}</em>` : '')
-    const lado = (i, id) => `<div class="lab-nome${g === id ? ' venceu' : fim ? ' perdeu' : ''}"><b>${nome(i)}</b>${votos(i)}</div>`
-    const linhas = M.TOPICOS.map((top) => `<div class="lab-linha">${celula(d.a[top])}<span class="lab-top">${curto(top)}</span>${celula(d.b[top], true)}</div>`).join('')
-    const status = fim ? (v.resultado.desempate ? t('Empatou! Quem desempatou foi o Vigia.', 'A tie! The Watcher broke it.') : '')
-      : v.podeVotar ? t('Qual herói é melhor?', 'Which hero is better?')
-        : v.meu.noDuelo ? t('Seu herói está na arena. Aguenta firme.', 'Your hero is in the arena. Hang in there.')
-          : t('Esperando os votos…', 'Waiting for the votes…')
-    const votar = v.podeVotar ? `<div class="lab-votos"><button class="btn big" type="button" data-l="voto" data-v="a">${t('Votar no A', 'Vote for A')}</button><button class="btn big" type="button" data-l="voto" data-v="b">${t('Votar no B', 'Vote for B')}</button></div>` : ''
+    const lado = (i, id) => `<div class="lab-nome ${id}">${fim ? `<small>${g === id ? t('Venceu', 'Won') : t('Perdeu', 'Lost')}</small>` : ''}<b>${nome(i)}</b>${votos(i)}</div>`
+    const linhas = M.TOPICOS.map((top) => `<div class="lab-linha">${celula(d.a[top], 'a')}<span class="lab-top">${curto(top)}</span>${celula(d.b[top], 'b')}</div>`).join('')
+    const pl = fim ? [...v.resultado.placar].sort((x, y) => y - x) : []
+    const veredito = fim ? `<div class="lab-veredito"><small>${v.resultado.desempate ? t('O Vigia decidiu', 'The Watcher decided') : t('Venceu', 'Winner')}</small>
+      <b>${heroiDe(v.resultado.donos[g === 'a' ? 0 : 1])}</b><span>${pl[0]} × ${pl[1]}</span></div>` : ''
+    const status = fim ? '' : v.podeVotar ? t('Qual herói é melhor?', 'Which hero is better?')
+      : v.meu.noDuelo ? t('Seu herói está na arena. Aguenta firme.', 'Your hero is in the arena. Hang in there.')
+        : t('Esperando os votos…', 'Waiting for the votes…')
+    const votar = v.podeVotar ? `<div class="lab-votos"><button class="btn big red" type="button" data-l="voto" data-v="a">${t('Herói A', 'Hero A')}</button><button class="btn big blue" type="button" data-l="voto" data-v="b">${t('Herói B', 'Hero B')}</button></div>` : ''
     const seguir = fim ? `<div class="go-row">${ui.podeSeguir ? `<button class="btn big" type="button" data-l="seguir">${d.ultimo ? t('Ver o campeão', 'See the champion') : t('Próximo duelo', 'Next duel')}</button>`
       : `<p class="hint">${t('Esperando quem criou a sala…', 'Waiting for the host…')}</p>`}</div>` : ''
     return `<section class="lab-jogo">${topo(`${rodada(d.vivos)} · ${t('duelo', 'duel')} ${d.nDuelo} ${t('de', 'of')} ${d.total}`)}${fim ? '' : relogio(v)}
+      ${veredito}
+      ${status ? `<p class="lab-pergunta" id="lab-faltam">${status}${!v.podeVotar && v.faltam.length ? ' ' + faltam(v) : ''}</p>` : ''}
       <div class="panel lab-duelo${g ? ' g-' + g : ''}">
         <div class="lab-cab">${lado(0, 'a')}<i>VS</i>${lado(1, 'b')}</div>
         ${linhas}
       </div>
-      ${status ? `<p class="gd-aviso calmo" id="lab-faltam">${status}${!fim && !v.podeVotar && v.faltam.length ? ' ' + faltam(v) : ''}</p>` : ''}
       ${votar}${seguir}
       ${ui.precisaPassar ? passa(v, t('Sua vez de votar, escondido.', 'Your turn to vote, in secret.')) : ''}
     </section>`
+  }
+
+  // ---------- o desempate: o Vigia em tela cheia ----------
+  const FALAS = [
+    ['Eu jurei nunca interferir…', 'I swore never to interfere…'],
+    ['Bilhões de anos só olhando. E agora isso.', 'Billions of years of only watching. And now this.'],
+    ['Os Vigias não escolhem lados. Hoje, eu escolho.', 'Watchers do not take sides. Today, I do.'],
+    ['Só desta vez. E vocês nunca me viram.', 'Just this once. And you never saw me.'],
+  ]
+  function vigia(v) {
+    const g = v.resultado.ganhou
+    const fala = FALAS[Math.floor(Math.random() * FALAS.length)]
+    return `<b class="lab-vg-empate">${t('EMPATE', 'TIE')}</b>
+      <p class="lab-vg-fala">${t(fala[0], fala[1])}</p>
+      <div class="lab-vg-opcoes"><span class="a" data-x="a">A</span><span class="b" data-x="b">B</span></div>
+      <div class="lab-vg-veredito" role="status"><small>${t('O Vigia escolheu', 'The Watcher chose')}</small><b>${heroiDe(v.resultado.donos[g === 'a' ? 0 : 1])}</b></div>
+      <div class="lab-vg-uatu" aria-hidden="true"><img src="img/uatu.webp" alt="" draggable="false">
+        <i class="uatu-olho" style="left:46.9%;top:50.6%"></i><i class="uatu-olho" style="left:69.8%;top:49.9%"></i></div>`
   }
 
   // ---------- o campeão ----------
@@ -165,5 +193,5 @@
     return duelo(v, ui)
   }
 
-  window.LabTelas = { entrada, sala, jogo, nomePers, topico }
+  window.LabTelas = { entrada, sala, jogo, nomePers, topico, vigia }
 })()

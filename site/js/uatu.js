@@ -184,9 +184,6 @@
       () => t('Dois heróis feitos de pedaços. O Alto Evolucionário ficaria orgulhoso.', 'Two heroes made of spare parts. The High Evolutionary would be proud.'),
       () => t('Já vi esse duelo em mil universos. Cada vez ganha um.', 'I have seen this duel in a thousand universes. A different one wins each time.'),
       () => t('Comparem tópico por tópico. Eu já comparei.', 'Compare them topic by topic. I already have.')]],
-    'lab-desempate': [1, [
-      (d) => t(`Eu jurei não interferir… mas o herói de ${d.nome} leva essa.`, `I swore not to interfere… but ${d.nome}’s hero takes this one.`),
-      (d) => t(`Empate? Quebro meu juramento só hoje: ${d.nome}.`, `A tie? I will break my oath just today: ${d.nome}.`)]],
     'lab-campeao': [1, [
       (d) => t(`O herói de ${d.nome} venceu. Já vi Vingadores piores.`, `${d.nome}’s hero won. I have seen worse Avengers.`),
       (d) => t(`${d.nome} montou um campeão. Vou contar pro Alto Evolucionário.`, `${d.nome} built a champion. I will tell the High Evolutionary.`),
