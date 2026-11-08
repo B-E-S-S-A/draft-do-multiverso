@@ -4,7 +4,14 @@
 // mundo menos os dois criadores, e quem já caiu continua votando. Empate: o Vigia decide. Só regras aqui (dá pra testar no Node).
 (function (raiz) {
   const elenco = () => raiz.LabElenco.chaves
-  const TOPICOS = ['corpo', 'poder', 'forca', 'agilidade', 'inteligencia', 'arma', 'traje', 'parceiro']
+  // os tópicos de sempre (valem pra qualquer personagem); quem joga pode trocar, tirar ou pôr mais
+  const PADRAO = ['corpo', 'poder', 'forca', 'agilidade', 'inteligencia', 'velocidade', 'coragem', 'lideranca']
+  const MIN_TOPICOS = 3
+  const MAX_TOPICOS = 12
+  const limpaTopicos = (lista) => {
+    const t = (Array.isArray(lista) ? lista : []).map((x) => String(x || '').trim().slice(0, 14)).filter(Boolean).slice(0, MAX_TOPICOS)
+    return t.length >= MIN_TOPICOS ? t : [...PADRAO]
+  }
   const PRAZO_COLOCAR = 15000
   const PRAZO_VOTAR = 30000
   const MIN = 3
@@ -12,30 +19,32 @@
   const embaralha = (a, rnd) => { const v = [...a]; for (let i = v.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [v[i], v[j]] = [v[j], v[i]] } return v }
 
   // modo 'junto': cada um no seu celular, todos veem o mesmo personagem ao mesmo tempo; 'turno': num celular só, um monta o herói inteiro de cada vez
-  function novoJogo({ modo = 'junto', jogadores, rnd = Math.random }) {
-    return { modo, rnd, fase: 'montar', seq: 0, vez: 0, baralho: embaralha(elenco(), rnd).slice(0, TOPICOS.length),
-      js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, heroi: {} })),
+  function novoJogo({ modo = 'junto', jogadores, topicos, rnd = Math.random }) {
+    const tp = limpaTopicos(topicos)
+    return { modo, rnd, topicos: tp, fase: 'montar', seq: 0, vez: 0, baralho: embaralha(elenco(), rnd).slice(0, tp.length),
+      js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, heroi: Array(tp.length).fill(null) })),
       fila: [], proxima: [], vivos: 0, nDuelo: 0, totalRodada: 0, duelo: null, campeao: -1, historia: [] }
   }
 
   // ---------- montar ----------
-  const colocados = (J, j) => Object.keys(J.js[j].heroi).length
+  const colocados = (J, j) => J.js[j].heroi.filter(Boolean).length
   const rodada = (J) => Math.min(...J.js.map((_, j) => colocados(J, j)))
   // o personagem que j tem que colocar agora (ou nada, se está esperando os outros)
   function daVez(J, j) {
     if (J.fase !== 'montar') return null
     const n = colocados(J, j)
-    if (n >= TOPICOS.length) return null
+    if (n >= J.topicos.length) return null
     if (J.modo === 'turno') return j === J.vez ? J.baralho[n] : null
     return n === rodada(J) ? J.baralho[n] : null
   }
-  function colocar(J, j, topico) {
+  // j pôs o personagem da vez no tópico número i
+  function colocar(J, j, i) {
     const key = daVez(J, j)
-    if (!key || !TOPICOS.includes(topico) || J.js[j].heroi[topico]) return null
-    J.js[j].heroi[topico] = key
+    if (!key || !Number.isInteger(i) || i < 0 || i >= J.topicos.length || J.js[j].heroi[i]) return null
+    J.js[j].heroi[i] = key
     J.seq += 1
-    if (J.modo === 'turno' && colocados(J, j) === TOPICOS.length && J.vez < J.js.length - 1) J.vez += 1
-    if (J.js.every((_, i) => colocados(J, i) === TOPICOS.length)) abreRodada(J, J.js.map((_, i) => i))
+    if (J.modo === 'turno' && colocados(J, j) === J.topicos.length && J.vez < J.js.length - 1) J.vez += 1
+    if (J.js.every((_, x) => colocados(J, x) === J.topicos.length)) abreRodada(J, J.js.map((_, x) => x))
     return key
   }
   const pendentes = (J) => {
@@ -92,11 +101,11 @@
 
   // ---------- bot e tempo esgotado: decide por quem não decidiu ----------
   function autoColocar(J, j) {
-    const livres = TOPICOS.filter((t) => !J.js[j].heroi[t])
+    const livres = J.topicos.map((_, i) => i).filter((i) => !J.js[j].heroi[i])
     return colocar(J, j, livres[Math.floor(J.rnd() * livres.length)])
   }
   const autoVotar = (J, j) => votar(J, j, J.rnd() < 0.5 ? 'a' : 'b')
   function forcar(J) { for (const j of pendentes(J)) { if (J.fase === 'montar') autoColocar(J, j); else if (J.fase === 'duelo') autoVotar(J, j) } }
 
-  raiz.LabMotor = { TOPICOS, MIN, MAX, PRAZO_COLOCAR, PRAZO_VOTAR, novoJogo, colocados, rodada, daVez, colocar, pendentes, votantes, podeVotar, votar, seguir, autoColocar, autoVotar, forcar }
+  raiz.LabMotor = { PADRAO, MIN_TOPICOS, MAX_TOPICOS, limpaTopicos, MIN, MAX, PRAZO_COLOCAR, PRAZO_VOTAR, novoJogo, colocados, rodada, daVez, colocar, pendentes, votantes, podeVotar, votar, seguir, autoColocar, autoVotar, forcar }
 })(typeof window !== 'undefined' ? window : globalThis)

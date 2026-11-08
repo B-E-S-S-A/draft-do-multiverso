@@ -9,14 +9,15 @@
   const som = (f) => { if (X && X.on) X[f]() }
   const guarda = (k, v) => { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v) } catch (e) { return '' } }
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-lab') || '{}') } catch (e) { return {} } })()
-  const ui = { n: Number.isInteger(salvo.n) && salvo.n >= M.MIN && salvo.n <= M.MAX ? salvo.n : 4, nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 8) : [],
+  const listaOk = (x) => Array.isArray(x) && x.length >= M.MIN_TOPICOS && x.length <= M.MAX_TOPICOS && x.every((y) => typeof y === 'string')
+  const ui = { n: Number.isInteger(salvo.n) && salvo.n >= M.MIN && salvo.n <= M.MAX ? salvo.n : 4, nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 8) : [], topicos: listaOk(salvo.topicos) ? salvo.topicos.map((x) => x.slice(0, 14)) : [...M.PADRAO],
     meuNome: guarda('mvd-imp-nome'), codigo: '', msg: '', viu: -1, precisaPassar: false, podeSeguir: false, novo: false, pers: '', trava: 0 }
-  const salvar = () => guarda('mvd-lab', JSON.stringify({ n: ui.n, nomes: ui.nomes }))
+  const salvar = () => guarda('mvd-lab', JSON.stringify({ n: ui.n, nomes: ui.nomes, topicos: ui.topicos }))
   let prazoLocal = 0
 
   const m = window.Mesa.nova({
     prefixo: 'mvlab-v2-', chave: 'lab', max: M.MAX,
-    opcoes: () => ({}),
+    opcoes: (H) => ({ topicos: H.topicos }),
     visao,
     acao,
     tick,
@@ -33,7 +34,7 @@
     if (jogam.length < M.MIN) return
     H.pessoas.forEach((p) => { p.j = jogam.indexOf(p) })
     const soPessoasNoMesmoCelular = H.local && !jogam.some((p) => p.bot)
-    H.J = M.novoJogo({ modo: soPessoasNoMesmoCelular ? 'turno' : 'junto', jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot })) })
+    H.J = M.novoJogo({ modo: soPessoasNoMesmoCelular ? 'turno' : 'junto', topicos: H.topicos, jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot })) })
     H.fs = ''
     H.sig = ''
     m.ligarLaco()
@@ -69,20 +70,20 @@
   function visao(p, H) {
     const J = H.J
     const eu = H.local ? proximoHumano(J) : p.j
-    const base = { fase: J.fase, eu, seq: J.seq, js: J.js.map((x) => ({ nome: x.nome, bot: x.bot })), humanos: H.local ? J.js.filter((x) => !x.bot).length : 1,
+    const base = { fase: J.fase, eu, seq: J.seq, topicos: J.topicos, js: J.js.map((x) => ({ nome: x.nome, bot: x.bot })), humanos: H.local ? J.js.filter((x) => !x.bot).length : 1,
       faltam: M.pendentes(J).map((j) => J.js[j].nome), resta: H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur || 0 }
     if (J.fase === 'montar') {
       // num celular só com bots, depois que a pessoa termina continua mostrando o herói dela
       const quem = eu >= 0 ? eu : H.local ? H.pessoas[0].j : -1
-      return { ...base, meu: quem >= 0 ? { heroi: { ...J.js[quem].heroi }, pers: M.daVez(J, quem), n: M.colocados(J, quem) } : null }
+      return { ...base, meu: quem >= 0 ? { heroi: [...J.js[quem].heroi], pers: M.daVez(J, quem), n: M.colocados(J, quem) } : null }
     }
     if (J.fase === 'fim') {
-      return { ...base, campeao: { heroi: { ...J.js[J.campeao].heroi }, donoNome: J.js[J.campeao].nome },
+      return { ...base, campeao: { heroi: [...J.js[J.campeao].heroi], donoNome: J.js[J.campeao].nome },
         historia: J.historia.map((d) => ({ ganhou: J.js[d.ganhou].nome, perdeu: J.js[d.ganhou === d.a ? d.b : d.a].nome, placar: [...d.placar].sort((x, y) => y - x), desempate: d.desempate, vivos: d.vivos })) }
     }
     const d = J.duelo
     const ultimo = !J.fila.length && J.proxima.length === 0
-    const dados = { ...base, duelo: { a: { ...J.js[d.a].heroi }, b: { ...J.js[d.b].heroi }, vivos: J.vivos, nDuelo: J.nDuelo, total: J.totalRodada, ultimo },
+    const dados = { ...base, duelo: { a: [...J.js[d.a].heroi], b: [...J.js[d.b].heroi], vivos: J.vivos, nDuelo: J.nDuelo, total: J.totalRodada, ultimo },
       podeVotar: eu >= 0 && M.podeVotar(J, eu), meu: { noDuelo: !H.local && (p.j === d.a || p.j === d.b) } }
     if (J.fase === 'resultado') dados.resultado = { ganhou: d.ganhou === d.a ? 'a' : 'b', placar: d.placar, desempate: d.desempate, donos: [J.js[d.a].nome, J.js[d.b].nome] }
     return dados
@@ -98,7 +99,7 @@
     else {
       const quem = H.local ? proximoHumano(J) : p.j
       if (quem === undefined || quem < 0 || J.js[quem].bot) return
-      if (msg.type === 'coloca') M.colocar(J, quem, String(msg.topico || ''))
+      if (msg.type === 'coloca') M.colocar(J, quem, Number(msg.topico))
       if (msg.type === 'voto') M.votar(J, quem, String(msg.lado || ''))
     }
     tick(H)
@@ -168,7 +169,12 @@
   function render() {
     const v = m.vis
     if (!v) { el.innerHTML = T.entrada(ui, m); return }
-    if (v.fase === 'sala') { el.innerHTML = T.sala(v, ui); return }
+    if (v.fase === 'sala') {
+      // o dono está escrevendo um tópico: não redesenha embaixo do dedo dele
+      const foco = document.activeElement && document.activeElement.id
+      if (!(foco && foco.startsWith('lab-top-'))) el.innerHTML = T.sala(v, ui)
+      return
+    }
     ui.podeSeguir = v.local || v.dono
     // mais de uma pessoa no mesmo celular: antes de cada uma, a tela de passar
     ui.precisaPassar = v.local && v.humanos > 1 && v.eu >= 0 && ui.viu !== v.eu && (v.fase === 'montar' || (v.fase === 'duelo' && v.podeVotar))
@@ -189,12 +195,21 @@
   // ---------- botões ----------
   const nomesLocais = () => Array.from({ length: ui.n }, (_, i) => (ui.nomes[i] || '').trim() || `${t('Jogador', 'Player')} ${i + 1}`)
   const valor = (id) => (document.getElementById(id) || {}).value || ''
+  // os tópicos: na sala valem pra todo mundo; fora dela, ficam guardados neste aparelho
+  const alvoTopicos = () => (m.H && !m.H.J ? m.H : ui)
+  function mudouTopicos(a) {
+    if (a === ui) salvar()
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur()
+    if (a === ui) render(); else m.enviarTudo()
+  }
   const BOTS = ['JARVIS', 'F.R.I.D.A.Y.', 'Ultron', 'E.D.I.T.H.', 'Visão', 'Rocket', 'Groot']
   const acoes = {
     n: (v) => { ui.n = Math.min(M.MAX, Math.max(M.MIN, ui.n + Number(v))); salvar(); render() },
-    local: () => { m.host(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true }))); comecar() },
-    bots: () => { m.host(true, [{ id: 'l0', nome: ui.meuNome || (ui.nomes[0] || '').trim() || t('Você', 'You'), on: true }, ...BOTS.slice(0, 3).map((nome, i) => ({ id: 'b' + i, nome, bot: true, on: true }))]); comecar() },
-    criar: () => { m.meuNome = ui.meuNome; m.criar(ui.meuNome || t('Jogador 1', 'Player 1')) },
+    'mais-topico': () => { const a = alvoTopicos(); if (a.topicos.length < M.MAX_TOPICOS) { a.topicos.push(''); mudouTopicos(a); const n = document.getElementById('lab-top-' + (a.topicos.length - 1)); if (n) n.focus() } },
+    'topicos-padrao': () => { const a = alvoTopicos(); a.topicos = [...M.PADRAO]; mudouTopicos(a) },
+    local: () => { m.host(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true })), { topicos: ui.topicos }); comecar() },
+    bots: () => { m.host(true, [{ id: 'l0', nome: ui.meuNome || (ui.nomes[0] || '').trim() || t('Você', 'You'), on: true }, ...BOTS.slice(0, 3).map((nome, i) => ({ id: 'b' + i, nome, bot: true, on: true }))], { topicos: ui.topicos }); comecar() },
+    criar: () => { m.meuNome = ui.meuNome; m.criar(ui.meuNome || t('Jogador 1', 'Player 1'), { topicos: [...ui.topicos] }) },
     entrar: () => { ui.codigo = valor('lab-codigo'); m.meuNome = ui.meuNome; m.entrar(ui.codigo) },
     'poe-bot': () => { if (m.H) m.poeBot(BOTS[m.H.pessoas.filter((p) => p.bot).length % BOTS.length]) },
     'tira-bot': (v) => m.tiraBot(Number(v)),
@@ -205,7 +220,7 @@
       if (Date.now() < ui.trava) return
       const pers = m.vis.meu && m.vis.meu.pers
       som('sold')
-      if (window.Uatu && pers) window.Uatu.momento('lab-coloca', { topico: T.topico(v), pers: T.nomePers(pers) })
+      if (window.Uatu && pers) window.Uatu.momento('lab-coloca', { topico: T.topico(m.vis.topicos[Number(v)]), pers: T.nomePers(pers) })
       m.fazer({ type: 'coloca', topico: v })
     },
     voto: (v) => m.fazer({ type: 'voto', lado: v }),
@@ -223,7 +238,11 @@
     if (a) { ui.nomes[Number(a[1])] = ev.target.value.slice(0, 14); salvar() }
     if (ev.target.id === 'lab-meu') { ui.meuNome = ev.target.value.slice(0, 14); guarda('mvd-imp-nome', ui.meuNome) }
     if (ev.target.id === 'lab-codigo') ui.codigo = ev.target.value
+    const tp = ev.target.id && ev.target.id.match(/^lab-top-(\d+)$/)
+    if (tp) { const a = alvoTopicos(); a.topicos[Number(tp[1])] = ev.target.value.slice(0, 14); if (a === ui) salvar() }
   })
+  // terminou de escrever um tópico na sala: aí sim os outros veem
+  el.addEventListener('change', (ev) => { if (ev.target.id && ev.target.id.startsWith('lab-top-') && m.H && !m.H.J) m.enviarTudo() })
   el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && ev.target.id === 'lab-codigo') acoes.entrar() })
   window.Lingua.aoMudar(() => { if (!el.hidden) render() })
 

@@ -16,21 +16,32 @@
   const capa = (key) => V.cover(lote(key))
   const nomePers = (key) => (EL.extras[key] ? EL.extras[key][window.Lingua.en() ? 'en' : 'n'] : V.nomeDe(lote(key)))
   const ident = (key) => { const l = lote(key); return l.src === 'hq' ? V.idDe(l) || '' : t('em ', 'in ') + V.obraDe(l.w) }
+  // os tópicos padrão mudam com a língua de quem olha; o que a pessoa escreveu fica como está
   const NOMES = { corpo: ['Corpo', 'Body'], poder: ['Poder', 'Power'], forca: ['Força', 'Strength'], agilidade: ['Agilidade', 'Agility'],
-    inteligencia: ['Inteligência', 'Intelligence'], arma: ['Arma', 'Weapon'], traje: ['Traje', 'Suit'], parceiro: ['Parceiro', 'Sidekick'] }
-  const topico = (k) => t(NOMES[k][0], NOMES[k][1])
+    inteligencia: ['Inteligência', 'Intelligence'], velocidade: ['Velocidade', 'Speed'], coragem: ['Coragem', 'Courage'], lideranca: ['Liderança', 'Leadership'] }
+  const topico = (k) => (NOMES[k] ? t(NOMES[k][0], NOMES[k][1]) : k)
   // na coluna do meio do duelo, no celular, a palavra inteira não cabe
   const curto = (k) => (k === 'inteligencia' ? t('Intelig.', 'Intellect') : topico(k))
+
+  // os tópicos do herói: dá pra trocar o texto, apagar ou pôr mais
+  function campoTopicos(lista, pode) {
+    const dis = pode ? '' : ' disabled'
+    return `<div class="field"><span class="lbl">${t('Tópicos do herói', 'Hero topics')}</span>
+      <div class="lab-topicos">${lista.map((k, i) => `<label><span class="sr-only">${t('Tópico', 'Topic')} ${i + 1}</span><input id="lab-top-${i}" maxlength="14" autocomplete="off" placeholder="${t('(vazio)', '(empty)')}" value="${esc(topico(k))}"${dis}></label>`).join('')}</div>
+      ${pode ? `<div class="online-row">${lista.length < M.MAX_TOPICOS ? `<button class="btn paper" type="button" data-l="mais-topico">+ ${t('tópico', 'topic')}</button>` : ''}
+        <button class="linkish" type="button" data-l="topicos-padrao">${t('voltar pro padrão', 'back to default')}</button></div>
+      <p class="note">${t('Escreva o que quiser. Pra tirar um, é só apagar.', 'Write whatever you want. To remove one, just clear it.')}</p>` : ''}</div>`
+  }
   const rodada = (vivos) => (vivos <= 2 ? t('Final', 'Final') : vivos <= 4 ? t('Semifinal', 'Semifinal') : t('Quartas', 'Quarterfinal'))
 
   function como() {
     return `<ol class="how">${t(`
-      <li>Sai um personagem da Marvel e você decide o que ele vira no seu herói: Corpo, Poder, Força, Agilidade, Inteligência, Arma, Traje ou Parceiro.</li>
-      <li>Não dá pra trocar depois e você não sabe quem vem. Todo mundo recebe os mesmos 8 personagens.</li>
+      <li>Sai um personagem da Marvel e você decide em qual tópico do seu herói ele entra: Corpo, Força, Inteligência…</li>
+      <li>Não dá pra trocar depois e você não sabe quem vem. Todo mundo recebe os mesmos personagens.</li>
       <li>Com os heróis prontos, é mata-mata: dois a dois, tópico contra tópico, sem saber de quem é cada um.</li>
       <li>Todo mundo vota, menos os dois criadores. Deu empate, quem decide é o Vigia.</li>`, `
-      <li>A Marvel character shows up and you decide what they become in your hero: Body, Power, Strength, Agility, Intelligence, Weapon, Suit or Sidekick.</li>
-      <li>You cannot change it later and you do not know who is next. Everyone gets the same 8 characters.</li>
+      <li>A Marvel character shows up and you decide which topic of your hero they fill: Body, Strength, Intelligence…</li>
+      <li>You cannot change it later and you do not know who is next. Everyone gets the same characters.</li>
       <li>Once the heroes are done, it is a knockout: two by two, topic against topic, without knowing whose is whose.</li>
       <li>Everyone votes except the two creators. On a tie, the Watcher decides.</li>`)}
     </ol>`
@@ -52,6 +63,7 @@
             </div>
             <div class="imp-nomes">${nomes}</div>
           </div>
+          ${campoTopicos(ui.topicos, true)}
           <div class="go-row"><button class="linkish" type="button" data-l="bots">${t('testar sozinho contra 3 bots', 'try it alone against 3 bots')}</button>
             <button class="btn big" type="button" data-l="local">${t('Começar', 'Start')}</button></div>
         </div>
@@ -74,7 +86,7 @@
     return `<section class="setup lab">
       <div class="imp-topo"><span class="hint">${t('Sala', 'Room')} ${esc(v.code)} · ${n}/${M.MAX}</span><button class="linkish" type="button" data-l="sair">${v.dono ? t('Fechar sala', 'Close room') : t('Sair da sala', 'Leave room')}</button></div>
       <div class="setup-grid">
-        <div class="panel rules"><h2>${t('Como jogar', 'How to play')}</h2>${como()}</div>
+        <div class="panel rules"><h2>${v.dono ? t('Regras', 'Rules') : t('Regras da sala', 'Room rules')}</h2>${campoTopicos(v.topicos, v.dono)}${como()}</div>
         <div class="panel"><h2>${t('Sala', 'Room')} ${esc(v.code)}</h2>
           ${v.dono ? `<b class="code">${esc(v.code)}</b><div class="online-row"><button class="btn paper" type="button" data-l="convite">${t('Copiar convite', 'Copy invite')}</button>
             ${v.pessoas.length < M.MAX ? `<button class="btn paper" type="button" data-l="poe-bot">+ bot</button>` : ''}</div><p class="note" role="status">${esc(ui.msg)}</p>` : ''}
@@ -101,21 +113,21 @@
   // ---------- montar: sai um personagem, você escolhe o tópico ----------
   function montar(v, ui) {
     const n = v.meu ? v.meu.n : 0
-    const pips = `<div class="lab-pips" aria-hidden="true">${M.TOPICOS.map((_, i) => `<i class="${i < n ? 'foi' : i === n ? 'agora' : ''}"></i>`).join('')}</div>`
-    const titulo = topo(`${t('Personagem', 'Character')} ${Math.min(n + 1, M.TOPICOS.length)} ${t('de', 'of')} ${M.TOPICOS.length}`)
+    const pips = `<div class="lab-pips" aria-hidden="true">${v.topicos.map((_, i) => `<i class="${i < n ? 'foi' : i === n ? 'agora' : ''}"></i>`).join('')}</div>`
+    const titulo = topo(`${t('Personagem', 'Character')} ${Math.min(n + 1, v.topicos.length)} ${t('de', 'of')} ${v.topicos.length}`)
     if (!v.meu) return `<section class="lab-jogo">${titulo}<p class="gd-aviso calmo" id="lab-faltam">${faltam(v)}</p></section>`
     const k = v.meu.pers
-    const slots = M.TOPICOS.map((top) => {
-      const dono = v.meu.heroi[top]
-      if (dono) return `<div class="lab-slot cheio">${mini(dono)}<span><span class="lbl">${topico(top)}</span><b>${esc(nomePers(dono))}</b></span></div>`
-      if (k) return `<button class="lab-slot livre" type="button" data-l="coloca" data-v="${top}">${topico(top)}</button>`
-      return `<div class="lab-slot vazio">${topico(top)}</div>`
+    const slots = v.topicos.map((top, i) => {
+      const dono = v.meu.heroi[i]
+      if (dono) return `<div class="lab-slot cheio">${mini(dono)}<span><span class="lbl">${esc(topico(top))}</span><b>${esc(nomePers(dono))}</b></span></div>`
+      if (k) return `<button class="lab-slot livre" type="button" data-l="coloca" data-v="${i}">${esc(topico(top))}</button>`
+      return `<div class="lab-slot vazio">${esc(topico(top))}</div>`
     }).join('')
     const sorteado = k ? `<div class="panel lab-sorteado">
         <div class="lab-foto${ui.novo ? ' entrou' : ''}">${capa(k)}</div>
         <div><span class="lab-saiu">${t('Saiu', 'Drawn')}</span><h3>${esc(nomePers(k))}</h3><small>${esc(ident(k))}</small>
           <p class="note">${t('Onde ele entra no seu herói? Não dá pra trocar.', 'Where do they go in your hero? No changing it later.')}</p></div>
-      </div>` : `<p class="gd-aviso calmo" id="lab-faltam">${n >= M.TOPICOS.length ? t('Seu herói está pronto.', 'Your hero is done.') + ' ' : ''}${faltam(v)}</p>`
+      </div>` : `<p class="gd-aviso calmo" id="lab-faltam">${n >= v.topicos.length ? t('Seu herói está pronto.', 'Your hero is done.') + ' ' : ''}${faltam(v)}</p>`
     return `<section class="lab-jogo">${titulo}${pips}${relogio(v)}
       <div class="lab-bancada">${sorteado}<div class="panel lab-slots"><span class="lbl">${t('Seu herói', 'Your hero')}</span><div class="lab-grade">${slots}</div></div></div>
       ${ui.precisaPassar ? passa(v, t('Monte seu herói sem ninguém olhar.', 'Build your hero with nobody looking.')) : ''}
@@ -133,7 +145,7 @@
     const nome = (i) => (fim ? heroiDe(v.resultado.donos[i]) : t(`Herói ${'AB'[i]}`, `Hero ${'AB'[i]}`))
     const votos = (i) => (fim ? `<em>${v.resultado.placar[i]} ${v.resultado.placar[i] === 1 ? t('voto', 'vote') : t('votos', 'votes')}</em>` : '')
     const lado = (i, id) => `<div class="lab-nome ${id}">${fim ? `<small>${g === id ? t('Venceu', 'Won') : t('Perdeu', 'Lost')}</small>` : ''}<b>${nome(i)}</b>${votos(i)}</div>`
-    const linhas = M.TOPICOS.map((top) => `<div class="lab-linha">${celula(d.a[top], 'a')}<span class="lab-top">${curto(top)}</span>${celula(d.b[top], 'b')}</div>`).join('')
+    const linhas = v.topicos.map((top, i) => `<div class="lab-linha">${celula(d.a[i], 'a')}<span class="lab-top">${esc(curto(top))}</span>${celula(d.b[i], 'b')}</div>`).join('')
     const pl = fim ? [...v.resultado.placar].sort((x, y) => y - x) : []
     const veredito = fim ? `<div class="lab-veredito"><small>${v.resultado.desempate ? t('O Vigia decidiu', 'The Watcher decided') : t('Venceu', 'Winner')}</small>
       <b>${heroiDe(v.resultado.donos[g === 'a' ? 0 : 1])}</b><span>${pl[0]} × ${pl[1]}</span></div>` : ''
@@ -179,7 +191,7 @@
     return `<section class="lab-jogo"><div class="panel lab-fim">
       <b class="lab-grito">${t('CAMPEÃO', 'CHAMPION')}</b>
       <h2>${t(`O herói de ${esc(c.donoNome)}`, `${esc(c.donoNome)}’s hero`)}</h2>
-      <div class="lab-grade">${M.TOPICOS.map((top) => `<div class="lab-slot cheio">${mini(c.heroi[top])}<span><span class="lbl">${topico(top)}</span><b>${esc(nomePers(c.heroi[top]))}</b></span></div>`).join('')}</div>
+      <div class="lab-grade">${v.topicos.map((top, i) => `<div class="lab-slot cheio">${mini(c.heroi[i])}<span><span class="lbl">${esc(topico(top))}</span><b>${esc(nomePers(c.heroi[i]))}</b></span></div>`).join('')}</div>
       <div class="online-row">${ui.podeSeguir ? `<button class="btn big" type="button" data-l="denovo">${t('Jogar de novo', 'Play again')}</button>` : `<p class="hint">${t('Esperando quem criou a sala…', 'Waiting for the host…')}</p>`}
         <button class="linkish" type="button" data-l="sair">${t('sair', 'leave')}</button></div>
       <h3 class="lab-sub">${t('O que rolou', 'What happened')}</h3>

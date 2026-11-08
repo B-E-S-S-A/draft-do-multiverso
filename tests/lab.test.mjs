@@ -7,7 +7,7 @@ require('../site/data.js')
 require('../site/js/lab-elenco.js')
 require('../site/js/lab-motor.js')
 const M = globalThis.LabMotor
-const T = M.TOPICOS
+const T = M.PADRAO
 const EL = globalThis.LabElenco
 const DD = globalThis.DRAFT_DATA
 
@@ -18,10 +18,22 @@ for (const x of Object.values(EL.extras)) { assert(DD.works[x.w], `${x.key}: obr
 
 const gente = (n) => Array.from({ length: n }, (_, i) => ({ nome: 'p' + i }))
 // todos colocam os personagens nos tópicos, na ordem
-function monta(J) { for (let r = 0; r < T.length; r++) for (let j = 0; j < J.js.length; j++) { if (J.modo === 'turno') J.vez = j; M.colocar(J, j, T[r]) } }
+function monta(J) { for (let r = 0; r < T.length; r++) for (let j = 0; j < J.js.length; j++) { if (J.modo === 'turno') J.vez = j; M.colocar(J, j, r) } }
 
 assert.strictEqual(T.length, 8)
 assert.strictEqual(new Set(T).size, 8)
+// tópicos editados: vazios saem, texto é cortado, e com menos de 3 volta o padrão
+assert.deepStrictEqual(M.limpaTopicos([' Fome ', '', 'Sono', 'x'.repeat(40)]), ['Fome', 'Sono', 'x'.repeat(14)])
+assert.deepStrictEqual(M.limpaTopicos(['a', '']), T)
+assert.deepStrictEqual(M.limpaTopicos(undefined), T)
+assert.strictEqual(M.limpaTopicos(Array(20).fill('a')).length, M.MAX_TOPICOS)
+{
+  const J = M.novoJogo({ jogadores: gente(3), topicos: ['Fome', 'Sono', 'Fome'] })
+  assert.strictEqual(J.topicos.length, 3, 'tópico repetido pode')
+  assert.strictEqual(J.baralho.length, 3, 'um personagem por tópico')
+  for (let r = 0; r < 3; r++) for (let j = 0; j < 3; j++) M.colocar(J, j, r)
+  assert.strictEqual(J.fase, 'duelo')
+}
 
 // junto: todos veem o mesmo personagem, e ninguém anda antes dos outros
 {
@@ -29,15 +41,15 @@ assert.strictEqual(new Set(T).size, 8)
   assert.strictEqual(new Set(J.baralho).size, 8, 'personagem repetido')
   const k = M.daVez(J, 0)
   assert(k && k === M.daVez(J, 1) && k === M.daVez(J, 2), 'mesmo personagem pra todos')
-  assert.strictEqual(M.colocar(J, 0, 'nada'), null, 'tópico que não existe')
-  assert.strictEqual(M.colocar(J, 0, 'forca'), k)
+  assert.strictEqual(M.colocar(J, 0, 99), null, 'tópico que não existe')
+  assert.strictEqual(M.colocar(J, 0, 2), k)
   assert.strictEqual(M.daVez(J, 0), null, 'espera os outros')
-  assert.strictEqual(M.colocar(J, 0, 'corpo'), null, 'não anda sozinho')
-  M.colocar(J, 1, 'corpo'); M.colocar(J, 2, 'poder')
+  assert.strictEqual(M.colocar(J, 0, 0), null, 'não anda sozinho')
+  M.colocar(J, 1, 0); M.colocar(J, 2, 1)
   const k2 = M.daVez(J, 0)
   assert(k2 && k2 !== k, 'veio o próximo')
-  assert.strictEqual(M.colocar(J, 0, 'forca'), null, 'não pode trocar nem repetir tópico')
-  assert.strictEqual(J.js[0].heroi.forca, k)
+  assert.strictEqual(M.colocar(J, 0, 2), null, 'não pode trocar nem repetir tópico')
+  assert.strictEqual(J.js[0].heroi[2], k)
 }
 
 // turno: um monta o herói inteiro e passa pro próximo, com os mesmos personagens
@@ -45,13 +57,13 @@ assert.strictEqual(new Set(T).size, 8)
   const J = M.novoJogo({ modo: 'turno', jogadores: gente(3) })
   const k = J.baralho[0]
   assert.strictEqual(M.daVez(J, 1), null, 'não é a vez dele')
-  for (const t of T) M.colocar(J, 0, t)
+  for (let i = 0; i < 8; i++) M.colocar(J, 0, i)
   assert.strictEqual(J.vez, 1)
   assert.strictEqual(M.daVez(J, 1), k, 'o próximo recebe os mesmos')
-  for (const t of T) M.colocar(J, 1, t)
-  for (const t of [...T].reverse()) M.colocar(J, 2, t)
+  for (let i = 0; i < 8; i++) M.colocar(J, 1, i)
+  for (let i = 7; i >= 0; i--) M.colocar(J, 2, i)
   assert.strictEqual(J.fase, 'duelo', 'todos prontos: começa o mata-mata')
-  assert.strictEqual(J.js[2].heroi.parceiro, k, 'cada um pôs onde quis')
+  assert.strictEqual(J.js[2].heroi[7], k, 'cada um pôs onde quis')
   assert.deepStrictEqual(new Set(Object.values(J.js[0].heroi)), new Set(J.baralho), 'os 8 no herói')
 }
 
@@ -94,7 +106,7 @@ for (let n = M.MIN; n <= M.MAX; n++) for (const modo of ['junto', 'turno']) for 
     M.forcar(J)
   }
   assert.strictEqual(J.fase, 'fim', `${n} jogadores: terminou`)
-  for (const p of J.js) assert.strictEqual(Object.keys(p.heroi).length, 8, 'herói completo')
+  for (const p of J.js) assert.strictEqual(p.heroi.filter(Boolean).length, 8, 'herói completo')
   assert(J.campeao >= 0 && J.campeao < n)
   assert.strictEqual(J.historia.length, n - 1, 'mata-mata tem n-1 duelos')
   const perderam = J.historia.map((d) => (d.ganhou === d.a ? d.b : d.a))

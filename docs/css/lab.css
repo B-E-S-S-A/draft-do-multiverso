@@ -1,5 +1,9 @@
 /* Laboratório do Alto Evolucionário: sai um personagem, ele entra num tópico do seu herói; depois os heróis duelam lado a lado. */
 .lab-jogo { display: grid; gap: 12px }
+.lab-topicos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px }
+.lab-topicos input { width: 100%; padding: 6px 8px; font-size: 16px; font-weight: 600; background: #fff; border: 3px solid var(--ink) }
+.lab-topicos input:disabled { background: var(--paper); color: var(--ink); opacity: 1 }
+.lab-topicos input:placeholder-shown { border-style: dashed }
 .lab-bancada { display: grid; gap: 14px }
 @media (min-width: 860px) { .lab-bancada { grid-template-columns: 300px minmax(0, 1fr); align-items: start } }
 .lab-sorteado { display: grid; gap: 10px }
@@ -41,7 +45,7 @@
 .lab-nome b { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 4.5vw, 34px); line-height: .95; overflow-wrap: anywhere }
 .lab-nome em { font-style: normal; font-family: var(--label); font-size: 11px }
 .lab-linha + .lab-linha { border-top: 2px solid var(--ink) }
-.lab-top { display: grid; place-items: center; padding: 0 2px; font-family: var(--label); font-size: 10px; letter-spacing: .02em; text-align: center; text-transform: uppercase; background: var(--paper) }
+.lab-top { display: grid; place-items: center; padding: 0 2px; font-family: var(--label); font-size: 10px; letter-spacing: .02em; text-align: center; text-transform: uppercase; overflow-wrap: anywhere; background: var(--paper) }
 .lab-pers { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 10px }
 .lab-pers.a { background: #fbe3df }
 .lab-pers.b { background: #dfe7fa; flex-direction: row-reverse; text-align: right }
