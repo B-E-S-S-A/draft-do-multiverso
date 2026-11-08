@@ -63,10 +63,11 @@ for (const versao of ['hq', 'ambos', 'tela']) {
           assert(r.length >= (L * C > 24 ? 2 : 3), `${versao} nível ${nivel} ${L}x${C}: ${l} x ${c} só tem ${r.length}`)
           assert(r.every((k) => gente.has(k)), `${versao}: resposta de fora da versão`)
         }
-        if (L === 4) dif[nivel] += media(gr, versao) / 2
       }
     }
   }
+  // a média de vários grids (com poucos o sorteio engana)
+  for (const nivel of [2, 6, 9]) { dif[nivel] = 0; for (let g = 0; g < 10; g++) dif[nivel] += media(M.sortearGrade(4, 4, Math.random, { versao, nivel }), versao) / 10 }
   // Fácil, Médio e Difícil: o Médio bem acima do Fácil, e o Difícil nunca mais fácil que o Médio
   assert(dif[2] + 0.8 < dif[6] && dif[6] < dif[9] + 0.3, `${versao}: o nível não deixa mais difícil (${dif[2].toFixed(1)} ${dif[6].toFixed(1)} ${dif[9].toFixed(1)})`)
 }
