@@ -68,6 +68,7 @@
         <div class="jogo-btns">${botoes}</div></article>`
     const online = (ir) => `<button class="btn green" type="button" data-ir="${ir}">${t('Jogar online', 'Play online')}</button>`
     telas.home.innerHTML = `<section class="home">
+      ${window.Doomsday ? window.Doomsday.banner() : ''}
       ${jogo(leque(v.draft), t('Draft do Multiverso', 'Multiverse Draft'),
         t('Leilão pra 2 jogadores. Cada um começa com R$20, dá lances nos personagens que aparecem e monta o time mais forte.',
           'An auction for 2 players. Each starts with R$20, bids on the characters that show up and builds the strongest team.'),
