@@ -197,7 +197,7 @@
     const juiz = rodando && v.raridade && ui.souJuiz ? lista(v, ui) : ''
     const duvida = rodando && !v.raridade && ui.souDuvida ? `<div class="ap-juiz ap-duvido">${caixaDuvida(v, ui)}</div>` : ''
     const digita = esc(nome(v, v.pausa))
-    const pausa = v.pausa >= 0 && P.comecou ? `<p class="mn-pausa ap-pausa" role="status">${t(`relógio parado: ${digita} está digitando um nome pra conferir…`, `clock stopped: ${digita} is typing a name to check…`)}</p>` : ''
+    const pausa = v.pausa >= 0 && P.comecou ? `<p class="ap-pausa" role="status">${t(`relógio parado: ${digita} está digitando um nome pra conferir…`, `clock stopped: ${digita} is typing a name to check…`)}</p>` : ''
     const res = D && `${t(`${esc(nome(v, D.quem))} duvidou de`, `${esc(nome(v, D.quem))} challenged`)} "${esc(D.texto)}": <b>${D.vale ? `✓ ${t('vale', 'counts')} (${esc(nm(v, D.nome))})` : `✗ ${t('não vale', 'doesn\'t count')}`}</b>`
     return `${cab}${fala}${pausa}
       ${D ? `<p class="ap-duvida-res ${D.vale ? 'ok' : 'erro'}">${res}</p>` : ''}

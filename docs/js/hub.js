@@ -1,11 +1,11 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei, as Minas, a Grade e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei, a Grade e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
   const L = window.Lingua
   const t = L.t
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), minas: document.getElementById('minas'), grade: document.getElementById('grade'), missao: document.getElementById('missao') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), grade: document.getElementById('grade'), missao: document.getElementById('missao') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
@@ -16,7 +16,7 @@
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'minas' ? window.Minas.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
     h1.innerHTML = l[0]
     sub.textContent = l[1]
     voltar.textContent = t('← Jogos', '← Games')
@@ -24,7 +24,6 @@
 
   function ir(jogo) {
     if (atual === 'aposto' && jogo !== 'aposto') window.Aposto.esconder()
-    if (atual === 'minas' && jogo !== 'minas') window.Minas.esconder()
     if (atual === 'grade' && jogo !== 'grade') window.Grade.esconder()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
@@ -33,7 +32,6 @@
     letreiro()
     if (atual === 'impostor') window.Impostor.abrir()
     if (atual === 'aposto') window.Aposto.abrir()
-    if (atual === 'minas') window.Minas.abrir()
     if (atual === 'grade') window.Grade.abrir()
     if (atual === 'missao') window.Missao.abrir()
     window.scrollTo(0, 0)
@@ -78,11 +76,6 @@
           'A theme comes up ("Spider-Man villains") and everyone bets how many names they know, no limit. The top bidder proves it on the spot, saying or typing them. Rare names are worth more. Has truco.'),
         t('2 a 7 jogadores · num celular só ou online', '2 to 7 players · on one phone or online'),
         `<button class="btn big" type="button" data-ir="aposto">${t('Jogar Aposto', 'Play Bet I Know')}</button>${online('aposto-online')}`)}
-      ${jogo(leque([hq('venom'), hq('scarlet-witch'), hq('green-goblin')]), t('Minas do Multiverso', 'Multiverse Mines'),
-        t('Cada um esconde 2 minas em nomes do tema. Dois duelam falando nomes, um de cada vez. Falou a mina de alguém? BOOM, perde uma vida. Último vivo ganha.',
-          'Everyone hides 2 mines in names from the theme. Two players duel saying names, one at a time. Said someone\'s mine? BOOM, you lose a life. Last one alive wins.'),
-        t('2 a 7 jogadores · num celular só ou online · ninguém fica de fora', '2 to 7 players · on one phone or online · nobody sits out'),
-        `<button class="btn big red" type="button" data-ir="minas">${t('Jogar Minas', 'Play Mines')}</button>${online('minas-online')}`)}
       ${jogo(capaGrade(), t('Grade do Multiverso', 'Multiverse Grid'),
         t('Um grid com uma categoria em cada linha e coluna ("Fase 4 do MCU" × "Tem irmão"). Diga um personagem que vale nas duas e a casa é sua. Quem fechar a linha primeiro ganha.',
           'A grid with a category on every row and column ("MCU Phase 4" × "Has a sibling"). Name a character who fits both and the square is yours. First to fill a line wins.'),
@@ -103,7 +96,6 @@
     const foca = (id) => setTimeout(() => { const n = document.getElementById(id); if (n) { n.scrollIntoView({ block: 'center' }); n.focus() } }, 300)
     if (b.dataset.ir === 'draft-online') { ir('draft'); window.Draft.irParaSala() }
     else if (b.dataset.ir === 'impostor-online') { ir('impostor'); foca('imp-on-nome') }
-    else if (b.dataset.ir === 'minas-online') { ir('minas'); foca('mn-meu') }
     else if (b.dataset.ir === 'aposto-online') { ir('aposto'); foca('ap-meu') }
     else if (b.dataset.ir === 'grade-online') { ir('grade'); foca('gd-meu') }
     else ir(b.dataset.ir)
@@ -124,8 +116,6 @@
     if (salaImp) { ir('impostor'); window.ImpostorOnline.entrar(salaImp[1]); return }
     const salaAp = pedido.match(/^aposto-([A-Za-z0-9]{4})$/)
     if (salaAp) { ir('aposto'); window.Aposto.entrar(salaAp[1]); return }
-    const salaMn = pedido.match(/^minas-([A-Za-z0-9]{4})$/)
-    if (salaMn) { ir('minas'); window.Minas.entrar(salaMn[1]); return }
     const salaGd = pedido.match(/^grade-([A-Za-z0-9]{4})$/)
     if (salaGd) { ir('grade'); window.Grade.entrar(salaGd[1]); return }
     const salaMi = pedido.match(/^missao-([A-Za-z0-9]{4})$/)

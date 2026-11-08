@@ -107,7 +107,53 @@
   conta('rev-ferro', 'revista', ['Estreou em HQ do Homem de Ferro', 'A primeira aparição foi em Tales of Suspense ou numa revista do Homem de Ferro.'], ['Debuted in an Iron Man comic', 'First appeared in Tales of Suspense or an Iron Man comic.'], (h) => /Tales of Suspense|Iron Man/.test(revista(h)))
   conta('rev-vingadores', 'revista', ['Estreou em HQ dos Vingadores', 'A primeira aparição foi numa revista dos Vingadores.'], ['Debuted in an Avengers comic', 'First appeared in an Avengers comic.'], (h) => /Avengers/.test(revista(h)))
 
+  // ---------- de onde vem cada categoria e quão difícil ela é ----------
+  // ref: 'hq' (precisa saber de quadrinhos), 'tela' (filmes e séries) ou 'ambos' (dá pra saber pelos dois)
+  // d: dificuldade de 1 a 9 (1-3 fácil, 4-6 médio, 7-9 difícil), pensando em quem conhece Marvel "de turma"
+  const FICHA = {
+    mulher: ['ambos', 1], voa: ['ambos', 1], mascara: ['ambos', 1], capa: ['ambos', 1], vingador: ['ambos', 1], arma: ['ambos', 1], nome: ['ambos', 1], mcu: ['tela', 1],
+    mutante: ['ambos', 2], naohumano: ['ambos', 2], vilao: ['ambos', 2], genio: ['ambos', 2], xmen: ['ambos', 2], armadura: ['ambos', 2], filme: ['tela', 2],
+    realeza: ['ambos', 3], guardioes: ['ambos', 3], inimigoaranha: ['ambos', 3], pele: ['ambos', 3], magia: ['ambos', 3], fase3: ['tela', 3], ultimato: ['tela', 3],
+    irmao: ['ambos', 4], morreu: ['ambos', 4], cura: ['ambos', 4], fase1: ['tela', 4], fase4: ['tela', 4], serie: ['tela', 4], stanlee: ['hq', 4],
+    fase2: ['tela', 5], fase5: ['tela', 5], netflix: ['tela', 5], quarteto: ['hq', 5], anos60: ['hq', 5],
+    atores: ['tela', 6], anos70: ['hq', 6], anos90: ['hq', 6], kirby: ['hq', 6], 'rev-aranha': ['hq', 6], 'rev-xmen': ['hq', 6],
+    anos80: ['hq', 7], ditko: ['hq', 7], 'rev-ff': ['hq', 7],
+    'rev-thor': ['hq', 8], 'rev-ferro': ['hq', 8],
+    'rev-vingadores': ['hq', 9],
+  }
+  C.forEach((c) => { const f = FICHA[c.id] || ['ambos', 5]; c.ref = f[0]; c.d = f[1] })
+
+  // ---------- a versão "só filmes e séries" ----------
+  // quem dá pra conhecer só pelas telas: MCU, os filmes da Fox e da Sony, o Quarteto e o Motoqueiro antigos, Netflix e os desenhos
+  const TELA = new Set([...C.find((c) => c.id === 'mcu').m, ...L(`cyclops jean-grey storm magneto rogue nightcrawler colossus kitty-pryde psylocke iceman cable domino
+    deadpool mystique sabretooth juggernaut apocalypse x-23 wolverine professor-x beast gambit quicksilver emma-frost jubilee mister-sinister venom carnage kraven
+    morbius rhino lizard electro sandman green-goblin doctor-octopus vulture mysterio black-cat spider-gwen miles-morales spider-man-2099 spider-woman doctor-doom
+    silver-surfer galactus mister-fantastic invisible-woman human-torch thing ghost-rider mephisto blade daredevil elektra punisher kingpin bullseye jessica-jones
+    luke-cage iron-fist hulk man-thing howard watcher`)])
+  // nessas categorias o que conta nas telas é diferente do que conta nos quadrinhos
+  const nasTelas = (id, m, pt, en) => { const c = C.find((x) => x.id === id); if (c) c.tela = { m: L(m), pt: pt || c.pt, en: en || c.en } }
+  nasTelas('vingador', 'iron-man captain-america thor hulk black-widow hawkeye spider-man black-panther doctor-strange scarlet-witch vision falcon winter-soldier captain-marvel ant-man wasp war-machine rocket nebula yelena red-guardian us-agent sentry',
+    ['Já foi Vingador', 'Fez parte dos Vingadores num filme ou série (os Novos Vingadores de Thunderbolts* contam).'], ['Has been an Avenger', 'Was on the Avengers in a movie or series (the New Avengers from Thunderbolts* count).'])
+  nasTelas('irmao', 'thor loki hela scarlet-witch quicksilver black-panther shuri gamora nebula black-widow yelena mantis star-lord shang-chi ms-marvel falcon human-torch invisible-woman professor-x wiccan',
+    ['Tem irmão ou irmã', 'Num filme ou série. Adotivo e meio-irmão contam.'], ['Has a sibling', 'In a movie or series. Adopted and half-siblings count.'])
+  nasTelas('morreu', 'spider-man black-panther doctor-strange scarlet-witch falcon winter-soldier star-lord groot drax mantis nick-fury wasp shuri vision gamora loki',
+    ['Morreu e voltou', 'Morreu num filme ou série (virar pó no estalo conta) e voltou depois.'], ['Died and came back', 'Died in a movie or series (turning to dust in the snap counts) and came back later.'])
+  nasTelas('realeza', 'thor loki hela odin black-panther shuri killmonger namor black-bolt valkyrie dormammu hercules')
+  nasTelas('guardioes', 'star-lord gamora drax rocket groot mantis nebula adam-warlock',
+    ['Já foi Guardião da Galáxia', 'Fez parte dos Guardiões da Galáxia nos filmes.'], ['Has been a Guardian', 'Was on the Guardians of the Galaxy in the movies.'])
+  nasTelas('mutante', [...C.find((c) => c.id === 'mutante').m, 'ms-marvel'].join(' '),
+    ['Mutante', 'É mutante num filme, série ou desenho.'], ['Mutant', 'Is a mutant in a movie, series or cartoon.'])
+
+  // ---------- o que muda por versão: as categorias, quem vale e quem conta como resposta ----------
+  const VERSOES = { hq: ['hq', 'ambos'], ambos: ['hq', 'tela', 'ambos'], tela: ['tela', 'ambos'] }
+  const versao = (v) => (VERSOES[v] ? v : 'ambos')
+  const categoriasDa = (v) => C.filter((c) => VERSOES[versao(v)].includes(c.ref))
+  const membros = (c, v) => (versao(v) === 'tela' && c.tela ? c.tela.m : c.m)
+  const poolDa = (v) => (versao(v) === 'tela' ? [...TELA].filter((k) => D.hq.some((h) => h.key === k)) : D.hq.map((h) => h.key))
+  // o texto da categoria na versão (rótulo e explicação, em pt e en)
+  const textos = (c, v) => (versao(v) === 'tela' && c.tela ? { pt: c.tela.pt, en: c.tela.en } : { pt: c.pt, en: c.en })
+
   const porId = Object.fromEntries(C.map((c) => [c.id, c]))
   const chaves = D.hq.map((h) => h.key)
-  raiz.GradeDados = { categorias: C, porId, chaves, ano, revista }
+  raiz.GradeDados = { categorias: C, porId, chaves, ano, revista, TELA, VERSOES, versao, categoriasDa, membros, poolDa, textos }
 })(typeof window !== 'undefined' ? window : globalThis)

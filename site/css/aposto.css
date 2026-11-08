@@ -185,3 +185,7 @@ body.ap-foco .awning, body.ap-foco .rodape { display: none }
 @media (prefers-reduced-motion: reduce) {
   .ap-tema, .ap-ficha.grande, .ap-carimbo, .ap-estouro b, .ap-falas span, .ap-fala, .ap-gritos span:last-child { animation: none }
 }
+
+/* relógio parado enquanto alguém digita o nome pra conferir */
+.ap-pausa { margin: 0; background: var(--sun); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); padding: 6px 10px; font-weight: 700; font-size: 15px }
+.ap-pausa::before { content: '⏸ '; }

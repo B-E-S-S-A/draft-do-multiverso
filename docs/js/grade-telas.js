@@ -14,6 +14,23 @@
     { id: 'classico', L: 4, C: 4, K: 4, pt: 'Clássico', en: 'Classic' },
     { id: 'grandao', L: 5, C: 5, K: 5, pt: 'Grandão', en: 'Big one' },
   ]
+  // de onde vêm os temas: só quadrinhos, tudo junto, ou zero HQ (só o que passou nas telas)
+  const VERSOES = [
+    { id: 'hq', pt: 'Só HQ', en: 'Comics only', ptd: 'Temas dos quadrinhos: autores, revistas, décadas. Nada de filme.', end: 'Comic-book topics: creators, titles, decades. No movies.' },
+    { id: 'ambos', pt: 'HQ + telas', en: 'Comics + screen', ptd: 'Mistura tudo: quadrinhos, filmes e séries.', end: 'Everything mixed: comics, movies and series.' },
+    { id: 'tela', pt: 'Só filmes e séries', en: 'Movies & series only', ptd: 'Zero HQ: só vale o que apareceu nas telas.', end: 'Zero comics: only what showed up on screen counts.' },
+  ]
+  const versaoDe = (id) => VERSOES.find((x) => x.id === id) || VERSOES[1]
+  // nível de 1 a 9: Fácil 1-2-3, Médio 1-2-3, Difícil 1-2-3
+  const FAIXAS = [
+    { pt: 'Fácil', en: 'Easy', ptd: 'temas conhecidos e muita gente valendo, com umas casas médias pra nenhuma linha sair de graça.', end: 'well-known topics with lots of answers, plus a few medium squares so no line comes free.' },
+    { pt: 'Médio', en: 'Medium', ptd: 'temas de fã, com algumas casas difíceis no meio.', end: 'fan-level topics, with a few hard squares mixed in.' },
+    { pt: 'Difícil', en: 'Hard', ptd: 'temas raros e casas com pouca resposta. Pra quem sabe tudo.', end: 'rare topics and squares with few answers. For the know-it-alls.' },
+  ]
+  const faixa = (n) => FAIXAS[Math.min(2, Math.floor((n - 1) / 3))]
+  const nomeNivel = (n) => t(faixa(n).pt, faixa(n).en) + ' ' + (((n - 1) % 3) + 1)
+  // a versão do jogo que está na tela (os textos de algumas categorias mudam no "só filmes e séries")
+  let verAtual = 'ambos'
 
   // personagem: capa, nome na língua de quem olha, identidade
   const indice = {}
@@ -23,11 +40,17 @@
   const ident = (key) => (indice[key] === undefined ? '' : V.idDe(lote(key)) || '')
   const capa = (key) => V.cover(lote(key))
   const cat = (id) => GD().porId[id]
-  const rotulo = (id) => (cat(id) ? cat(id)[en() ? 'en' : 'pt'][0] : id)
-  const dica = (id) => (cat(id) ? cat(id)[en() ? 'en' : 'pt'][1] : '')
+  const texto = (id) => GD().textos(cat(id), verAtual)[en() ? 'en' : 'pt']
+  const rotulo = (id) => (cat(id) ? texto(id)[0] : id)
+  const dica = (id) => (cat(id) ? texto(id)[1] : '')
   const nomeJ = (v, j) => (v.js[j] ? v.js[j].nome : '?')
   // o porquê de um acerto que surpreende ("Tem irmão: Arno Stark, na HQ")
-  const nota = (id, key) => { const n = ((window.GradeNotas || {})[id] || {})[key]; return !n ? '' : Array.isArray(n) ? n[en() ? 1 : 0] : n }
+  // (no "só filmes e séries", as categorias que contam só as telas não usam essas notas, que falam das HQs)
+  const nota = (id, key) => {
+    if (verAtual === 'tela' && cat(id) && cat(id).tela) return ''
+    const n = ((window.GradeNotas || {})[id] || {})[key]
+    return !n ? '' : Array.isArray(n) ? n[en() ? 1 : 0] : n
+  }
 
   // ---------- opções: tamanho (linhas, colunas, em linha), roubar, relógio ----------
   function opcoes(o, pode, attr) {
@@ -47,7 +70,17 @@
       ${o.roubar ? `<p class="note">${t('Pra roubar, diga outro personagem que também vale na casa.', 'To steal, name another character who also fits the square.')}</p>` : ''}</div>`
     const rel = `<div class="field"><span class="lbl">${t('Relógio por vez', 'Turn clock')}</span><div class="presets">${[0, 30, 60].map((s) =>
       `<button class="preset" type="button" data-${attr}="relogio" data-v="${s}" aria-pressed="${o.relogio === s}"${dis}>${s ? s + ' s' : t('Sem relógio', 'No clock')}</button>`).join('')}</div></div>`
-    return tam + roubo + rel
+    const vx = versaoDe(o.versao)
+    const ref = `<div class="field"><span class="lbl">${t('Referências', 'References')}</span><div class="presets">${VERSOES.map((x) =>
+      `<button class="preset" type="button" data-${attr}="versao" data-v="${x.id}" aria-pressed="${vx === x}"${dis}>${t(x.pt, x.en)}</button>`).join('')}</div>
+      <p class="note">${t(vx.ptd, vx.end)}</p></div>`
+    const niv = `<div class="field"><span class="lbl">${t('Nível', 'Level')}</span><div class="gd-niveis">${FAIXAS.map((f, i) =>
+      `<div class="gd-faixa f${i}"><span>${t(f.pt, f.en)}</span><div>${[1, 2, 3].map((sub) => {
+        const n = i * 3 + sub
+        return `<button class="gd-sub" type="button" data-${attr}="nivel" data-v="${n}" aria-pressed="${o.nivel === n}" aria-label="${t(f.pt, f.en)} ${sub}"${dis}>${sub}</button>`
+      }).join('')}</div></div>`).join('')}</div>
+      <p class="note"><b>${nomeNivel(o.nivel)}:</b> ${t(faixa(o.nivel).ptd, faixa(o.nivel).end)}</p></div>`
+    return ref + niv + tam + roubo + rel
   }
   const resumo = (o) => t(`${o.L} linhas × ${o.C} colunas = ${o.L * o.C} casas · ganha quem fizer ${o.K} seguidas`, `${o.L} rows × ${o.C} columns = ${o.L * o.C} squares · first to get ${o.K} in a row wins`)
 
@@ -165,9 +198,12 @@
   // os personagens que começam com o que foi digitado (todos, não só os que valem: senão era fácil demais)
   const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
   let formas = null
-  function achar(txt) {
+  const pools = {}
+  function achar(txt, versao) {
     const q = norm(txt)
     if (!q) return []
+    const v = GD().versao(versao)
+    if (!pools[v]) pools[v] = new Set(GD().poolDa(v))
     if (!formas) formas = GD().chaves.map((k) => ({ k, f: [norm(E.D.hq[indice[k]].n), norm((window.IMPOSTOR_EN || {})[k]), norm(E.D.hq[indice[k]].id)].filter(Boolean) }))
     const nota = (x) => {
       let n = 9
@@ -177,12 +213,13 @@
       }
       return n
     }
-    return formas.map((x) => ({ k: x.k, n: nota(x) })).filter((x) => x.n < 9).sort((a, b) => a.n - b.n || nome(a.k).localeCompare(nome(b.k))).map((x) => x.k)
+    return formas.filter((x) => pools[v].has(x.k)).map((x) => ({ k: x.k, n: nota(x) })).filter((x) => x.n < 9).sort((a, b) => a.n - b.n || nome(a.k).localeCompare(nome(b.k))).map((x) => x.k)
   }
   function sugestoes(v, ui) {
-    const lista = achar(ui.busca).slice(0, 7)
+    const lista = achar(ui.busca, v.versao).slice(0, 7)
     if (!ui.busca.trim()) return `<p class="gd-vazio">${t('Os nomes aparecem aqui conforme você digita.', 'Names show up here as you type.')}</p>`
-    if (!lista.length) return `<p class="gd-vazio">${t('Ninguém com esse nome na lista.', 'Nobody by that name on the list.')}</p>`
+    if (!lista.length) return `<p class="gd-vazio">${v.versao === 'tela' ? t('Ninguém com esse nome nos filmes e séries da lista.', 'Nobody by that name in the movies & series list.')
+      : t('Ninguém com esse nome na lista.', 'Nobody by that name on the list.')}</p>`
     return lista.map((k, i) => {
       const usado = v.usados.includes(k)
       return `<button class="gd-sug${usado ? ' usado' : ''}${i === 0 ? ' primeira' : ''}" type="button" data-g="escolhe" data-v="${k}"${usado ? ' disabled' : ''}>
@@ -232,18 +269,21 @@
   function revelar(v, i) {
     const l = v.linhas[Math.floor(i / v.C)]
     const c = v.colunas[i % v.C]
-    const certas = window.GradeMotor.respostas(l, c)
+    const certas = window.GradeMotor.respostas(l, c, v.versao)
     return `<div class="gd-valia"><span class="lbl">${esc(rotulo(l))} × ${esc(rotulo(c))}</span>
       <div>${certas.map((k) => { const n = [nota(l, k), nota(c, k)].filter(Boolean).join(' · '); return `<span class="${v.usados.includes(k) ? 'foi' : ''}"${n ? ` title="${esc(n)}"` : ''}>${esc(nome(k))}${n ? ' *' : ''}</span>` }).join('')}</div></div>`
   }
 
   function jogo(v, ui) {
+    verAtual = GD().versao(v.versao)
+    const modo = `<p class="gd-modo"><b>${nomeNivel(v.nivel || 3)}</b> · ${t(versaoDe(v.versao).pt, versaoDe(v.versao).en)}</p>`
     const relogio = v.dur && v.fase === 'jogo' ? '<span class="gd-relogio"><i data-x="barra"></i><b data-x="seg"></b></span>' : ''
     return `<section class="gd-jogo">
       <div class="imp-topo">${placar(v, ui)}<button class="linkish" type="button" data-g="sair">${t('sair', 'leave')}</button></div>
       <div class="gd-palco">
         ${grade(v, ui)}
         <aside class="gd-lado">
+          ${modo}
           ${relogio}
           ${v.fase === 'jogo' ? noticia(v, ui) : ''}
           ${ui.dica ? `<p class="gd-dica" role="status"><b>${esc(rotulo(ui.dica))}:</b> ${esc(dica(ui.dica))}</p>` : ''}
@@ -256,5 +296,5 @@
     </section>`
   }
 
-  window.GradeTelas = { entrada, sala, jogo, sugestoes, achar, nome, resumo, MODELOS }
+  window.GradeTelas = { entrada, sala, jogo, sugestoes, achar, nome, resumo, MODELOS, VERSOES }
 })()

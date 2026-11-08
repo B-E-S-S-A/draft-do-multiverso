@@ -92,11 +92,6 @@
     'grade-erro': [0.15, [
       () => t('Hmm. Num universo vizinho esse personagem valia.', 'Hmm. In a neighboring universe, that character counted.'),
       () => t('Eu sei a resposta. Você sabe que eu não posso dizer.', 'I know the answer. You know I cannot say it.')]],
-    'minas-boom': [0.35, [
-      () => t('BOOM. Essa eu vi chegando há três universos.', 'BOOM. I saw that one coming three universes ago.'),
-      () => t('Eu não interfiro. Mas eu ri.', 'I do not interfere. But I laughed.')]],
-    'minas-toaa': [1, [() => t('Até eu me ajoelho diante d’Aquele Acima de Todos.', 'Even I kneel before the One Above All.')]],
-    'minas-fim': [0.9, [(d) => t(`${d.nome} sobreviveu ao campo minado. Registrado.`, `${d.nome} survived the minefield. Recorded.`)]],
     'aposto-provou': [0.35, [
       (d) => t(`${d.nome} provou. Eu estava contando também.`, `${d.nome} proved it. I was counting too.`),
       () => t('Nenhum nome errado. Eu teria percebido.', 'Not one wrong name. I would have noticed.')]],

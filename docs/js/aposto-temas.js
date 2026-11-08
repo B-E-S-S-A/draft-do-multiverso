@@ -1,4 +1,4 @@
-// Aposto Que Sei (e Minas): os temas. Cada tema é uma lista fechada de respostas certas, separadas por raridade:
+// Aposto Que Sei: os temas. Cada tema é uma lista fechada de respostas certas, separadas por raridade:
 // 1 = todo mundo lembra, 2 = quem acompanha lembra, 3 = só quem sabe muito. No modo Raridade cada nome vale isso em pontos.
 // Cada nome é "Português | English" (quando é igual nas duas línguas, só um). O celular aceita os dois quando alguém escreve.
 (function (raiz) {

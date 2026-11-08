@@ -24,27 +24,33 @@
     return v
   })()
 
+  const GD = window.GradeDados
+  const nivelOk = (n) => Number.isInteger(n) && n >= 1 && n <= 9
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-grade') || '{}') } catch (e) { return {} } })()
   // o tamanho guardado (ou o Clássico: 4 linhas x 4 colunas, 4 seguidas; quem tinha o Clássico antigo, 5x4, passa pro novo)
   const antigo = salvo.L === 5 && salvo.C === 4 && salvo.K === 4
   const tam0 = M.medidas(salvo.L && !antigo ? { L: salvo.L, C: salvo.C, K: salvo.K } : { L: 4, C: 4, K: 4 })
   const ui = { L: tam0.L, C: tam0.C, K: tam0.K, roubar: salvo.roubar === true, relogio: [0, 30, 60].includes(salvo.relogio) ? salvo.relogio : 0,
+    versao: GD.versao(salvo.versao), nivel: nivelOk(salvo.nivel) ? salvo.nivel : 3,
     nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 2) : [], meuNome: guarda('mvd-imp-nome'), codigo: '', erro: '', status: '', msg: '',
     casa: -1, busca: '', aviso: '', dica: '', revela: -1, nova: -1, treme: -1, estouro: '', visto: 0 }
-  const salvar = () => guarda('mvd-grade', JSON.stringify({ L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, nomes: ui.nomes }))
+  const salvar = () => guarda('mvd-grade', JSON.stringify({ L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, versao: ui.versao, nivel: ui.nivel, nomes: ui.nomes }))
   let H = null
   let vis = null
   let prazoLocal = 0
 
   // ---------- anfitrião ----------
-  function novoHost(local, pessoas) { H = { local, pessoas, L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, J: null, comeca: Math.round(Math.random()), vitorias: [0, 0], prazo: 0, dur: 0, botEm: 0, fs: '', sig: '', laco: 0, contou: false } }
+  function novoHost(local, pessoas) { H = { local, pessoas, L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, versao: ui.versao, nivel: ui.nivel, J: null, comeca: Math.round(Math.random()), vitorias: [0, 0], prazo: 0, dur: 0, botEm: 0, fs: '', sig: '', laco: 0, contou: false } }
   const poeBot = () => H.pessoas.push({ id: 'bot-' + Math.random().toString(36).slice(2, 7), nome: 'JARVIS', bot: true, on: true })
 
   function comecar() {
     const jogam = H.pessoas.filter((p) => p.on).slice(0, 2)
     if (jogam.length < 2) return
     H.pessoas.forEach((p) => { p.j = jogam.indexOf(p) })
-    H.J = M.novoJogo({ L: H.L, C: H.C, K: H.K, roubar: H.roubar, comeca: H.comeca, jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: 0.72 })) })
+    // o bot acerta menos nos níveis difíceis (como gente)
+    const acerto = 0.8 - (H.nivel - 1) * 0.03
+    H.J = M.novoJogo({ L: H.L, C: H.C, K: H.K, roubar: H.roubar, versao: H.versao, nivel: H.nivel, comeca: H.comeca,
+      jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: acerto })) })
     H.comeca = 1 - H.comeca // na próxima, começa o outro
     H.fs = ''
     H.contou = false
@@ -77,10 +83,10 @@
   }
 
   function visao(p) {
-    const base = { code: sala.st.code, dono: p === H.pessoas[0], local: H.local, L: H.L, C: H.C, K: H.K, roubar: H.roubar, relogio: H.relogio }
+    const base = { code: sala.st.code, dono: p === H.pessoas[0], local: H.local, L: H.L, C: H.C, K: H.K, roubar: H.roubar, relogio: H.relogio, versao: H.versao, nivel: H.nivel }
     if (!H.J) return { ...base, fase: 'sala', pessoas: H.pessoas.map((x) => ({ nome: x.nome, bot: !!x.bot, on: x.on, voce: x === p, dono: x === H.pessoas[0] })) }
     const J = H.J
-    return { ...base, fase: J.fase, eu: p.j, L: J.L, C: J.C, K: J.K, roubar: J.roubar, linhas: [...J.linhas], colunas: [...J.colunas],
+    return { ...base, fase: J.fase, eu: p.j, L: J.L, C: J.C, K: J.K, roubar: J.roubar, versao: J.versao, nivel: J.nivel, linhas: [...J.linhas], colunas: [...J.colunas],
 
       casas: J.casas.map((c) => c && { ...c }), usados: [...J.usados], vez: J.vez, ultimo: J.ultimo && { ...J.ultimo, falhou: J.ultimo.falhou && [...J.ultimo.falhou] },
       fim: J.fim && { ...J.fim }, vitorias: [...H.vitorias],
@@ -292,6 +298,8 @@
     K: (v) => medir({ K: Number(v) }),
     roubar: (v) => opcao('roubar', v === '1'),
     relogio: (v) => opcao('relogio', Number(v)),
+    versao: (v) => opcao('versao', GD.versao(v)),
+    nivel: (v) => { const n = Number(v); if (nivelOk(n)) opcao('nivel', n) },
     local: () => { novoHost(true, nomesLocais().map((nome, i) => ({ id: 'l' + i, nome, on: true }))); comecar() },
     bot: () => { novoHost(true, [{ id: 'l0', nome: ui.meuNome || (ui.nomes[0] || '').trim() || t('Você', 'You'), on: true }]); poeBot(); comecar() },
     criar: () => { novoHost(false, [{ id: MEU_ID, conn: null, nome: ui.meuNome || t('Jogador 1', 'Player 1'), on: true }]); ui.erro = ''; sala.criar() },
@@ -348,7 +356,7 @@
     if (ev.target.id === 'gd-codigo') acoes.entrar()
     if (ev.target.id === 'gd-busca') {
       // Enter escolhe o primeiro da lista que ainda não foi usado
-      const k = T.achar(ui.busca).find((x) => !vis.usados.includes(x))
+      const k = T.achar(ui.busca, vis.versao).find((x) => !vis.usados.includes(x))
       if (k) acoes.escolhe(k)
     }
   })
