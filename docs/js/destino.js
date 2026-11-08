@@ -10,7 +10,7 @@
   const CHAVE = 'mvd-destino'
   const e = (() => { try { const d = JSON.parse(localStorage.getItem(CHAVE) || '{}'); return { nome: String(d.nome || ''), fav: String(d.fav || ''), dias: d.dias && typeof d.dias === 'object' ? d.dias : {}, andamento: d.andamento || null, cartao: K.normaliza(d.cartao) } } catch (x) { return { nome: '', fav: '', dias: {}, andamento: null, cartao: K.normaliza() } } })()
   const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(e)) } catch (x) {} }
-  const ui = { tela: 'painel', nome: e.nome, fav: e.fav, cartao: { ...e.cartao }, busca: '', aviso: '', avisoTipo: '', editando: false, casa: -1, res: null, entrou: false, novo: false, trava: 0 }
+  const ui = { tela: 'painel', nome: e.nome, fav: e.fav, cartao: { ...e.cartao }, aba: 'id', buscaP: '', busca: '', aviso: '', avisoTipo: '', editando: false, casa: -1, res: null, entrou: false, novo: false, trava: 0 }
 
   function resumoDoDia() {
     const dia = M.diaDe()
@@ -89,16 +89,22 @@
       salvar(); som('draw'); render()
     },
     voltar: () => { ui.tela = 'painel'; ui.editando = false; ui.busca = ''; ui.aviso = ''; if (e.andamento && e.andamento.fim) { e.andamento = null; ui.res = null; salvar() } render() },
-    editar: () => { ui.tela = 'criar'; ui.editando = true; ui.nome = e.nome; ui.fav = e.fav; ui.cartao = { ...e.cartao }; ui.busca = ''; ui.aviso = ''; render() },
-    tema: (v) => { ui.cartao.tema = v; render() },
-    equipe: (v) => { ui.cartao.equipe = v || ''; render() },
-    carimbo: (v) => { ui.cartao.carimbo = v; render() },
-    lado: (v) => { ui.cartao.lado = v; render() },
+    editar: () => { ui.tela = 'criar'; ui.editando = true; ui.nome = e.nome; ui.fav = e.fav; ui.cartao = K.normaliza(e.cartao); ui.aba = 'id'; ui.busca = ''; ui.buscaP = ''; ui.aviso = ''; render() },
+    aba: (v) => { ui.aba = v; render() },
+    // qualquer opção de botão da carteirinha (tema, moldura, filtro…)
+    op: (v, b) => { ui.cartao[b.dataset.k] = v || ''; render() },
+    parc: (k) => { ui.cartao.parceiro = k || ''; ui.buscaP = ''; render() },
+    selo: (v) => {
+      const lista = ui.cartao.selos
+      if (lista.includes(v)) ui.cartao.selos = lista.filter((x) => x !== v)
+      else if (lista.length < K.MAX_SELOS) ui.cartao.selos = [...lista, v]
+      render()
+    },
     fav: (k) => { ui.fav = k; ui.busca = ''; render() },
     'salvar-cartao': () => {
-      ui.nome = (document.getElementById('ds-nome') || {}).value || ui.nome
+      ui.nome = (document.getElementById('ds-nome') || { value: ui.nome }).value
       if (!ui.nome.trim()) { ui.aviso = t('Escreve seu nome.', 'Write your name.'); render(); return }
-      if (!ui.fav) { ui.aviso = t('Escolhe um personagem.', 'Pick a character.'); render(); return }
+      if (!ui.fav) { ui.aba = 'id'; ui.aviso = t('Escolhe um personagem.', 'Pick a character.'); render(); return }
       e.nome = ui.nome.trim().slice(0, 14); e.fav = ui.fav; e.cartao = K.normaliza(ui.cartao)
       ui.tela = 'painel'; ui.editando = false; ui.aviso = ''; salvar(); render()
     },
@@ -145,6 +151,10 @@
     if (id === 'ds-nome') { ui.nome = ev.target.value.slice(0, 14); previa() }
     if (id === 'ds-codinome') { ui.cartao.codinome = ev.target.value.slice(0, 20); previa() }
     if (id === 'ds-lema') { ui.cartao.lema = ev.target.value.slice(0, 44); previa() }
+    if (id === 'ds-titulo') { ui.cartao.titulo = ev.target.value.slice(0, 26); previa() }
+    if (id === 'ds-carimbo') { ui.cartao.carimboTxt = ev.target.value.slice(0, 14); previa() }
+    if (id === 'ds-cor-fundo' || id === 'ds-cor-faixa' || id === 'ds-cor-destaque') { ui.cartao[{ 'ds-cor-fundo': 'fundoCor', 'ds-cor-faixa': 'faixaCor', 'ds-cor-destaque': 'destaqueCor' }[id]] = ev.target.value; previa() }
+    if (id === 'ds-parc') { ui.buscaP = ev.target.value; document.getElementById('ds-sug-parc').innerHTML = T.sugestoesParc(ui) }
     if (id === 'ds-fav') { ui.busca = ev.target.value; document.getElementById('ds-sug').innerHTML = T.sugestoesFav(ui) }
     if (id === 'ds-busca') {
       ui.busca = ev.target.value
@@ -153,6 +163,10 @@
       if (st.tipo === 'grade') caixa.innerHTML = T.sugestoesGrade(st, ui)
       else caixa.innerHTML = window.ArquivoTelas.sugestoes({ versao: 'ambos', meu: { errados: st.errados } }, ui)
     }
+  })
+  el.addEventListener('change', (ev) => {
+    const m = ev.target.id && ev.target.id.match(/^ds-m-(\w+)$/)
+    if (m) { ui.cartao.mostra[m[1]] = ev.target.checked; previa() }
   })
   el.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Enter' || ev.target.id !== 'ds-busca') return

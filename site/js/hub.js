@@ -17,8 +17,9 @@
 
   function letreiro() {
     const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'arquivo' ? window.Arquivo.letreiro() : atual === 'lab' ? window.Lab.letreiro() : atual === 'destino' ? window.Destino.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
-    h1.innerHTML = l[0]
-    sub.textContent = l[1]
+    const [titulo, frase] = window.Invasao ? window.Invasao.letreiro(atual, l) : l
+    h1.innerHTML = titulo
+    sub.textContent = frase
     voltar.textContent = t('← Jogos', '← Games')
   }
 
@@ -27,6 +28,7 @@
     if (atual === 'grade' && jogo !== 'grade') window.Grade.esconder()
     atual = telas[jogo] ? jogo : 'home'
     document.body.dataset.jogo = atual
+    if (window.Invasao) window.Invasao.marcar(atual)
     for (const [k, el] of Object.entries(telas)) el.hidden = k !== atual
     voltar.hidden = atual === 'home'
     letreiro()
@@ -107,6 +109,7 @@
         t('3 a 16 jogadores · cada um no seu celular · dá pra entrar no meio', '3 to 16 players · each on their own phone · can join midway'),
         `<button class="btn big red" type="button" data-ir="missao">${t('Jogar Missão', 'Play Mission')}</button>`)}
     </section>`
+    if (window.Invasao) window.Invasao.pintarHome(telas.home)
   }
 
   telas.home.addEventListener('click', (ev) => {

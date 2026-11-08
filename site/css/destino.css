@@ -24,11 +24,23 @@
 @media (min-width: 900px) { .ds-editor { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start } .ds-previa { position: sticky; top: 12px } }
 .ds-previa { display: grid; gap: 8px }
 .ds-previa canvas { display: block; width: 100%; height: auto; box-shadow: 4px 4px 0 var(--ink) }
+@media (max-width: 899px) { .ds-previa { order: -1; position: sticky; top: 0; z-index: 5 } }
+.ds-abas { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 3px solid var(--ink) }
+.ds-abas button { padding: 6px 10px; font-family: var(--label); font-size: 11px; color: var(--ink); background: transparent; border: 3px solid transparent; border-bottom: 0 }
+.ds-abas [aria-selected="true"] { color: var(--paper); background: var(--ink); border-color: var(--ink) }
+.ds-cores { display: flex; flex-wrap: wrap; gap: 14px }
+.ds-cores label { display: grid; justify-items: center; gap: 4px; font-family: var(--label); font-size: 10px }
+.ds-cores input { width: 58px; height: 42px; padding: 2px; background: #fff; border: 3px solid var(--ink); cursor: pointer }
+.ds-selos { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; max-width: 340px }
+.ds-selos button { display: grid; place-items: center; aspect-ratio: 1; padding: 8px; color: var(--ink); background: #fff; border: 3px solid var(--ink) }
+.ds-selos svg { width: 100%; height: auto; fill: currentColor; shape-rendering: crispEdges }
+.ds-selos [aria-pressed="true"] { background: var(--sun); transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink) }
+.ds-chaves { display: grid; gap: 8px }
 .ds-temas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
 .ds-temas button { display: grid; gap: 4px; padding: 5px; font-family: var(--label); font-size: 10px; color: var(--ink); background: #fff; border: 3px solid var(--ink); cursor: pointer }
 .ds-temas i { display: block; height: 34px; background: linear-gradient(var(--b) 0 34%, var(--f) 34% 72%, var(--d) 72%); border: 2px solid var(--ink) }
 .ds-temas [aria-pressed="true"] { background: var(--sun); transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink) }
-.ds-criar input { width: 100% }
+.ds-criar input:not([type="color"]):not([type="checkbox"]) { width: 100% }
 .ds-criar .imp-meu-nome { margin: 0 }
 .ds-criar .imp-meu-nome input { max-width: none }
 .ds-criar .field { display: grid; gap: 8px }

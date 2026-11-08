@@ -79,6 +79,10 @@
   // ele sobe, fala e volta pro canto (fica mais tempo quando a fala é comprida)
   function falar(txt) {
     ultima = Date.now()
+    // onde o Doutor Destino já tomou, é ele quem aparece
+    const doom = !!(window.Invasao && window.Invasao.aqui())
+    caixa.classList.toggle('doom', doom)
+    caixa.querySelector('img').src = doom ? 'img/doom.webp' : 'img/uatu.webp'
     caixa.querySelector('.uatu-fala').textContent = txt
     caixa.classList.remove('acordado')
     void caixa.offsetWidth
@@ -93,7 +97,7 @@
     toques = toques.filter((x) => agora - x < 1500).concat(agora)
     if (toques.length < 3) return
     toques = []
-    falar(sorteia(FALAS)())
+    falar(sorteia(window.Invasao && window.Invasao.aqui() ? window.Invasao.GERAL : FALAS)())
   })
 
   // ---------- ele também aparece sozinho nos momentos grandes dos jogos ----------
@@ -210,7 +214,8 @@
   function momento(tipo, dados = {}) {
     const m = MOMENTOS[tipo]
     if (!m || document.hidden) return
-    const [chance, falas] = m
+    const chance = m[0]
+    const falas = window.Invasao && window.Invasao.aqui() ? window.Invasao.falasDe(tipo) : m[1]
     if (chance < 1 && (Date.now() - ultima < ESPERA || Math.random() > chance)) return
     setTimeout(() => falar(sorteia(falas)(dados)), 900)
   }
