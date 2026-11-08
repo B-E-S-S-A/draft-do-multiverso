@@ -1,11 +1,11 @@
-// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei, a Grade e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
+// Tela inicial da banca: escolhe entre o Draft, o Impostor, o Aposto Que Sei, a Grade, o Arquivo Secreto, o Laboratório e a Missão Secreta. Mostra só um jogo por vez e troca o letreiro do toldo.
 (function () {
   const E = window.Engine
   const V = window.View
   const D = E.D
   const L = window.Lingua
   const t = L.t
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), grade: document.getElementById('grade'), missao: document.getElementById('missao') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), grade: document.getElementById('grade'), arquivo: document.getElementById('arquivo'), lab: document.getElementById('lab'), missao: document.getElementById('missao') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
@@ -16,7 +16,7 @@
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'arquivo' ? window.Arquivo.letreiro() : atual === 'lab' ? window.Lab.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
     h1.innerHTML = l[0]
     sub.textContent = l[1]
     voltar.textContent = t('← Jogos', '← Games')
@@ -33,6 +33,8 @@
     if (atual === 'impostor') window.Impostor.abrir()
     if (atual === 'aposto') window.Aposto.abrir()
     if (atual === 'grade') window.Grade.abrir()
+    if (atual === 'arquivo') window.Arquivo.abrir()
+    if (atual === 'lab') window.Lab.abrir()
     if (atual === 'missao') window.Missao.abrir()
     if (atual !== 'home' && window.Uatu) window.Uatu.momento('abriu-' + atual)
     window.scrollTo(0, 0)
@@ -52,6 +54,9 @@
     return `<div class="capa-grade" aria-hidden="true"><div>${casas.map(([k, cor]) => (k ? `<i class="${cor}">${V.cover(hq(k))}</i>` : '<i></i>')).join('')}</div>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none"><line class="t" x1="8" y1="8" x2="92" y2="92"/><line x1="8" y1="8" x2="92" y2="92"/></svg></div>`
   }
+
+  // a capa do Arquivo Secreto: uma ficha com foto em branco e tarjas pretas
+  const capaArquivo = () => `<div class="capa-arquivo" aria-hidden="true"><div class="topo"><u>?</u><b>${t('CONFIDENCIAL', 'CLASSIFIED')}</b></div><i></i><i></i><i></i><p>${t('Quem é?', 'Who is it?')}</p></div>`
 
   let v = null
   function home() {
@@ -82,6 +87,16 @@
           'A grid with a category on every row and column ("MCU Phase 4" × "Has a sibling"). Name a character who fits both and the square is yours. First to fill a line wins.'),
         t('1 contra 1 · grid do tamanho que quiser · num celular só ou online', '1 vs 1 · any grid size you want · on one phone or online'),
         `<button class="btn big" type="button" data-ir="grade">${t('Jogar Grade', 'Play Grid')}</button>${online('grade-online')}`)}
+      ${jogo(capaArquivo(), t('Arquivo Secreto', 'Secret File'),
+        t('A ficha de um personagem vai sendo revelada, uma pista por vez. Quanto antes você acertar quem é, mais pontos ganha. Errou, perde 1 e tenta na próxima.',
+          'A character’s file opens one clue at a time. The sooner you guess who it is, the more points you get. Miss, lose 1 and try on the next one.'),
+        t('2 a 8 jogadores · HQ, filmes ou os dois · num celular só ou online', '2 to 8 players · comics, movies or both · on one phone or online'),
+        `<button class="btn big" type="button" data-ir="arquivo">${t('Jogar Arquivo', 'Play Secret File')}</button>${online('arquivo-online')}`)}
+      ${jogo(leque([hq('high-evolutionary'), hq('howard'), hq('man-thing')]), t('Laboratório do Alto Evolucionário', 'The High Evolutionary’s Lab'),
+        t('Cada um monta o herói mais absurdo que conseguir: corpo do Hulk, poder de falar com pombos, medo de elevador. Eles se enfrentam em mata-mata e a turma vota.',
+          'Everyone builds the most absurd hero they can: Hulk’s body, the power to talk to pigeons, a fear of elevators. They face off in a knockout and the gang votes.'),
+        t('3 a 8 jogadores · num celular só ou online', '3 to 8 players · on one phone or online'),
+        `<button class="btn big red" type="button" data-ir="lab">${t('Jogar Laboratório', 'Play the Lab')}</button>${online('lab-online')}`)}
       <h2 class="home-secao">${t('Pra noite toda', 'For the whole night')} <small>${t('rola enquanto vocês fazem outra coisa', 'runs while you do something else')}</small></h2>
       ${jogo(leque([hq('black-widow'), hq('nick-fury'), hq('mystique')]), t('Missão Secreta', 'Secret Mission'),
         t('Cada um recebe uma missão com um alvo: "faça o Lipe dizer Wakanda". Cumpra sem ninguém perceber. Desconfiou de alguém? Te peguei!',
@@ -99,6 +114,8 @@
     else if (b.dataset.ir === 'impostor-online') { ir('impostor'); foca('imp-on-nome') }
     else if (b.dataset.ir === 'aposto-online') { ir('aposto'); foca('ap-meu') }
     else if (b.dataset.ir === 'grade-online') { ir('grade'); foca('gd-meu') }
+    else if (b.dataset.ir === 'arquivo-online') { ir('arquivo'); foca('aq-meu') }
+    else if (b.dataset.ir === 'lab-online') { ir('lab'); foca('lab-meu') }
     else ir(b.dataset.ir)
   })
   voltar.addEventListener('click', () => ir('home'))
@@ -119,6 +136,10 @@
     if (salaAp) { ir('aposto'); window.Aposto.entrar(salaAp[1]); return }
     const salaGd = pedido.match(/^grade-([A-Za-z0-9]{4})$/)
     if (salaGd) { ir('grade'); window.Grade.entrar(salaGd[1]); return }
+    const salaAq = pedido.match(/^arquivo-([A-Za-z0-9]{4})$/)
+    if (salaAq) { ir('arquivo'); window.Arquivo.entrar(salaAq[1]); return }
+    const salaLab = pedido.match(/^lab-([A-Za-z0-9]{4})$/)
+    if (salaLab) { ir('lab'); window.Lab.entrar(salaLab[1]); return }
     const salaMi = pedido.match(/^missao-([A-Za-z0-9]{4})$/)
     if (salaMi) { ir('missao'); window.Missao.entrar(salaMi[1]); return }
     ir(telas[pedido] ? pedido : 'home')

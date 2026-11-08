@@ -164,11 +164,36 @@
       () => t('Te peguei! …eu também estava de olho.', 'Gotcha! …I was watching too.'),
       () => t('Missão cumprida. Eu vi a hora exata em que ele caiu.', 'Mission accomplished. I saw the exact moment they fell for it.'),
       () => t('Que espião. A Viúva Negra contrataria.', 'What a spy. Black Widow would hire you.')]],
+    'arquivo-cedo': [0.7, [
+      (d) => t(`${d.nome} acertou na pista ${d.pista}. Eu até olhei de novo.`, `${d.nome} got it on clue ${d.pista}. I had to look twice.`),
+      (d) => t(`Tão cedo, ${d.nome}? Alguém andou lendo minhas anotações.`, `So soon, ${d.nome}? Someone has been reading my notes.`)]],
+    'arquivo-errou': [0.2, [
+      () => t('Esse arquivo não é desse aí. Eu conferi.', 'That file does not belong to that one. I checked.'),
+      () => t('Num universo vizinho era esse mesmo.', 'In a neighboring universe, that was the one.')]],
+    'arquivo-ninguem': [0.8, [
+      () => t('Ninguém? Eu li essa ficha antes de ela existir.', 'Nobody? I read that file before it existed.'),
+      () => t('Vou arquivar como "ninguém faz ideia".', 'I will file this under "nobody has a clue".')]],
+    'arquivo-fim': [0.9, [
+      (d) => t(`${d.nome} leu mais fichas que a S.H.I.E.L.D. inteira.`, `${d.nome} has read more files than all of S.H.I.E.L.D.`),
+      () => t('Arquivo encerrado. Eu guardo uma cópia.', 'File closed. I am keeping a copy.')]],
+    'lab-duelo': [0.3, [
+      (d) => t(`${d.a} contra ${d.b}. Já vi guerras cósmicas menos sérias.`, `${d.a} versus ${d.b}. I have seen less serious cosmic wars.`),
+      (d) => t(`Em nenhum dos universos ${d.b} estava preparado pra isso.`, `In no universe was ${d.b} ready for this.`),
+      () => t('O Alto Evolucionário me pediu desculpas por esses dois.', 'The High Evolutionary apologized to me for these two.')]],
+    'lab-desempate': [1, [
+      (d) => t(`Eu jurei não interferir… mas ${d.nome} leva essa.`, `I swore not to interfere… but ${d.nome} takes this one.`),
+      (d) => t(`Empate? Quebro meu juramento só hoje: ${d.nome}.`, `A tie? I will break my oath just today: ${d.nome}.`)]],
+    'lab-campeao': [1, [
+      (d) => t(`${d.heroi} venceu. Que o Multiverso nos perdoe.`, `${d.heroi} won. May the Multiverse forgive us.`),
+      (d) => t(`${d.nome} criou isso. Vou registrar, com tristeza.`, `${d.nome} created this. I will record it, with sadness.`),
+      (d) => t(`Campeão: ${d.heroi}. Nem o Thanos estalaria os dedos pra isso.`, `Champion: ${d.heroi}. Not even Thanos would snap for that.`)]],
     // ao abrir cada jogo
     'abriu-draft': [0.25, [() => t('O Draft. Já vi times piores vencerem Thanos.', 'The Draft. I have seen worse teams beat Thanos.')]],
     'abriu-impostor': [0.25, [() => t('Um impostor entre vocês? Eu já sei quem é.', 'An impostor among you? I already know who.')]],
     'abriu-aposto': [0.25, [() => t('Aposto que sei? Eu sei. Sempre.', 'Bet you know? I do. Always.')]],
     'abriu-grade': [0.25, [() => t('A Grade. Eu sei todas as respostas de todas as casas.', 'The Grid. I know every answer to every square.')]],
+    'abriu-arquivo': [0.25, [() => t('Essas fichas? Fui eu que escrevi.', 'These files? I wrote them.')]],
+    'abriu-lab': [0.25, [() => t('Aviso: nada do que sair daqui foi aprovado por mim.', 'Warning: nothing that comes out of here was approved by me.')]],
     'abriu-missao': [0.25, [() => t('Missão secreta? Nada é secreto pra mim.', 'A secret mission? Nothing is secret to me.')]],
     lingua: [0.6, [() => t('Falo todas as línguas de todos os universos. Até português.', 'I speak every language of every universe. Even English.')]],
   }

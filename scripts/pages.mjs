@@ -13,7 +13,7 @@ await cp(SITE, DOCS, { recursive: true, filter: (src) => !path.basename(src).sta
 // o título e a descrição vão pro <head>, que é onde o Google lê (o <title> que fica no index.html sai do <body>)
 const URL_SITE = 'https://b-e-s-s-a.github.io/draft-do-multiverso/'
 const TITULO = 'Banca do Multiverso · jogos da Marvel pra jogar com os amigos'
-const DESCRICAO = 'Jogos de festa com personagens da Marvel, de graça e sem cadastro: Draft (leilão de heróis), Impostor, Aposto Que Sei, Grade do Multiverso e Missão Secreta. Num celular só ou cada um no seu, online.'
+const DESCRICAO = 'Jogos de festa com personagens da Marvel, de graça e sem cadastro: Draft (leilão de heróis), Impostor, Aposto Que Sei, Grade do Multiverso, Arquivo Secreto, Laboratório do Alto Evolucionário e Missão Secreta. Num celular só ou cada um no seu, online.'
 const body = (await readFile(path.join(SITE, 'index.html'), 'utf8')).replace(/<title>[^<]*<\/title>\s*/, '')
 const meta = (k, v, attr = 'name') => `<meta ${attr}="${k}" content="${v}">`
 const head = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +

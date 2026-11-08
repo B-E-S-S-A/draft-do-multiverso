@@ -1,0 +1,68 @@
+/* Arquivo Secreto: a ficha com tarjas pretas que vão sumindo, no mesmo visual da banca (papel, tinta grossa, sombra dura). */
+.aq-jogo { display: grid; gap: 12px }
+.aq-palco { display: grid; gap: 16px }
+.aq-lado { display: grid; gap: 12px; min-width: 0; align-content: start }
+@media (min-width: 900px) {
+  .aq-palco { grid-template-columns: minmax(0, 1fr) 380px; align-items: start }
+  .aq-lado { position: sticky; top: 12px }
+}
+.aq-pasta { display: grid; gap: 14px }
+.aq-cabeca { position: relative; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: center; padding-bottom: 12px; border-bottom: 3px dashed #cfc9b8 }
+.aq-foto { position: relative; width: 92px; height: 124px; display: grid; place-items: center; overflow: hidden; background: #e4e1d8; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink) }
+.aq-foto b { font-family: var(--display); font-weight: 400; font-size: 64px; line-height: 1; color: #8b8778 }
+.aq-foto .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; animation: aq-revela .4s ease-out }
+@keyframes aq-revela { from { opacity: 0; transform: scale(1.3) } }
+.aq-titulo { min-width: 0 }
+.aq-titulo .lbl { margin: 0 }
+.aq-titulo h2 { margin: 4px 0 0; font-family: var(--display); font-weight: 400; font-size: clamp(30px, 5vw, 44px); line-height: .95; overflow-wrap: anywhere }
+.aq-titulo p { margin: 4px 0 0; color: var(--muted); font-size: 15px }
+.aq-carimbo { position: absolute; top: 0; right: 0; padding: 3px 8px; font-family: var(--label); font-size: 11px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase;
+  color: #c8321f; border: 3px solid #c8321f; transform: rotate(5deg) }
+.aq-carimbo.aberto { color: var(--banca); border-color: var(--banca) }
+.aq-pistas { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.aq-pistas li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; align-items: center; min-height: 46px }
+.aq-pistas small { display: grid; place-items: center; height: 36px; font-family: var(--display); font-size: 24px; line-height: 1; background: #fff; border: 3px solid var(--ink) }
+.aq-pistas span b { display: block; font-size: 20px; line-height: 1.15 }
+.aq-pistas span em { display: block; font-style: normal; font-size: 13px; line-height: 1.25; color: var(--muted) }
+.aq-pistas .tarja small { color: #8b8778; border-color: #b9b19c; background: transparent }
+.aq-pistas .tarja i { display: block; height: 18px; background: var(--ink) }
+.aq-pistas .entrou span { animation: aq-entra .3s ease-out }
+.aq-pistas .atual small { background: var(--sun) }
+@keyframes aq-entra { from { opacity: .3; transform: translateX(-10px) } }
+.aq-chute { display: grid; gap: 10px }
+.aq-chute .lbl { margin: 0 }
+.aq-chute .btn.paper { justify-self: start }
+.aq-atual { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.15 }
+@media (min-width: 900px) { .aq-atual { display: none } }
+.aq-placar, .aq-acertos { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.aq-placar li, .aq-acertos li { --cor: var(--p1); display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: var(--paper); border: 3px solid var(--ink); border-left: 8px solid var(--cor); font-weight: 600 }
+.aq-placar li.vez { background: #fff6d6 }
+.aq-placar span, .aq-acertos span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.aq-placar small, .aq-acertos small { font-family: var(--label); font-size: 9px; font-weight: 400; color: var(--muted) }
+.aq-placar i { font-style: normal; color: var(--muted) }
+.aq-placar i.ok { color: var(--banca) }
+.aq-placar b, .aq-acertos b { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1 }
+.aq-fim { display: grid; gap: 12px; justify-items: center; text-align: center; max-width: 520px; margin: 0 auto; width: 100% }
+.aq-fim h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(34px, 7vw, 54px); line-height: .95 }
+.aq-grito { font-family: var(--label); font-size: 13px; font-weight: 400; letter-spacing: .08em; padding: 4px 10px; color: #c8321f; border: 3px solid #c8321f; transform: rotate(-3deg) }
+.aq-fim .aq-acertos { width: 100%; text-align: left }
+@media (max-width: 560px) {
+  .aq-carimbo { position: static; grid-column: 2; justify-self: start; margin-top: -8px }
+  .aq-pistas span b { font-size: 17px }
+  .aq-pasta { gap: 10px }
+  .aq-cabeca { grid-template-columns: 62px minmax(0, 1fr); gap: 10px; padding-bottom: 8px }
+  .aq-foto { width: 62px; height: 84px }
+  .aq-foto b { font-size: 44px }
+  .aq-pistas { gap: 5px }
+  .aq-pistas li { grid-template-columns: 30px minmax(0, 1fr); gap: 8px; min-height: 32px }
+  .aq-pistas small { height: 30px; font-size: 20px }
+  .aq-pistas .tarja i { height: 14px }
+  .aq-pistas li:not(.atual) span em { display: none }
+}
+.capa-arquivo { position: relative; justify-self: center; display: grid; gap: 8px; width: 176px; height: 196px; padding: 12px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); transform: rotate(-2deg) }
+.capa-arquivo .topo { display: grid; grid-template-columns: 50px 1fr; gap: 8px; align-items: center }
+.capa-arquivo .topo u { display: grid; place-items: center; height: 66px; font-family: var(--display); font-size: 40px; text-decoration: none; color: #8b8778; background: #e4e1d8; border: 3px solid var(--ink) }
+.capa-arquivo .topo b { font-family: var(--label); font-size: 9px; font-weight: 400; letter-spacing: .06em; padding: 2px 4px; color: #c8321f; border: 2px solid #c8321f; transform: rotate(5deg); justify-self: start }
+.capa-arquivo i { display: block; height: 12px; background: var(--ink) }
+.capa-arquivo i:nth-of-type(2) { width: 72% } .capa-arquivo i:nth-of-type(3) { width: 88% }
+.capa-arquivo p { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.1 }

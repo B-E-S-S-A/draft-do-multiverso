@@ -66,12 +66,17 @@
     }
     return `<span class="stack">${pilhas[v].map(V.card).join('')}</span>`
   }
+  // os cartões HQ / Filmes / Os dois (o Arquivo Secreto usa os mesmos)
+  function blocoVersao(o, pode, attr, rotulo) {
+    const dis = pode ? '' : ' disabled'
+    return `<div class="field"><span class="lbl">${rotulo}</span><div class="modes">${VERSOES.map((x) => `<button class="mode" type="button" data-${attr}="versao" data-v="${x.id}" aria-pressed="${versaoDe(o.versao) === x}"${dis}>
+      ${pilha(x.id)}<b>${t(x.pt, x.en)}</b><small>${t(x.ps, x.es)}</small></button>`).join('')}</div></div>`
+  }
   function opcoes(o, pode, attr) {
     const dis = pode ? '' : ' disabled'
-    const cartao = (a, v, ativo, x, capas) => `<button class="mode" type="button" data-${attr}="${a}" data-v="${v}" aria-pressed="${ativo}"${dis}>
-      ${capas ? pilha(v) : ''}<b>${t(x.pt, x.en)}</b><small>${t(x.ps, x.es)}</small></button>`
-    const ref = `<div class="field"><span class="lbl">${t('De onde vêm os temas', 'Where the topics come from')}</span>
-      <div class="modes">${VERSOES.map((x) => cartao('versao', x.id, versaoDe(o.versao) === x, x, true)).join('')}</div></div>`
+    const cartao = (a, v, ativo, x) => `<button class="mode" type="button" data-${attr}="${a}" data-v="${v}" aria-pressed="${ativo}"${dis}>
+      <b>${t(x.pt, x.en)}</b><small>${t(x.ps, x.es)}</small></button>`
+    const ref = blocoVersao(o, pode, attr, t('De onde vêm os temas', 'Where the topics come from'))
     const niv = `<div class="field"><span class="lbl">${t('Dificuldade', 'Difficulty')}</span>
       <div class="modes">${NIVEIS.map((x) => cartao('nivel', x.n, nivelDe(o.nivel) === x, x)).join('')}</div></div>`
     // tamanho: os modelos prontos e o − / + de linhas, colunas e quantas em linha (no máximo 30 casas)
@@ -307,5 +312,5 @@
     </section>`
   }
 
-  window.GradeTelas = { entrada, sala, jogo, sugestoes, achar, nome, resumo, MODELOS, VERSOES, NIVEIS }
+  window.GradeTelas = { entrada, sala, jogo, sugestoes, achar, nome, resumo, MODELOS, VERSOES, NIVEIS, blocoVersao }
 })()
