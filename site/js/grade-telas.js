@@ -14,21 +14,22 @@
     { id: 'classico', L: 4, C: 4, K: 4, pt: 'Clássico', en: 'Classic' },
     { id: 'grandao', L: 5, C: 5, K: 5, pt: 'Grandão', en: 'Big one' },
   ]
-  // de onde vêm os temas: só quadrinhos, tudo junto, ou zero HQ (só o que passou nas telas)
+  // de onde vêm os temas, como no Draft: HQ, filmes ou os dois
   const VERSOES = [
-    { id: 'hq', pt: 'Só HQ', en: 'Comics only', ptd: 'Temas dos quadrinhos: autores, revistas, décadas. Nada de filme.', end: 'Comic-book topics: creators, titles, decades. No movies.' },
-    { id: 'ambos', pt: 'HQ + telas', en: 'Comics + screen', ptd: 'Mistura tudo: quadrinhos, filmes e séries.', end: 'Everything mixed: comics, movies and series.' },
-    { id: 'tela', pt: 'Só filmes e séries', en: 'Movies & series only', ptd: 'Zero HQ: só vale o que apareceu nas telas.', end: 'Zero comics: only what showed up on screen counts.' },
+    { id: 'hq', pt: 'HQ', en: 'Comics', ps: 'só temas dos quadrinhos', es: 'comic-book topics only' },
+    { id: 'tela', pt: 'Filmes', en: 'Movies', ps: 'só filmes e séries', es: 'movies and series only' },
+    { id: 'ambos', pt: 'Os dois', en: 'Both', ps: 'tudo misturado', es: 'everything mixed' },
   ]
-  const versaoDe = (id) => VERSOES.find((x) => x.id === id) || VERSOES[1]
-  // nível de 1 a 9: Fácil 1-2-3, Médio 1-2-3, Difícil 1-2-3
-  const FAIXAS = [
-    { pt: 'Fácil', en: 'Easy', ptd: 'temas conhecidos e muita gente valendo, com umas casas médias pra nenhuma linha sair de graça.', end: 'well-known topics with lots of answers, plus a few medium squares so no line comes free.' },
-    { pt: 'Médio', en: 'Medium', ptd: 'temas de fã, com algumas casas difíceis no meio.', end: 'fan-level topics, with a few hard squares mixed in.' },
-    { pt: 'Difícil', en: 'Hard', ptd: 'temas raros e casas com pouca resposta. Pra quem sabe tudo.', end: 'rare topics and squares with few answers. For the know-it-alls.' },
+  const versaoDe = (id) => VERSOES.find((x) => x.id === id) || VERSOES[2]
+  // Fácil, Médio e Difícil. Por dentro, cada um é o meio dos seus subníveis 1-2-3 (nível 2, 5 e 8 de 9): o grid sai com
+  // temas dos três subníveis e algumas casas da faixa de cima, pra nenhuma linha sair de graça
+  const NIVEIS = [
+    { n: 2, pt: 'Fácil', en: 'Easy', ps: 'temas conhecidos', es: 'well-known topics' },
+    { n: 5, pt: 'Médio', en: 'Medium', ps: 'pra fã', es: 'for fans' },
+    { n: 8, pt: 'Difícil', en: 'Hard', ps: 'pra quem sabe tudo', es: 'for know-it-alls' },
   ]
-  const faixa = (n) => FAIXAS[Math.min(2, Math.floor((n - 1) / 3))]
-  const nomeNivel = (n) => t(faixa(n).pt, faixa(n).en) + ' ' + (((n - 1) % 3) + 1)
+  const nivelDe = (n) => NIVEIS[Math.min(2, Math.max(0, Math.ceil((n || 2) / 3) - 1))]
+  const nomeNivel = (n) => t(nivelDe(n).pt, nivelDe(n).en)
   // a versão do jogo que está na tela (os textos de algumas categorias mudam no "só filmes e séries")
   let verAtual = 'ambos'
 
@@ -70,16 +71,11 @@
       ${o.roubar ? `<p class="note">${t('Pra roubar, diga outro personagem que também vale na casa.', 'To steal, name another character who also fits the square.')}</p>` : ''}</div>`
     const rel = `<div class="field"><span class="lbl">${t('Relógio por vez', 'Turn clock')}</span><div class="presets">${[0, 30, 60].map((s) =>
       `<button class="preset" type="button" data-${attr}="relogio" data-v="${s}" aria-pressed="${o.relogio === s}"${dis}>${s ? s + ' s' : t('Sem relógio', 'No clock')}</button>`).join('')}</div></div>`
-    const vx = versaoDe(o.versao)
-    const ref = `<div class="field"><span class="lbl">${t('Referências', 'References')}</span><div class="presets">${VERSOES.map((x) =>
-      `<button class="preset" type="button" data-${attr}="versao" data-v="${x.id}" aria-pressed="${vx === x}"${dis}>${t(x.pt, x.en)}</button>`).join('')}</div>
-      <p class="note">${t(vx.ptd, vx.end)}</p></div>`
-    const niv = `<div class="field"><span class="lbl">${t('Nível', 'Level')}</span><div class="gd-niveis">${FAIXAS.map((f, i) =>
-      `<div class="gd-faixa f${i}"><span>${t(f.pt, f.en)}</span><div>${[1, 2, 3].map((sub) => {
-        const n = i * 3 + sub
-        return `<button class="gd-sub" type="button" data-${attr}="nivel" data-v="${n}" aria-pressed="${o.nivel === n}" aria-label="${t(f.pt, f.en)} ${sub}"${dis}>${sub}</button>`
-      }).join('')}</div></div>`).join('')}</div>
-      <p class="note"><b>${nomeNivel(o.nivel)}:</b> ${t(faixa(o.nivel).ptd, faixa(o.nivel).end)}</p></div>`
+    const cartao = (a, v, ativo, x) => `<button class="mode" type="button" data-${attr}="${a}" data-v="${v}" aria-pressed="${ativo}"${dis}><b>${t(x.pt, x.en)}</b><small>${t(x.ps, x.es)}</small></button>`
+    const ref = `<div class="field"><span class="lbl">${t('De onde vêm os temas', 'Where the topics come from')}</span>
+      <div class="modes">${VERSOES.map((x) => cartao('versao', x.id, versaoDe(o.versao) === x, x)).join('')}</div></div>`
+    const niv = `<div class="field"><span class="lbl">${t('Dificuldade', 'Difficulty')}</span>
+      <div class="modes">${NIVEIS.map((x) => cartao('nivel', x.n, nivelDe(o.nivel) === x, x)).join('')}</div></div>`
     return ref + niv + tam + roubo + rel
   }
   const resumo = (o) => t(`${o.L} linhas × ${o.C} colunas = ${o.L * o.C} casas · ganha quem fizer ${o.K} seguidas`, `${o.L} rows × ${o.C} columns = ${o.L * o.C} squares · first to get ${o.K} in a row wins`)
@@ -276,7 +272,7 @@
 
   function jogo(v, ui) {
     verAtual = GD().versao(v.versao)
-    const modo = `<p class="gd-modo"><b>${nomeNivel(v.nivel || 3)}</b> · ${t(versaoDe(v.versao).pt, versaoDe(v.versao).en)}</p>`
+    const modo = `<p class="gd-modo"><b>${nomeNivel(v.nivel)}</b> · ${t(versaoDe(v.versao).pt, versaoDe(v.versao).en)}</p>`
     const relogio = v.dur && v.fase === 'jogo' ? '<span class="gd-relogio"><i data-x="barra"></i><b data-x="seg"></b></span>' : ''
     return `<section class="gd-jogo">
       <div class="imp-topo">${placar(v, ui)}<button class="linkish" type="button" data-g="sair">${t('sair', 'leave')}</button></div>
@@ -296,5 +292,5 @@
     </section>`
   }
 
-  window.GradeTelas = { entrada, sala, jogo, sugestoes, achar, nome, resumo, MODELOS, VERSOES }
+  window.GradeTelas = { entrada, sala, jogo, sugestoes, achar, nome, resumo, MODELOS, VERSOES, NIVEIS }
 })()

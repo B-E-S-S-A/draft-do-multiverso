@@ -25,13 +25,15 @@
   })()
 
   const GD = window.GradeDados
-  const nivelOk = (n) => Number.isInteger(n) && n >= 1 && n <= 9
+  // dificuldade: Fácil, Médio ou Difícil (por dentro, os níveis 2, 5 e 8 do motor). Quem guardou um nível de 1 a 9 cai na faixa dele.
+  const nivelOk = (n) => [2, 5, 8].includes(n)
+  const faixaDe = (n) => (Number.isInteger(n) && n >= 1 && n <= 9 ? [2, 5, 8][Math.ceil(n / 3) - 1] : 2)
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-grade') || '{}') } catch (e) { return {} } })()
   // o tamanho guardado (ou o Clássico: 4 linhas x 4 colunas, 4 seguidas; quem tinha o Clássico antigo, 5x4, passa pro novo)
   const antigo = salvo.L === 5 && salvo.C === 4 && salvo.K === 4
   const tam0 = M.medidas(salvo.L && !antigo ? { L: salvo.L, C: salvo.C, K: salvo.K } : { L: 4, C: 4, K: 4 })
   const ui = { L: tam0.L, C: tam0.C, K: tam0.K, roubar: salvo.roubar === true, relogio: [0, 30, 60].includes(salvo.relogio) ? salvo.relogio : 0,
-    versao: GD.versao(salvo.versao), nivel: nivelOk(salvo.nivel) ? salvo.nivel : 3,
+    versao: GD.versao(salvo.versao), nivel: faixaDe(salvo.nivel),
     nomes: Array.isArray(salvo.nomes) ? salvo.nomes.slice(0, 2) : [], meuNome: guarda('mvd-imp-nome'), codigo: '', erro: '', status: '', msg: '',
     casa: -1, busca: '', aviso: '', dica: '', revela: -1, nova: -1, treme: -1, estouro: '', visto: 0 }
   const salvar = () => guarda('mvd-grade', JSON.stringify({ L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, versao: ui.versao, nivel: ui.nivel, nomes: ui.nomes }))

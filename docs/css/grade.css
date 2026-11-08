@@ -23,18 +23,6 @@
 .gd-seu { cursor: default; opacity: .45; box-shadow: none }
 .gd-seu.on { opacity: 1; background: var(--sun) }
 .gd-barras { display: grid; gap: 6px; margin-top: 10px }
-/* nível: três faixas (Fácil, Médio, Difícil) com os subníveis 1-2-3 */
-.gd-niveis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px }
-.gd-faixa { border: 2px solid var(--ink); background: #fff; padding: 5px 6px 6px; display: grid; gap: 5px }
-.gd-faixa > span { font-family: var(--label); font-size: 11px; text-transform: uppercase; letter-spacing: .04em }
-.gd-faixa.f0 > span { color: #23744f } .gd-faixa.f1 > span { color: #9a6a00 } .gd-faixa.f2 > span { color: #b3261e }
-.gd-faixa > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px }
-.gd-sub { font-family: var(--display); font-size: 20px; line-height: 1; padding: 5px 0 4px; background: var(--paper); border: 2px solid var(--ink); cursor: pointer; color: var(--ink) }
-.gd-sub[aria-pressed="true"] { background: var(--ink); color: var(--paper) }
-.gd-sub:disabled { cursor: default }
-.gd-faixa.f0 .gd-sub[aria-pressed="true"] { background: #23744f; border-color: #23744f }
-.gd-faixa.f1 .gd-sub[aria-pressed="true"] { background: #c98a00; border-color: #c98a00 }
-.gd-faixa.f2 .gd-sub[aria-pressed="true"] { background: #b3261e; border-color: #b3261e }
 .gd-modo { margin: 0; font-family: var(--label); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted) }
 .gd-modo b { color: var(--ink) }
 .gd-barra { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 2ch; align-items: center; gap: 10px; font-size: 14px }
@@ -170,10 +158,6 @@
 .gd-estouro b { background: var(--banca) }
 
 @media (max-width: 560px) {
-  /* no celular, cada faixa de nível vira uma linha: nome à esquerda, 1-2-3 grandes à direita */
-  .gd-niveis { grid-template-columns: 1fr }
-  .gd-faixa { grid-template-columns: 5.5em 1fr; align-items: center }
-  .gd-sub { padding: 7px 0 6px }
   .gd-mesa { padding: 8px }
   .gd-tab { --cab: 76px; gap: 4px }
   .gd-tab.c4 { --cab: 66px }
