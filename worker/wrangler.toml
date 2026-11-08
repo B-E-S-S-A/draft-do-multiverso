@@ -1,0 +1,12 @@
+name = "banca-multiverso"
+main = "banca.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# outros endereços que podem falar com o servidor, separados por vírgula (o domínio próprio entra aqui)
+ORIGENS = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "banca-multiverso"
+database_id = "PREENCHER_DEPOIS_DO_D1_CREATE"

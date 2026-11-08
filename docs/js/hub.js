@@ -37,6 +37,7 @@
     if (atual === 'lab') window.Lab.abrir()
     if (atual === 'missao') window.Missao.abrir()
     if (atual !== 'home' && window.Uatu) window.Uatu.momento('abriu-' + atual)
+    if (window.Retorno) window.Retorno.visita(atual)
     window.scrollTo(0, 0)
   }
 
