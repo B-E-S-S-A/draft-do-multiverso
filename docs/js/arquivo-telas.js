@@ -107,7 +107,7 @@
       <div class="aq-cabeca">
         <div class="aq-foto">${revelada ? capa(v.revela.key) : '<b>?</b>'}</div>
         <div class="aq-titulo">
-          <span class="lbl">${t('Ficha', 'File')} ${v.n + 1} ${t('de', 'of')} ${v.total} · ${qualVersao(v.versao)}</span>
+          <span class="lbl">${v.rotulo ? esc(v.rotulo) : `${t('Ficha', 'File')} ${v.n + 1} ${t('de', 'of')} ${v.total} · ${qualVersao(v.versao)}`}</span>
           ${revelada ? `<h2>${esc(nome(v.revela.key))}</h2><p>${esc(ident(v.revela.key))}</p>` : `<h2>${t('Identidade sigilosa', 'Classified identity')}</h2><p>${t('Quem é?', 'Who is it?')}</p>`}
         </div>
         <b class="aq-carimbo${revelada ? ' aberto' : ''}">${revelada ? t('Revelado', 'Revealed') : t('Confidencial', 'Classified')}</b>

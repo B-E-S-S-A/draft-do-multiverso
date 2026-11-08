@@ -1,0 +1,31 @@
+/* Dias de Destino: o desafio do dia, a carteirinha, o calendário e as patentes. */
+.ds { padding-block: 22px 40px }
+.ds h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(32px, 5vw, 46px); line-height: .95 }
+.ds-grid { display: grid; gap: 18px }
+@media (min-width: 900px) { .ds-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: start } }
+.ds-hoje, .ds-cartao, .ds-dias, .ds-patentes, .ds-res, .ds-criar { display: grid; gap: 10px }
+.ds .lbl, .ds-res .lbl { margin: 0 }
+.ds-hoje p, .ds-criar p, .ds-res p { margin: 0 }
+.ds-hoje .btn.big { justify-self: start }
+.ds-ganhou { font-family: var(--display); font-size: clamp(42px, 8vw, 62px); line-height: .95; color: var(--banca) }
+#ds-prox { font-variant-numeric: tabular-nums }
+.ds-cartao canvas { display: block; width: 100%; height: auto; box-shadow: 4px 4px 0 var(--ink) }
+.ds-cal { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px }
+.ds-cal i { display: grid; place-items: center; aspect-ratio: 1; font-family: var(--label); font-size: 10px; font-style: normal; color: #8b8778; background: var(--paper); border: 2px solid #b9b19c }
+.ds-cal .feito { color: #fff; background: var(--banca); border-color: var(--ink) }
+.ds-cal .perdeu { color: #77736a; background: #e4e1d8 }
+.ds-cal .hoje { color: var(--ink); background: var(--sun); border-color: var(--ink) }
+.ds-patentes ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px }
+.ds-patentes li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 5px 10px; font-weight: 600; color: #77736a; background: var(--paper); border: 2px solid #b9b19c }
+.ds-patentes li b { font-family: var(--label); font-size: 11px; font-weight: 400 }
+.ds-patentes .foi { color: var(--ink); border-color: var(--ink) }
+.ds-patentes .atual { color: var(--ink); background: var(--sun); border: 3px solid var(--ink) }
+.ds-criar { max-width: 520px; margin: 0 auto }
+.ds-criar .imp-meu-nome { margin: 0 }
+.ds-criar .field { display: grid; gap: 8px }
+.ds-res .btn.big { justify-self: start }
+.ds-subiu { display: grid; padding: 8px 12px; background: var(--sun); border: 3px solid var(--ink) }
+.ds-subiu small { font-family: var(--label); font-size: 11px; text-transform: uppercase }
+.ds-subiu b { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 6vw, 46px); line-height: .95 }
+.ds-fim-lab { max-width: 460px; margin: 14px auto 40px }
+.dd-titulo .btn { margin-top: 10px }

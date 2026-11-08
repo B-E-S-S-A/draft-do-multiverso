@@ -16,7 +16,8 @@
       <img class="dd-foto" src="img/doom.webp" alt="" width="400" height="400" draggable="false">
       <div class="dd-titulo"><span class="lbl">${acabou ? t('A espera acabou', 'The wait is over') : t('Faltam', 'Coming in')}</span>
         <h2>${t('Vingadores', 'Avengers')}: <em>Doomsday</em></h2>
-        <p>${t('Estreia 17 de dezembro nos cinemas', 'In theaters December 17 in Brazil')}</p></div>
+        <p>${t('Estreia 17 de dezembro nos cinemas', 'In theaters December 17 in Brazil')}</p>
+        <button class="btn" type="button" data-ir="destino">${acabou ? t('Minha carteirinha', 'My ID card') : t('Desafio de hoje', 'Today’s challenge')}</button></div>
       ${acabou ? `<p class="dd-ja">${jaEstreou()}</p>` : tempo()}
     </section>`
   }

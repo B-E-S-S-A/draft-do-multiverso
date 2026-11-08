@@ -195,6 +195,14 @@
     'abriu-grade': [0.25, [() => t('A Grade. Eu sei todas as respostas de todas as casas.', 'The Grid. I know every answer to every square.')]],
     'abriu-arquivo': [0.25, [() => t('Essas fichas? Fui eu que escrevi.', 'These files? I wrote them.')]],
     'abriu-lab': [0.25, [() => t('Pedaços de heróis. O que pode dar errado?', 'Pieces of heroes. What could go wrong?')]],
+    'abriu-destino': [0.25, [() => t('Um desafio por dia. Eu já sei até o último.', 'One challenge a day. I already know the last one.')]],
+    'destino-feito': [0.5, [
+      () => t('Feito por hoje. Volte amanhã: eu estarei aqui. Sempre.', 'Done for today. Come back tomorrow: I will be here. Always.'),
+      () => t('Anotei seus pontos. O Destino também anotou.', 'I wrote down your points. Doom did too.')]],
+    'destino-zerou': [0.7, [() => t('Zero hoje. Em outro universo, você acertou.', 'Zero today. In another universe, you got it.')]],
+    'destino-patente': [1, [
+      (d) => t(`${d.patente}. Eu vi você subir.`, `${d.patente}. I saw you rise.`),
+      (d) => t(`Nova patente: ${d.patente}. O Destino já foi avisado.`, `New rank: ${d.patente}. Doom has been informed.`)]],
     'abriu-missao': [0.25, [() => t('Missão secreta? Nada é secreto pra mim.', 'A secret mission? Nothing is secret to me.')]],
     lingua: [0.6, [() => t('Falo todas as línguas de todos os universos. Até português.', 'I speak every language of every universe. Even English.')]],
   }

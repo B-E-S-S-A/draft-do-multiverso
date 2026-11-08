@@ -3,7 +3,7 @@
 // Filtros das sugestões, em ordem: tamanho do envio, armadilhas pra robô, conteúdo, limite por pessoa, repetida, limite do dia e da caixa.
 export const LIMITES = { corpoMax: 4096, minMs: 3000, minTexto: 8, maxTexto: 500, porHora: 3, porDia: 6, diaTotal: 40, naoLidas: 300, batidasMin: 40 }
 const ORIGENS_BASE = ['https://b-e-s-s-a.github.io']
-const PAGINAS = new Set(['home', 'draft', 'impostor', 'aposto', 'grade', 'arquivo', 'lab', 'missao'])
+const PAGINAS = new Set(['home', 'draft', 'impostor', 'aposto', 'grade', 'arquivo', 'lab', 'destino', 'missao'])
 
 const sem = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 const LINK = /(https?:\/\/|www\.|\b[a-z0-9-]{2,}\.(com|net|org|io|br|ru|xyz|top|info|shop|site|online|club|link|ly|co|biz|app|dev)\b)/i

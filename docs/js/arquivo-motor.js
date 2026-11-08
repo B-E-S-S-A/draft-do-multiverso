@@ -27,6 +27,8 @@
 
   const temasDe = (key, versao) => G().categoriasDa(versao).filter((c) => G().membros(c, versao).has(key))
   const gruposDe = (key, versao) => new Set(temasDe(key, versao).map((c) => c.grupo)).size
+  // os mais conhecidos têm mais temas (o desafio do dia só usa esses)
+  const conhecido = (key) => gruposDe(key, 'ambos') >= 8
   // só entra quem tem tema suficiente pra montar a ficha
   const candidatos = (versao) => G().poolDa(versao).filter((k) => gruposDe(k, versao) >= 4)
 
@@ -171,5 +173,5 @@
 
   const ranking = (J) => J.js.map((p, j) => ({ j, nome: p.nome, pts: p.pts, certos: p.certos })).sort((a, b) => b.pts - a.pts || b.certos - a.certos)
 
-  raiz.ArquivoMotor = { PONTOS, FICHAS, PRAZO, nomes, iniciais, candidatos, montarPistas, novoJogo, ficha, podeChutar, chutar, passar, tempo, seguir, botAcao, ranking }
+  raiz.ArquivoMotor = { PONTOS, FICHAS, PRAZO, nomes, iniciais, candidatos, conhecido, montarPistas, novoJogo, ficha, podeChutar, chutar, passar, tempo, seguir, botAcao, ranking }
 })(typeof window !== 'undefined' ? window : globalThis)

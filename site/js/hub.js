@@ -5,7 +5,7 @@
   const D = E.D
   const L = window.Lingua
   const t = L.t
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), grade: document.getElementById('grade'), arquivo: document.getElementById('arquivo'), lab: document.getElementById('lab'), missao: document.getElementById('missao') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), grade: document.getElementById('grade'), arquivo: document.getElementById('arquivo'), lab: document.getElementById('lab'), destino: document.getElementById('destino'), missao: document.getElementById('missao') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
@@ -16,7 +16,7 @@
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'arquivo' ? window.Arquivo.letreiro() : atual === 'lab' ? window.Lab.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'arquivo' ? window.Arquivo.letreiro() : atual === 'lab' ? window.Lab.letreiro() : atual === 'destino' ? window.Destino.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
     h1.innerHTML = l[0]
     sub.textContent = l[1]
     voltar.textContent = t('← Jogos', '← Games')
@@ -35,6 +35,7 @@
     if (atual === 'grade') window.Grade.abrir()
     if (atual === 'arquivo') window.Arquivo.abrir()
     if (atual === 'lab') window.Lab.abrir()
+    if (atual === 'destino') window.Destino.abrir()
     if (atual === 'missao') window.Missao.abrir()
     if (atual !== 'home' && window.Uatu) window.Uatu.momento('abriu-' + atual)
     if (window.Retorno) window.Retorno.visita(atual)
