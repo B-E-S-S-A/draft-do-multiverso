@@ -31,17 +31,31 @@
     return lista.map((k) => `<button class="gd-sug" type="button" data-d="fav" data-v="${k}"><span class="gd-mini">${capa(k)}</span><b>${esc(nome(k))}</b><small>${esc(ident(k))}</small></button>`).join('')
   }
   function criar(ui) {
-    return `<section class="ds"><div class="panel ds-criar">
-      <h2>${t('Crie sua carteirinha', 'Create your ID card')}</h2>
-      <p>${t('Um desafio por dia até a estreia de Doomsday. Cada um dá pontos, e os pontos sobem sua patente.', 'One challenge a day until Doomsday opens. Each one earns points, and points raise your rank.')}</p>
-      <label class="imp-meu-nome"><span class="lbl">${t('Seu nome', 'Your name')}</span><input id="ds-nome" maxlength="14" autocomplete="off" value="${esc(ui.nome)}"></label>
-      <div class="field"><span class="lbl">${t('Seu personagem favorito', 'Your favorite character')}</span>
-        ${ui.fav ? `<div class="gd-sug primeira"><span class="gd-mini">${capa(ui.fav)}</span><b>${esc(nome(ui.fav))}</b><small>${esc(ident(ui.fav))}</small></div>` : ''}
-        <label class="gd-busca"><span class="sr-only">${t('Personagem', 'Character')}</span><input id="ds-fav" maxlength="30" autocomplete="off" placeholder="${t('Procurar personagem…', 'Search for a character…')}" value="${esc(ui.busca)}"></label>
-        <div class="gd-sugestoes" id="ds-sug">${sugestoesFav(ui)}</div>
+    const K = window.DestinoCartao
+    const c = ui.cartao
+    const chips = (acao, lista, atual) => `<div class="presets">${lista.map((x) => `<button class="preset" type="button" data-d="${acao}" data-v="${x.id}" aria-pressed="${atual === x.id}">${t(x.nome[0], x.nome[1])}</button>`).join('')}</div>`
+    const temas = `<div class="ds-temas">${K.TEMAS.map((x) => `<button type="button" data-d="tema" data-v="${x.id}" aria-pressed="${c.tema === x.id}" style="--f:${x.fundo};--b:${x.faixa};--d:${x.destaque}"><i></i><span>${t(x.nome[0], x.nome[1])}</span></button>`).join('')}</div>`
+    const campo = (id, rot, max, val, dica) => `<label class="imp-meu-nome"><span class="lbl">${rot}</span><input id="${id}" maxlength="${max}" autocomplete="off" placeholder="${dica || ''}" value="${esc(val)}"></label>`
+    return `<section class="ds"><div class="ds-editor">
+      <div class="panel ds-criar">
+        <h2>${ui.editando ? t('Sua carteirinha', 'Your ID card') : t('Crie sua carteirinha', 'Create your ID card')}</h2>
+        ${ui.editando ? '' : `<p>${t('Um desafio por dia até a estreia de Doomsday. Cada um dá pontos, e os pontos sobem sua patente.', 'One challenge a day until Doomsday opens. Each one earns points, and points raise your rank.')}</p>`}
+        ${campo('ds-nome', t('Seu nome', 'Your name'), 14, ui.nome)}
+        ${campo('ds-codinome', t('Codinome (opcional)', 'Codename (optional)'), 20, c.codinome, t('Ex.: O Implacável', 'E.g. The Relentless'))}
+        ${campo('ds-lema', t('Lema (opcional)', 'Motto (optional)'), 44, c.lema, t('Uma frase sua', 'A line of your own'))}
+        <div class="field"><span class="lbl">${t('Personagem da foto', 'Photo character')}</span>
+          ${ui.fav ? `<div class="gd-sug primeira"><span class="gd-mini">${capa(ui.fav)}</span><b>${esc(nome(ui.fav))}</b><small>${esc(ident(ui.fav))}</small></div>` : ''}
+          <label class="gd-busca"><span class="sr-only">${t('Personagem', 'Character')}</span><input id="ds-fav" maxlength="30" autocomplete="off" placeholder="${t('Procurar personagem…', 'Search for a character…')}" value="${esc(ui.busca)}"></label>
+          <div class="gd-sugestoes" id="ds-sug">${sugestoesFav(ui)}</div>
+        </div>
+        <div class="field"><span class="lbl">${t('Cor', 'Color')}</span>${temas}</div>
+        <div class="field"><span class="lbl">${t('Equipe', 'Team')}</span>${chips('equipe', K.EQUIPES, c.equipe)}</div>
+        <div class="field"><span class="lbl">${t('Carimbo', 'Stamp')}</span>${chips('carimbo', K.CARIMBOS, c.carimbo)}</div>
+        <div class="field"><span class="lbl">${t('Foto', 'Photo')}</span>${chips('lado', [{ id: 'esq', nome: ['Na esquerda', 'On the left'] }, { id: 'dir', nome: ['Na direita', 'On the right'] }], c.lado)}</div>
+        ${ui.aviso ? `<p class="neterr" role="alert">${esc(ui.aviso)}</p>` : ''}
+        <div class="go-row">${ui.editando ? `<button class="linkish" type="button" data-d="voltar">${t('voltar', 'back')}</button>` : ''}<button class="btn big" type="button" data-d="salvar-cartao">${ui.editando ? t('Salvar', 'Save') : t('Criar', 'Create')}</button></div>
       </div>
-      ${ui.aviso ? `<p class="neterr" role="alert">${esc(ui.aviso)}</p>` : ''}
-      <div class="go-row">${ui.editando ? `<button class="linkish" type="button" data-d="voltar">${t('voltar', 'back')}</button>` : ''}<button class="btn big" type="button" data-d="salvar-cartao">${ui.editando ? t('Salvar', 'Save') : t('Criar', 'Create')}</button></div>
+      <div class="panel ds-previa"><span class="lbl">${t('Como vai ficar', 'Preview')}</span><canvas id="ds-canvas" width="1080" height="640" role="img" aria-label="${t('Prévia da carteirinha', 'ID card preview')}"></canvas></div>
     </div></section>`
   }
 
