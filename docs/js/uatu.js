@@ -176,24 +176,28 @@
     'arquivo-fim': [0.9, [
       (d) => t(`${d.nome} leu mais fichas que a S.H.I.E.L.D. inteira.`, `${d.nome} has read more files than all of S.H.I.E.L.D.`),
       () => t('Arquivo encerrado. Eu guardo uma cópia.', 'File closed. I am keeping a copy.')]],
+    'lab-coloca': [0.12, [
+      (d) => t(`${d.topico}: ${d.pers}. Anotado.`, `${d.topico}: ${d.pers}. Noted.`),
+      (d) => t(`${d.pers} em ${d.topico}? Vi isso num universo. Não acabou bem.`, `${d.pers} as ${d.topico}? I saw that in one universe. It did not end well.`),
+      (d) => t(`${d.pers} em ${d.topico}. Ousado.`, `${d.pers} as ${d.topico}. Bold.`)]],
     'lab-duelo': [0.3, [
-      (d) => t(`${d.a} contra ${d.b}. Já vi guerras cósmicas menos sérias.`, `${d.a} versus ${d.b}. I have seen less serious cosmic wars.`),
-      (d) => t(`Em nenhum dos universos ${d.b} estava preparado pra isso.`, `In no universe was ${d.b} ready for this.`),
-      () => t('O Alto Evolucionário me pediu desculpas por esses dois.', 'The High Evolutionary apologized to me for these two.')]],
+      () => t('Dois heróis feitos de pedaços. O Alto Evolucionário ficaria orgulhoso.', 'Two heroes made of spare parts. The High Evolutionary would be proud.'),
+      () => t('Já vi esse duelo em mil universos. Cada vez ganha um.', 'I have seen this duel in a thousand universes. A different one wins each time.'),
+      () => t('Comparem tópico por tópico. Eu já comparei.', 'Compare them topic by topic. I already have.')]],
     'lab-desempate': [1, [
-      (d) => t(`Eu jurei não interferir… mas ${d.nome} leva essa.`, `I swore not to interfere… but ${d.nome} takes this one.`),
+      (d) => t(`Eu jurei não interferir… mas o herói de ${d.nome} leva essa.`, `I swore not to interfere… but ${d.nome}’s hero takes this one.`),
       (d) => t(`Empate? Quebro meu juramento só hoje: ${d.nome}.`, `A tie? I will break my oath just today: ${d.nome}.`)]],
     'lab-campeao': [1, [
-      (d) => t(`${d.heroi} venceu. Que o Multiverso nos perdoe.`, `${d.heroi} won. May the Multiverse forgive us.`),
-      (d) => t(`${d.nome} criou isso. Vou registrar, com tristeza.`, `${d.nome} created this. I will record it, with sadness.`),
-      (d) => t(`Campeão: ${d.heroi}. Nem o Thanos estalaria os dedos pra isso.`, `Champion: ${d.heroi}. Not even Thanos would snap for that.`)]],
+      (d) => t(`O herói de ${d.nome} venceu. Já vi Vingadores piores.`, `${d.nome}’s hero won. I have seen worse Avengers.`),
+      (d) => t(`${d.nome} montou um campeão. Vou contar pro Alto Evolucionário.`, `${d.nome} built a champion. I will tell the High Evolutionary.`),
+      () => t('Esse herói já existe em algum universo. Coitado de quem mora lá.', 'This hero exists in some universe. Pity whoever lives there.')]],
     // ao abrir cada jogo
     'abriu-draft': [0.25, [() => t('O Draft. Já vi times piores vencerem Thanos.', 'The Draft. I have seen worse teams beat Thanos.')]],
     'abriu-impostor': [0.25, [() => t('Um impostor entre vocês? Eu já sei quem é.', 'An impostor among you? I already know who.')]],
     'abriu-aposto': [0.25, [() => t('Aposto que sei? Eu sei. Sempre.', 'Bet you know? I do. Always.')]],
     'abriu-grade': [0.25, [() => t('A Grade. Eu sei todas as respostas de todas as casas.', 'The Grid. I know every answer to every square.')]],
     'abriu-arquivo': [0.25, [() => t('Essas fichas? Fui eu que escrevi.', 'These files? I wrote them.')]],
-    'abriu-lab': [0.25, [() => t('Aviso: nada do que sair daqui foi aprovado por mim.', 'Warning: nothing that comes out of here was approved by me.')]],
+    'abriu-lab': [0.25, [() => t('Pedaços de heróis. O que pode dar errado?', 'Pieces of heroes. What could go wrong?')]],
     'abriu-missao': [0.25, [() => t('Missão secreta? Nada é secreto pra mim.', 'A secret mission? Nothing is secret to me.')]],
     lingua: [0.6, [() => t('Falo todas as línguas de todos os universos. Até português.', 'I speak every language of every universe. Even English.')]],
   }

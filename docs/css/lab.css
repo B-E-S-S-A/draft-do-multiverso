@@ -1,52 +1,51 @@
-/* Laboratório do Alto Evolucionário: a bancada de montar o herói e a arena do mata-mata, no mesmo visual da banca. */
+/* Laboratório do Alto Evolucionário: sai um personagem, ele entra num tópico do seu herói; depois os heróis duelam lado a lado. */
 .lab-jogo { display: grid; gap: 12px }
-.lab-modos { grid-template-columns: repeat(2, minmax(0, 1fr)) }
-.lab-bancada { display: grid; gap: 16px }
-@media (min-width: 900px) {
-  .lab-bancada:not(.so-nome) { grid-template-columns: minmax(0, 1fr) 340px; align-items: start }
-  .lab-previa { position: sticky; top: 12px }
-}
-.lab-bancada.so-nome, .lab-pronto { max-width: 460px; width: 100%; margin: 0 auto }
-.lab-mesa { display: grid; gap: 14px }
-.lab-grupo { display: grid; gap: 6px }
-.lab-grupo .lbl { margin: 0 }
-.lab-corpos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 460px }
-.lab-corpo, .lab-carta { color: var(--ink); background: #fff; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: transform .08s steps(2) }
-.lab-corpo { display: grid; gap: 4px; padding: 6px; font-size: 13px; font-weight: 600; line-height: 1.1; text-align: center }
-.lab-carta { padding: 10px 12px; font-size: 16px; font-weight: 600; line-height: 1.2; text-align: left }
-.lab-corpo[aria-pressed="true"], .lab-carta[aria-pressed="true"] { background: var(--sun); transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink) }
-.lab-cartas { display: grid; gap: 8px }
-.lab-foto { position: relative; display: grid; place-items: center; aspect-ratio: 3 / 4; overflow: hidden; background: #e4e1d8; border: 3px solid var(--ink) }
-.lab-foto b { font-family: var(--display); font-weight: 400; font-size: 64px; color: #8b8778 }
+.lab-bancada { display: grid; gap: 14px }
+@media (min-width: 860px) { .lab-bancada { grid-template-columns: 300px minmax(0, 1fr); align-items: start } }
+.lab-sorteado { display: grid; gap: 10px }
+.lab-sorteado h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(32px, 6vw, 44px); line-height: .95; overflow-wrap: anywhere }
+.lab-sorteado small { font-size: 14px; color: var(--muted) }
+.lab-sorteado .note { margin: 6px 0 0 }
+.lab-foto { position: relative; aspect-ratio: 3 / 4; overflow: hidden; background: #e4e1d8; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink) }
 .lab-foto .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top }
-.lab-previa, .lab-pronto { display: grid; gap: 10px }
-.lab-previa .lbl, .lab-pronto .lbl { margin: 0 }
-.lab-previa .imp-meu-nome { margin: 0 }
-.lab-previa .imp-meu-nome input { width: 100%; max-width: none }
-.lab-previa .btn.big { justify-self: stretch }
-.lab-heroi { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; align-items: start; text-align: left }
-.lab-ficha { display: grid; gap: 5px; min-width: 0 }
-.lab-ficha h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(26px, 4.5vw, 34px); line-height: .95; overflow-wrap: anywhere }
-.lab-vazio { color: #8b8778 }
-.lab-ficha small { font-family: var(--label); font-size: 9px; color: var(--muted) }
-.lab-ficha p { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.2 }
-.lab-ficha p .lbl { display: block; margin: 0 0 1px; font-size: 9px; font-weight: 400 }
-.lab-ficha p.fraca .lbl { color: #c8321f }
-.lab-arena { display: grid; gap: 10px }
-@media (min-width: 760px) { .lab-arena { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch } }
-.lab-vs { place-self: center; font-family: var(--display); font-weight: 400; font-size: 44px; line-height: 1; color: var(--paper); background: var(--ink); padding: 2px 12px 6px; transform: rotate(-4deg) }
-.lab-lado { position: relative; display: grid; gap: 10px; align-content: start; width: 100%; padding: 12px; color: var(--ink); text-align: left; background: var(--paper); border: 4px solid var(--ink); box-shadow: 5px 5px 0 var(--ink) }
-button.lab-lado { cursor: pointer }
-button.lab-lado:hover { background: #fff6d6 }
-button.lab-lado:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--ink) }
-.lab-votar { justify-self: stretch; text-align: center }
-.lab-lado.venceu { background: var(--sun) }
-.lab-lado.perdeu { opacity: .62 }
-.lab-selo { position: absolute; top: -10px; right: 10px; z-index: 1; padding: 3px 10px; font-family: var(--label); font-size: 12px; font-weight: 400; color: var(--paper); background: var(--banca); border: 3px solid var(--ink); transform: rotate(4deg); animation: lab-selo .3s cubic-bezier(.3, 1.6, .5, 1) }
-@keyframes lab-selo { from { transform: rotate(4deg) scale(2.4); opacity: 0 } }
-.lab-placa { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-top: 8px; border-top: 3px dashed rgba(29, 27, 44, .3); font-size: 14px }
-.lab-placa > b { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1 }
-.lab-fim { display: grid; gap: 14px; justify-items: center; max-width: 560px; width: 100%; margin: 0 auto }
+.lab-foto.entrou { animation: lab-entra .25s cubic-bezier(.3, 1.5, .5, 1) }
+@keyframes lab-entra { from { transform: scale(.82) rotate(-4deg) } }
+.lab-slots { display: grid; gap: 8px }
+.lab-slots > .lbl { margin: 0 }
+.lab-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100% }
+.lab-slot { display: flex; align-items: center; gap: 8px; min-height: 66px; padding: 6px 10px; color: var(--ink); text-align: left; background: #fff; border: 3px solid var(--ink) }
+.lab-slot .lbl { margin: 0; font-size: 10px }
+.lab-slot > span:last-child { min-width: 0 }
+.lab-slot b { display: block; font-size: 15px; line-height: 1.1; overflow-wrap: anywhere }
+.lab-slot.livre { justify-content: center; text-align: center; cursor: pointer; background: var(--paper); box-shadow: 3px 3px 0 var(--ink); transition: transform .08s steps(2) }
+.lab-slot.livre .lbl { font-size: 13px }
+.lab-slot.livre:hover { background: var(--sun) }
+.lab-slot.livre:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink) }
+.lab-slot.vazio { justify-content: center; border-style: dashed; border-color: #b9b19c; background: transparent; color: #8b8778 }
+.lab-mini { position: relative; flex: 0 0 auto; display: block; width: 40px; height: 52px; overflow: hidden; border: 2px solid var(--ink) }
+.lab-mini .cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top }
+/* o duelo: uma tabela de três colunas, herói A, tópico, herói B */
+.lab-duelo { display: grid; gap: 0; padding: 10px; max-width: 760px; width: 100%; margin: 0 auto }
+.lab-cab, .lab-linha { display: grid; grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr); gap: 6px; align-items: center }
+.lab-cab { padding-bottom: 8px; border-bottom: 3px solid var(--ink) }
+.lab-cab i { justify-self: center; font-family: var(--display); font-style: normal; font-size: 30px; line-height: 1; color: var(--paper); background: var(--ink); padding: 0 8px 4px; transform: rotate(-4deg) }
+.lab-nome { display: grid; gap: 2px; min-width: 0; padding: 4px 8px }
+.lab-nome:last-child { text-align: right }
+.lab-nome b { font-family: var(--display); font-weight: 400; font-size: clamp(22px, 4.5vw, 32px); line-height: .95; overflow-wrap: anywhere }
+.lab-nome em { font-style: normal; font-family: var(--label); font-size: 11px }
+.lab-nome.venceu { background: var(--sun); border: 3px solid var(--ink) }
+.lab-nome.perdeu { opacity: .55 }
+.lab-linha { padding: 6px 0; border-bottom: 2px dashed #cfc9b8 }
+.lab-linha:last-child { border-bottom: 0 }
+.lab-top { font-family: var(--label); font-size: 10px; letter-spacing: .02em; text-align: center; text-transform: uppercase; overflow-wrap: anywhere }
+.lab-pers { display: flex; align-items: center; gap: 8px; min-width: 0 }
+.lab-pers.dir { flex-direction: row-reverse; text-align: right }
+.lab-pers b { min-width: 0; font-size: 15px; line-height: 1.1; overflow-wrap: anywhere }
+.lab-duelo.g-a .lab-pers.dir, .lab-duelo.g-b .lab-pers:not(.dir) { opacity: .55 }
+.lab-votos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 760px; width: 100%; margin: 0 auto }
+.lab-votos .btn { justify-content: center; text-align: center }
+.lab-fim { display: grid; gap: 14px; justify-items: center; max-width: 620px; width: 100%; margin: 0 auto }
+.lab-fim h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(30px, 6vw, 44px); line-height: .95; text-align: center }
 .lab-grito { font-family: var(--display); font-weight: 400; font-size: clamp(54px, 13vw, 88px); line-height: .9; color: var(--p1) }
 .lab-sub { justify-self: start; margin: 4px 0 0; font-family: var(--display); font-weight: 400; font-size: 26px }
 .lab-historia { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100% }
@@ -54,5 +53,12 @@ button.lab-lado:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0 v
 .lab-historia small { grid-column: 1 / -1; font-family: var(--label); font-size: 9px; color: var(--muted) }
 .lab-historia em { font-style: normal; font-size: 13px; color: var(--muted); white-space: nowrap }
 @media (max-width: 560px) {
-  .lab-heroi { grid-template-columns: 88px minmax(0, 1fr) }
+  .lab-sorteado { grid-template-columns: 112px minmax(0, 1fr); align-items: center }
+  .lab-sorteado h3 { font-size: 30px }
+  .lab-slot { min-height: 58px; padding: 4px 8px }
+  .lab-cab, .lab-linha { grid-template-columns: minmax(0, 1fr) 62px minmax(0, 1fr); gap: 4px }
+  .lab-top { font-size: 8px }
+  .lab-pers { gap: 5px }
+  .lab-pers b { font-size: 13px }
+  .lab-mini { width: 32px; height: 42px }
 }

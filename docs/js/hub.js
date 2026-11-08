@@ -92,9 +92,9 @@
           'A character’s file opens one clue at a time. The sooner you guess who it is, the more points you get. Miss, lose 1 and try on the next one.'),
         t('2 a 8 jogadores · HQ, filmes ou os dois · num celular só ou online', '2 to 8 players · comics, movies or both · on one phone or online'),
         `<button class="btn big" type="button" data-ir="arquivo">${t('Jogar Arquivo', 'Play Secret File')}</button>${online('arquivo-online')}`)}
-      ${jogo(leque([hq('high-evolutionary'), hq('howard'), hq('man-thing')]), t('Laboratório do Alto Evolucionário', 'The High Evolutionary’s Lab'),
-        t('Cada um monta o herói mais absurdo que conseguir: corpo do Hulk, poder de falar com pombos, medo de elevador. Eles se enfrentam em mata-mata e a turma vota.',
-          'Everyone builds the most absurd hero they can: Hulk’s body, the power to talk to pigeons, a fear of elevators. They face off in a knockout and the gang votes.'),
+      ${jogo(leque([hq('hulk'), hq('high-evolutionary'), hq('spider-man')]), t('Laboratório do Alto Evolucionário', 'The High Evolutionary’s Lab'),
+        t('Sai um personagem e você decide o que ele vira no seu herói: a Força, o Corpo, a Agilidade, o Traje… Sem trocar e sem saber quem vem depois. No fim, os heróis se enfrentam em mata-mata e a turma vota.',
+          'A character shows up and you decide what they become in your hero: the Strength, the Body, the Agility, the Suit… No changing it, and no knowing who is next. Then the heroes face off in a knockout and the gang votes.'),
         t('3 a 8 jogadores · num celular só ou online', '3 to 8 players · on one phone or online'),
         `<button class="btn big red" type="button" data-ir="lab">${t('Jogar Laboratório', 'Play the Lab')}</button>${online('lab-online')}`)}
       <h2 class="home-secao">${t('Pra noite toda', 'For the whole night')} <small>${t('rola enquanto vocês fazem outra coisa', 'runs while you do something else')}</small></h2>
