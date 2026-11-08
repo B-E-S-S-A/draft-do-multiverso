@@ -1,4 +1,4 @@
-// Grade do Multiverso: as categorias das linhas e colunas. Os personagens são os 154 de HQ do Draft (todos têm capa).
+// Grade do Multiverso: as categorias (temas) das linhas e colunas. Os personagens são os 154 de HQ do Draft (todos têm capa).
 // Cada categoria diz quem vale: uma lista de chaves escrita à mão, ou uma conta em cima dos dados do Draft.
 // nivel 1 = simples (mulher, voa, usa capa), nivel 2 = mais esperto (fase do MCU, tem irmão, mais de um ator).
 // grupo: duas categorias do mesmo grupo nunca se cruzam (Fase 3 x Fase 4, anos 60 x anos 70…).
@@ -91,6 +91,76 @@
       m: new Set(D.hq.filter((h) => /\b(homem|mulher|garota)\b/i.test(h.n) || /(^|[\s-])(man|woman|girl)(\b|$)/i.test((raiz.IMPOSTOR_EN || {})[h.key] || '')).map((h) => h.key)) },
   ]
 
+  // ---------- mais temas: visual, nome, origem, vida, equipes e telas ----------
+  const novo = (id, grupo, pt, en, m) => C.push({ id, grupo, nivel: 2, pt, en, m: L(m) })
+  // visual e nome
+  novo('garras', 'garras', ['Tem garras', 'Garras de verdade ou na roupa (as do traje de pantera contam).'], ['Has claws', 'Real claws or on the suit (panther-suit claws count).'],
+    'wolverine x-23 sabretooth black-panther killmonger shuri black-cat lizard venom carnage werewolf')
+  novo('careca', 'cabelo', ['Careca', 'Não tem cabelo nenhum na cabeça.'], ['Bald', 'No hair at all on the head.'],
+    'professor-x kingpin watcher ancient-one modok silver-surfer vision drax thing gorr thanos nebula wong red-skull apocalypse abomination')
+  novo('verde', 'cor', ['Verde é a cor dele', 'Pele, roupa ou marca registrada verde.'], ['Green is their color', 'Green skin, costume or trademark look.'],
+    'hulk she-hulk gamora green-goblin lizard loki doctor-doom super-skrull leader abomination man-thing enchantress mysterio')
+  novo('vermelho', 'cor', ['Vermelho é a cor dele', 'Pele, roupa ou marca registrada vermelha.'], ['Red is their color', 'Red skin, costume or trademark look.'],
+    'deadpool daredevil scarlet-witch vision red-skull red-guardian carnage iron-man spider-man elektra mephisto miles-morales')
+  novo('cornome', 'nome', ['Cor no nome', 'O nome de herói ou vilão tem uma cor (em português ou inglês).'], ['Color in the name', 'The hero or villain name has a color in it (English or Portuguese).'],
+    'black-widow black-panther scarlet-witch red-skull green-goblin red-guardian black-cat black-bolt silver-surfer kitty-pryde jean-grey')
+  novo('bichonome', 'nome', ['Bicho no nome', 'O nome tem um animal: aranha, formiga, falcão, gato… (em português ou inglês).'], ['Animal in the name', 'The name has an animal: spider, ant, falcon, cat… (English or Portuguese).'],
+    'ant-man wasp black-panther falcon black-cat spider-man spider-woman spider-gwen spider-man-2099 squirrel-girl vulture lizard rhino wolverine howard werewolf rocket hawkeye black-widow mantis doctor-octopus kitty-pryde')
+  novo('titulonome', 'nome', ['Título no nome', 'Capitão, Doutor, Professor, Senhor, Barão, Rei… no nome.'], ['Title in the name', 'Captain, Doctor, Professor, Mister, Baron, King… in the name.'],
+    'captain-america captain-marvel captain-britain doctor-strange doctor-doom doctor-octopus professor-x mister-fantastic mister-sinister zemo star-lord ms-marvel kingpin')
+  novo('iniciais', 'nome', ['Iniciais repetidas', 'O nome (de herói ou o verdadeiro) tem as duas iniciais iguais: Peter Parker, Doctor Doom…'], ['Matching initials', 'The name (hero or real one) has matching initials: Peter Parker, Doctor Doom…'],
+    'spider-man hulk doctor-strange winter-soldier daredevil mister-fantastic invisible-woman cyclops deadpool ms-marvel doctor-octopus lizard jessica-jones morbius miles-morales doctor-doom green-goblin silver-surfer black-bolt beta-ray-bill')
+  // origem e poderes
+  novo('alienigena', 'origem', ['Alienígena', 'Nasceu em outro planeta (Asgard e outras dimensões não contam).'], ['Alien', 'Born on another planet (Asgard and other dimensions do not count).'],
+    'silver-surfer gamora groot nebula ronan super-skrull gladiator thanos ego galactus beta-ray-bill knull watcher')
+  novo('acidente', 'origem', ['Ganhou poder num acidente', 'Picada, raio gama, raio cósmico, produto químico, explosão…'], ['Got powers in an accident', 'A bite, gamma rays, cosmic rays, chemicals, an explosion…'],
+    'spider-man miles-morales spider-gwen hulk she-hulk daredevil mister-fantastic invisible-woman human-torch thing electro sandman doctor-octopus captain-marvel leader man-thing jessica-jones luke-cage')
+  novo('elemento', 'elemento', ['Controla um elemento', 'Fogo, gelo, raio, tempestade ou areia.'], ['Controls an element', 'Fire, ice, lightning, weather or sand.'],
+    'human-torch iceman storm electro thor jane-foster ghost-rider surtur sandman')
+  novo('telepata', 'mente', ['Lê mentes', 'Telepatia: lê ou controla pensamentos (sentir emoções conta).'], ['Reads minds', 'Telepathy: reads or controls thoughts (sensing feelings counts).'],
+    'professor-x jean-grey emma-frost psylocke cable onslaught scarlet-witch mantis modok')
+  novo('artes', 'luta', ['Mestre em artes marciais', 'Luta muito bem no braço: kung fu, ninjutsu, treino de espiã…'], ['Martial arts master', 'Excellent hand-to-hand fighter: kung fu, ninjutsu, spy training…'],
+    'shang-chi iron-fist black-widow yelena daredevil elektra echo psylocke taskmaster wolverine black-panther')
+  novo('assassino', 'oficio', ['Assassino ou mercenário', 'Já matou ou lutou por encomenda.'], ['Assassin or mercenary', 'Has killed or fought for hire.'],
+    'black-widow yelena elektra bullseye deadpool domino taskmaster gamora nebula x-23 winter-soldier')
+  novo('membro', 'corpo', ['Braço de metal ou parte faltando', 'Perdeu um olho, braço ou perna, ou tem um de metal.'], ['Metal arm or missing part', 'Lost an eye, arm or leg, or has a metal one.'],
+    'winter-soldier nebula thor nick-fury odin cable echo deadpool')
+  // vida
+  novo('adolescente', 'idade', ['Adolescente', 'É adolescente (ou era, quando apareceu pela primeira vez).'], ['Teenager', 'Is a teenager (or was, when first introduced).'],
+    'spider-man miles-morales spider-gwen ms-marvel kate-bishop america-chavez ironheart kitty-pryde jubilee x-23 nova human-torch iceman cyclops jean-grey beast wiccan squirrel-girl shuri rogue')
+  novo('rico', 'dinheiro', ['Rico de verdade', 'Bilionário, herdeiro ou dono de um império.'], ['Seriously rich', 'A billionaire, an heir or the owner of an empire.'],
+    'iron-man black-panther kingpin iron-fist emma-frost professor-x green-goblin zemo doctor-doom')
+  novo('orfao', 'familia', ['Órfão ou criado por outros', 'Perdeu os pais cedo ou foi criado por quem não era pai nem mãe.'], ['Orphan or raised by others', 'Lost their parents young or was raised by someone else.'],
+    'spider-man gamora nebula star-lord loki rogue nightcrawler black-widow yelena daredevil iron-fist jessica-jones storm cyclops jubilee captain-america')
+  novo('filho', 'familia', ['Tem filho ou filha', 'Na HQ ou nas telas. Adotado conta.'], ['Has a child', 'In the comics or on screen. Adopted counts.'],
+    'magneto scarlet-witch vision odin thanos ego mister-fantastic invisible-woman cyclops professor-x mystique sabretooth kingpin green-goblin black-bolt medusa luke-cage jessica-jones ant-man hawkeye wolverine red-skull black-panther red-guardian iron-man')
+  novo('legado', 'legado', ['Herdou o nome de outro herói', 'Usou o título de quem veio antes: Sam virou Capitão América, Kate virou Gavião…'], ['Took another hero’s name', 'Took up a predecessor’s title: Sam became Captain America, Kate became Hawkeye…'],
+    'falcon us-agent jane-foster kate-bishop miles-morales ms-marvel shuri war-machine yelena x-23 captain-marvel monica-rambeau ant-man')
+  novo('tempo', 'aventura', ['Viajou no tempo', 'Já foi pro passado ou pro futuro (o assalto no tempo de Ultimato conta).'], ['Time traveler', 'Has gone to the past or the future (the Endgame time heist counts).'],
+    'cable kang doctor-doom iron-man captain-america jean-grey cyclops beast iceman kitty-pryde wolverine deadpool spider-man-2099 loki doctor-strange thor hulk black-widow hawkeye ant-man war-machine nebula rocket')
+  // equipes e eventos dos quadrinhos
+  novo('illuminati', 'equipe', ['Já foi dos Illuminati', 'O grupo secreto dos maiorais da Marvel, nas HQs.'], ['Has been in the Illuminati', 'The secret club of Marvel’s top minds, in the comics.'],
+    'iron-man mister-fantastic doctor-strange professor-x namor black-bolt black-panther beast captain-america')
+  novo('defensores', 'equipe', ['Já foi dos Defensores', 'O time do Doutor Estranho e do Hulk nas HQs, ou o de rua (Demolidor, Jessica, Luke e Punho).'], ['Has been a Defender', 'Doctor Strange and Hulk’s comic team, or the street-level one (Daredevil, Jessica, Luke and Iron Fist).'],
+    'doctor-strange namor hulk silver-surfer valkyrie hawkeye daredevil jessica-jones luke-cage iron-fist')
+  novo('secret84', 'evento', ['Estava nas Guerras Secretas', 'Foi levado pelo Beyonder pro Mundo Bélico na HQ de 1984.'], ['Was in Secret Wars (1984)', 'Was taken to Battleworld by the Beyonder in the 1984 comic.'],
+    'captain-america war-machine thor hulk spider-man hawkeye wasp monica-rambeau she-hulk cyclops wolverine storm rogue nightcrawler colossus kitty-pryde professor-x magneto human-torch thing mister-fantastic doctor-doom galactus ultron molecule-man enchantress doctor-octopus lizard beyonder kang')
+  // telas
+  novo('aeroporto', 'mcu', ['Lutou no aeroporto', 'Esteve na briga do aeroporto em Capitão América: Guerra Civil, de qualquer lado.'], ['Fought at the airport', 'Was in the airport fight in Captain America: Civil War, on either side.'],
+    'iron-man war-machine black-widow vision black-panther spider-man captain-america winter-soldier falcon hawkeye scarlet-witch ant-man')
+  novo('guerrainf', 'mcu', ['Apareceu em Guerra Infinita', 'Aparece em Vingadores: Guerra Infinita, nem que seja de relance.'], ['In Avengers: Infinity War', 'Shows up in Avengers: Infinity War, even briefly.'],
+    'iron-man captain-america thor hulk black-widow spider-man black-panther doctor-strange scarlet-witch vision falcon winter-soldier war-machine star-lord gamora drax rocket groot mantis nebula thanos loki wong shuri nick-fury red-skull')
+  novo('xfox', 'origem', ['Filmes dos X-Men da Fox', 'Apareceu nos filmes dos X-Men da Fox (de 2000 a 2020, com Wolverine e Deadpool).'], ['Fox X-Men movies', 'Appeared in Fox’s X-Men movies (2000 to 2020, Wolverine and Deadpool included).'],
+    'wolverine cyclops jean-grey storm professor-x magneto beast rogue gambit nightcrawler colossus kitty-pryde psylocke iceman mystique sabretooth juggernaut apocalypse quicksilver emma-frost jubilee x-23 deadpool cable domino')
+  novo('xdesenho', 'origem', ['Desenho dos X-Men', 'Apareceu em X-Men: A Série Animada (anos 90) ou em X-Men ’97.'], ['X-Men cartoon', 'Appeared in X-Men: The Animated Series (90s) or X-Men ’97.'],
+    'cyclops jean-grey storm wolverine rogue gambit beast jubilee professor-x magneto mister-sinister cable apocalypse sabretooth juggernaut mystique nightcrawler colossus iceman emma-frost')
+  novo('aranhaverso', 'animacao', ['Apareceu no Aranhaverso', 'Nos desenhos Homem-Aranha no Aranhaverso ou Através do Aranhaverso.'], ['In the Spider-Verse movies', 'In Into the Spider-Verse or Across the Spider-Verse.'],
+    'miles-morales spider-gwen spider-man-2099 spider-man spider-woman kingpin green-goblin doctor-octopus vulture')
+  novo('deadwolv', 'dw', ['Apareceu em Deadpool & Wolverine', 'Aparece no filme de 2024, nem que seja no Vazio.'], ['In Deadpool & Wolverine', 'Shows up in the 2024 movie, even in the Void.'],
+    'deadpool wolverine x-23 elektra blade gambit sabretooth human-torch')
+  novo('vilaomorto', 'lado', ['Vilão que morreu no filme', 'Era o vilão de um filme e morreu nele.'], ['Villain who died in the movie', 'Was a movie’s villain and died in it.'],
+    'ultron ronan killmonger ego hela mysterio thanos gorr green-goblin doctor-octopus electro')
+
   // ---------- contas em cima dos dados do Draft: década de estreia, criador e revista ----------
   const conta = (id, grupo, pt, en, f) => C.push({ id, grupo, nivel: 2, pt, en, m: new Set(D.hq.filter(f).map((h) => h.key)) })
   conta('anos60', 'decada', ['Estreou nos anos 60', 'A primeira aparição na HQ foi entre 1960 e 1969.'], ['Debuted in the 1960s', 'First comic appearance between 1960 and 1969.'], (h) => ano(h) >= 1960 && ano(h) < 1970)
@@ -99,6 +169,8 @@
   conta('anos90', 'decada', ['Estreou de 1990 pra cá', 'A primeira aparição na HQ foi em 1990 ou depois.'], ['Debuted 1990 or later', 'First comic appearance in 1990 or later.'], (h) => ano(h) >= 1990)
   conta('stanlee', 'criador', ['Criado por Stan Lee', 'Stan Lee está entre os criadores.'], ['Created by Stan Lee', 'Stan Lee is one of the creators.'], (h) => /Stan Lee/.test(por(h)))
   conta('kirby', 'criador', ['Criado por Jack Kirby', 'Jack Kirby está entre os criadores.'], ['Created by Jack Kirby', 'Jack Kirby is one of the creators.'], (h) => /Kirby/.test(por(h)))
+  conta('claremont', 'criador', ['Criado por Chris Claremont', 'Chris Claremont está entre os criadores.'], ['Created by Chris Claremont', 'Chris Claremont is one of the creators.'], (h) => /Claremont/.test(por(h)))
+  conta('roythomas', 'criador', ['Criado por Roy Thomas', 'Roy Thomas está entre os criadores.'], ['Created by Roy Thomas', 'Roy Thomas is one of the creators.'], (h) => /Roy Thomas/.test(por(h)))
   conta('ditko', 'criador', ['Criado por Steve Ditko', 'Steve Ditko está entre os criadores.'], ['Created by Steve Ditko', 'Steve Ditko is one of the creators.'], (h) => /Ditko/.test(por(h)))
   conta('rev-ff', 'revista', ['Estreou em HQ do Quarteto', 'A primeira aparição foi numa revista Fantastic Four.'], ['Debuted in a Fantastic Four comic', 'First appeared in a Fantastic Four comic.'], (h) => /Fantastic Four/.test(revista(h)))
   conta('rev-aranha', 'revista', ['Estreou em HQ do Aranha', 'A primeira aparição foi em Amazing Fantasy ou Amazing Spider-Man.'], ['Debuted in a Spider-Man comic', 'First appeared in Amazing Fantasy or Amazing Spider-Man.'], (h) => /Amazing (Fantasy|Spider-Man)/.test(revista(h)))
@@ -120,6 +192,14 @@
     anos80: ['hq', 7], ditko: ['hq', 7], 'rev-ff': ['hq', 7],
     'rev-thor': ['hq', 8], 'rev-ferro': ['hq', 8],
     'rev-vingadores': ['hq', 9],
+    // os novos
+    bichonome: ['ambos', 1], cornome: ['ambos', 1], titulonome: ['ambos', 1],
+    verde: ['ambos', 2], vermelho: ['ambos', 2], garras: ['ambos', 2], elemento: ['ambos', 2],
+    careca: ['ambos', 3], alienigena: ['ambos', 3], assassino: ['ambos', 3], acidente: ['ambos', 3], adolescente: ['ambos', 3], artes: ['ambos', 3], telepata: ['ambos', 3],
+    tempo: ['ambos', 4], orfao: ['ambos', 4], rico: ['ambos', 4], legado: ['ambos', 4], membro: ['ambos', 4],
+    filho: ['ambos', 5], iniciais: ['ambos', 5],
+    guerrainf: ['tela', 3], xfox: ['tela', 3], aeroporto: ['tela', 4], aranhaverso: ['tela', 5], vilaomorto: ['tela', 5], xdesenho: ['tela', 6], deadwolv: ['tela', 6],
+    defensores: ['hq', 6], illuminati: ['hq', 7], secret84: ['hq', 8], claremont: ['hq', 8], roythomas: ['hq', 9],
   }
   C.forEach((c) => { const f = FICHA[c.id] || ['ambos', 5]; c.ref = f[0]; c.d = f[1] })
 
@@ -141,6 +221,14 @@
   nasTelas('realeza', 'thor loki hela odin black-panther shuri killmonger namor black-bolt valkyrie dormammu hercules')
   nasTelas('guardioes', 'star-lord gamora drax rocket groot mantis nebula adam-warlock',
     ['Já foi Guardião da Galáxia', 'Fez parte dos Guardiões da Galáxia nos filmes.'], ['Has been a Guardian', 'Was on the Guardians of the Galaxy in the movies.'])
+  nasTelas('tempo', 'iron-man captain-america thor hulk black-widow hawkeye ant-man war-machine nebula rocket doctor-strange kang loki cable wolverine deadpool',
+    ['Viajou no tempo', 'Foi pro passado ou pro futuro num filme ou série (o assalto no tempo de Ultimato conta).'], ['Time traveler', 'Went to the past or the future in a movie or series (the Endgame time heist counts).'])
+  nasTelas('orfao', 'spider-man gamora nebula star-lord loki black-widow yelena daredevil iron-fist jessica-jones captain-america',
+    ['Órfão ou criado por outros', 'Num filme ou série, perdeu os pais cedo ou foi criado por outra pessoa.'], ['Orphan or raised by others', 'In a movie or series, lost their parents young or was raised by someone else.'])
+  nasTelas('filho', 'odin thanos ego ant-man hawkeye magneto scarlet-witch vision green-goblin black-panther red-guardian wolverine mister-fantastic invisible-woman iron-man professor-x',
+    ['Tem filho ou filha', 'Num filme ou série. Adotado conta.'], ['Has a child', 'In a movie or series. Adopted counts.'])
+  nasTelas('legado', 'falcon us-agent jane-foster kate-bishop shuri ant-man miles-morales',
+    ['Herdou o nome de outro herói', 'Num filme ou série, usou o título de quem veio antes: Sam virou Capitão América, Kate virou Gavião…'], ['Took another hero’s name', 'In a movie or series, took up a predecessor’s title: Sam became Captain America, Kate became Hawkeye…'])
   nasTelas('mutante', [...C.find((c) => c.id === 'mutante').m, 'ms-marvel'].join(' '),
     ['Mutante', 'É mutante num filme, série ou desenho.'], ['Mutant', 'Is a mutant in a movie, series or cartoon.'])
 

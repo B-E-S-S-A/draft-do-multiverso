@@ -42,7 +42,7 @@
   function difCasa(l, c, n) { return (l.d + c.d) / 2 + (n >= 12 ? -1 : n >= 6 ? 0 : n >= 4 ? 0.7 : 1.4) }
   // o nível (1 a 9) vira a dificuldade média que as casas devem ter, dentro do que cada versão consegue fazer com resposta
   // garantida em toda casa (a versão "só filmes e séries" tem menos tema difícil, então o teto dela é mais baixo)
-  const FAIXA = { hq: [2.0, 5.0], ambos: [2.0, 5.2], tela: [2.0, 4.0] }
+  const FAIXA = { hq: [2.0, 5.0], ambos: [2.0, 5.2], tela: [2.0, 4.4] }
   const alvoCasa = (nivel, versao = 'ambos') => { const [lo, hi] = FAIXA[G().versao(versao)]; return lo + ((nivel - 1) / 8) * (hi - lo) }
   // sorteia n categorias com peso (sem repetir as que já saíram)
   function sorteiaComPeso(pool, n, peso, fora, rnd) {

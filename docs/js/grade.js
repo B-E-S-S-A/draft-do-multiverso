@@ -336,7 +336,7 @@
   }
   el.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-g]')
-    if (!b || b.disabled || !acoes[b.dataset.g] || b.type === 'range') return
+    if (!b || b.disabled || !acoes[b.dataset.g]) return
     acoes[b.dataset.g](b.dataset.v, b)
   })
   el.addEventListener('input', (ev) => {
@@ -345,14 +345,12 @@
     if (ev.target.id === 'gd-meu') { ui.meuNome = ev.target.value.slice(0, 14); guarda('mvd-imp-nome', ui.meuNome) }
     if (ev.target.id === 'gd-codigo') ui.codigo = ev.target.value
     if (ev.target.id === 'gd-busca') { ui.busca = ev.target.value; sugerir() }
-    const g = ev.target.dataset && ev.target.dataset.g
-    if (['L', 'C', 'K'].includes(g)) {
-      // o número da barra acompanha o dedo; a mudança vale quando solta
-      const b = ev.target.closest('.gd-barra')
-      if (b) b.querySelector('b').textContent = ev.target.value
-    }
   })
-  el.addEventListener('change', (ev) => { const g = ev.target.dataset && ev.target.dataset.g; if (['L', 'C', 'K'].includes(g)) acoes[g](ev.target.value) })
+  // as chavinhas: pode roubar, relógio (ligou: 30 s)
+  el.addEventListener('change', (ev) => {
+    if (ev.target.id === 'gd-roubar') acoes.roubar(ev.target.checked ? '1' : '0')
+    if (ev.target.id === 'gd-relogio') acoes.relogio(ev.target.checked ? 30 : 0)
+  })
   el.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Enter') return
     if (ev.target.id === 'gd-codigo') acoes.entrar()

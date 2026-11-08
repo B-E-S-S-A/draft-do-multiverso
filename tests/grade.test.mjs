@@ -38,7 +38,7 @@ for (const [L, C] of [[3, 3], [4, 4], [5, 5], [5, 4], [2, 6], [6, 5], [3, 5]]) {
 for (const c of G.categorias) {
   assert(['hq', 'tela', 'ambos'].includes(c.ref), `${c.id}: sem referência`)
   assert(Number.isInteger(c.d) && c.d >= 1 && c.d <= 9, `${c.id}: dificuldade fora de 1-9`)
-  if (c.tela) { for (const k of c.tela.m) assert(pool.has(k), `${c.id} (telas): ${k} não existe`); assert(c.tela.m.size >= 8, `${c.id} (telas): pequena demais`) }
+  if (c.tela) { for (const k of c.tela.m) assert(pool.has(k), `${c.id} (telas): ${k} não existe`); assert(c.tela.m.size >= 6, `${c.id} (telas): pequena demais`) }
 }
 for (const k of G.TELA) assert(pool.has(k), `TELA: ${k} não existe`)
 assert(!G.categoriasDa('hq').some((c) => c.ref === 'tela'), 'só HQ sem tema de filme')

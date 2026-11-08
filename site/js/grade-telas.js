@@ -53,30 +53,45 @@
     return !n ? '' : Array.isArray(n) ? n[en() ? 1 : 0] : n
   }
 
-  // ---------- opções: tamanho (linhas, colunas, em linha), roubar, relógio ----------
+  // ---------- opções: de onde vêm os temas, dificuldade, tamanho, roubar, relógio (com as mesmas peças dos outros jogos) ----------
+  // as capinhas dos cartões HQ / Filmes / Os dois, como no Draft (sorteadas uma vez por visita)
+  let pilhas = null
+  function pilha(v) {
+    if (!pilhas) {
+      const D = E.D
+      const hq = E.shuffle(D.hq.map((_, i) => 'hq:' + i)).slice(0, 5).map(E.lotOf)
+      const obras = new Set()
+      const filmes = E.shuffle(D.mcu.map((_, i) => 'mcu:' + i)).map(E.lotOf).filter((l) => !D.works[l.w].tv && !obras.has(l.w) && obras.add(l.w)).slice(0, 4)
+      pilhas = { hq: hq.slice(0, 3), tela: filmes.slice(0, 3), ambos: [hq[3], filmes[3], hq[4]] }
+    }
+    return `<span class="stack">${pilhas[v].map(V.card).join('')}</span>`
+  }
   function opcoes(o, pode, attr) {
     const dis = pode ? '' : ' disabled'
-    const modelo = MODELOS.find((m) => m.L === o.L && m.C === o.C && m.K === o.K)
-    const barra = (k, min, max, rot) => `<label class="gd-barra"><span>${rot}</span>
-      <input type="range" min="${min}" max="${max}" step="1" value="${o[k]}" data-${attr}="${k}"${dis}><b data-x="${k}">${o[k]}</b></label>`
-    const maxK = Math.max(o.L, o.C)
-    const tam = `<div class="field"><span class="lbl">${t('Grid', 'Grid')}</span>
-      <div class="presets">${MODELOS.map((m) => `<button class="preset" type="button" data-${attr}="modelo" data-v="${m.id}" aria-pressed="${modelo === m}"${dis}>${t(m.pt, m.en)} <small>${m.L}×${m.C}</small></button>`).join('')}
-        <span class="preset gd-seu${modelo ? '' : ' on'}">${t('Do seu jeito', 'Your way')}</span></div>
-      <div class="gd-barras">${barra('L', 2, 6, t('Linhas', 'Rows'))}${barra('C', 2, 6, t('Colunas', 'Columns'))}${barra('K', 2, maxK, t('Em linha pra ganhar', 'In a row to win'))}</div>
-      <p class="note" data-x="resumo">${resumo(o)}</p></div>`
-    const roubo = `<div class="field"><span class="lbl">${t('Casa do outro', 'Other player’s squares')}</span><div class="presets">
-      <button class="preset" type="button" data-${attr}="roubar" data-v="0" aria-pressed="${!o.roubar}"${dis}>${t('Clássico: não rouba', 'Classic: no stealing')}</button>
-      <button class="preset" type="button" data-${attr}="roubar" data-v="1" aria-pressed="${!!o.roubar}"${dis}>${t('Pode roubar', 'Stealing on')}</button></div>
-      ${o.roubar ? `<p class="note">${t('Pra roubar, diga outro personagem que também vale na casa.', 'To steal, name another character who also fits the square.')}</p>` : ''}</div>`
-    const rel = `<div class="field"><span class="lbl">${t('Relógio por vez', 'Turn clock')}</span><div class="presets">${[0, 30, 60].map((s) =>
-      `<button class="preset" type="button" data-${attr}="relogio" data-v="${s}" aria-pressed="${o.relogio === s}"${dis}>${s ? s + ' s' : t('Sem relógio', 'No clock')}</button>`).join('')}</div></div>`
-    const cartao = (a, v, ativo, x) => `<button class="mode" type="button" data-${attr}="${a}" data-v="${v}" aria-pressed="${ativo}"${dis}><b>${t(x.pt, x.en)}</b><small>${t(x.ps, x.es)}</small></button>`
+    const cartao = (a, v, ativo, x, capas) => `<button class="mode" type="button" data-${attr}="${a}" data-v="${v}" aria-pressed="${ativo}"${dis}>
+      ${capas ? pilha(v) : ''}<b>${t(x.pt, x.en)}</b><small>${t(x.ps, x.es)}</small></button>`
     const ref = `<div class="field"><span class="lbl">${t('De onde vêm os temas', 'Where the topics come from')}</span>
-      <div class="modes">${VERSOES.map((x) => cartao('versao', x.id, versaoDe(o.versao) === x, x)).join('')}</div></div>`
+      <div class="modes">${VERSOES.map((x) => cartao('versao', x.id, versaoDe(o.versao) === x, x, true)).join('')}</div></div>`
     const niv = `<div class="field"><span class="lbl">${t('Dificuldade', 'Difficulty')}</span>
       <div class="modes">${NIVEIS.map((x) => cartao('nivel', x.n, nivelDe(o.nivel) === x, x)).join('')}</div></div>`
-    return ref + niv + tam + roubo + rel
+    // tamanho: os modelos prontos e o − / + de linhas, colunas e quantas em linha (no máximo 30 casas)
+    const modelo = MODELOS.find((m) => m.L === o.L && m.C === o.C && m.K === o.K)
+    const passo = (k, rot, min, max) => `<div class="gd-passo"><span class="lbl">${rot}</span><div class="stepper">
+      <button class="btn paper step" type="button" data-${attr}="${k}" data-v="${o[k] - 1}" aria-label="${rot}: ${o[k] - 1}"${!pode || o[k] <= min ? ' disabled' : ''}>−</button>
+      <b class="imp-n">${o[k]}</b>
+      <button class="btn paper step" type="button" data-${attr}="${k}" data-v="${o[k] + 1}" aria-label="${rot}: ${o[k] + 1}"${!pode || o[k] >= max ? ' disabled' : ''}>+</button></div></div>`
+    const tam = `<div class="field"><span class="lbl">${t('Tamanho do grid', 'Grid size')}</span>
+      <div class="presets">${MODELOS.map((m) => `<button class="preset" type="button" data-${attr}="modelo" data-v="${m.id}" aria-pressed="${modelo === m}"${dis}>${t(m.pt, m.en)} ${m.L}×${m.C}</button>`).join('')}</div>
+      <div class="gd-passos">${passo('L', t('Linhas', 'Rows'), 2, Math.min(6, Math.floor(30 / o.C)))}${passo('C', t('Colunas', 'Columns'), 2, Math.min(6, Math.floor(30 / o.L)))}${passo('K', t('Em linha', 'In a row'), 2, Math.max(o.L, o.C))}</div>
+      <p class="note">${resumo(o)}</p></div>`
+    // roubar e relógio: chavinhas, como nas opções do Impostor
+    const chave = (id, on, txt, sub) => `<label class="switch"><input type="checkbox" id="${id}"${on ? ' checked' : ''}${dis}><span class="knob"></span>
+      <span class="imp-sw"><span>${txt}</span><small>${sub}</small></span></label>`
+    const ops = `<div class="field"><span class="lbl">${t('Opções', 'Options')}</span>
+      ${chave('gd-roubar', o.roubar, t('Pode roubar', 'Stealing'), t('diga outro personagem que vale e tome a casa do outro', 'name another character who fits and take their square'))}
+      ${chave('gd-relogio', !!o.relogio, t('Relógio', 'Clock'), t('tempo pra cada vez', 'a time limit on every turn'))}
+      ${o.relogio ? `<div class="presets">${[30, 60].map((sg) => `<button class="preset" type="button" data-${attr}="relogio" data-v="${sg}" aria-pressed="${o.relogio === sg}"${dis}>${sg} s</button>`).join('')}</div>` : ''}</div>`
+    return ref + niv + tam + ops
   }
   const resumo = (o) => t(`${o.L} linhas × ${o.C} colunas = ${o.L * o.C} casas · ganha quem fizer ${o.K} seguidas`, `${o.L} rows × ${o.C} columns = ${o.L * o.C} squares · first to get ${o.K} in a row wins`)
 

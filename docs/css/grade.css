@@ -20,14 +20,15 @@
 .gd-vs { font-family: var(--display); font-weight: 400; font-size: 24px; color: var(--sun); text-shadow: 2px 2px 0 var(--ink); transform: rotate(-8deg); flex: 0 0 auto }
 .gd-sala li.p1 { --cor: var(--p1) } .gd-sala li.p2 { --cor: var(--p2) }
 .preset small { font-family: var(--label); font-size: 10px; opacity: .7 }
-.gd-seu { cursor: default; opacity: .45; box-shadow: none }
-.gd-seu.on { opacity: 1; background: var(--sun) }
-.gd-barras { display: grid; gap: 6px; margin-top: 10px }
+/* tamanho do grid: três − número + lado a lado */
+.gd-passos { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 12px }
+.gd-passo { display: grid; gap: 4px }
+.gd-passo .stepper { gap: 8px; flex-wrap: nowrap }
+.gd-passo .step { width: 38px; height: 38px; font-size: 28px }
+.gd-passo .imp-n { font-size: 40px; min-width: 1ch }
+.gd .switch + .switch, .gd .switch + .presets { margin-top: 10px }
 .gd-modo { margin: 0; font-family: var(--label); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted) }
 .gd-modo b { color: var(--ink) }
-.gd-barra { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 2ch; align-items: center; gap: 10px; font-size: 14px }
-.gd-barra input { width: 100%; accent-color: var(--banca); height: 26px }
-.gd-barra b { font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1; text-align: right }
 
 /* ---------- placar ---------- */
 .gd-jogo { max-width: 700px; margin: 0 auto; padding-block: 16px 48px; display: grid; gap: 12px }
@@ -177,7 +178,6 @@
   .gd-jog b { font-size: 18px }
   .gd-regras { grid-template-columns: 1fr }
   .gd-regras i { justify-self: center; line-height: .6 }
-  .gd-barra { grid-template-columns: 7.5em minmax(0, 1fr) 2ch; font-size: 13px }
 }
 @media (prefers-reduced-motion: reduce) {
   .gd-casa.nova, .gd-casa.treme, .gd-risco line, .gd-jog.vez .gd-ficha, .gd-aviso, .gd-fim, .gd-ficha-box { animation: none }
