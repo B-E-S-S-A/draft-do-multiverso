@@ -34,6 +34,7 @@
     if (atual === 'aposto') window.Aposto.abrir()
     if (atual === 'grade') window.Grade.abrir()
     if (atual === 'missao') window.Missao.abrir()
+    if (atual !== 'home' && window.Uatu) window.Uatu.momento('abriu-' + atual)
     window.scrollTo(0, 0)
   }
 

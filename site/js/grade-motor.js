@@ -9,7 +9,7 @@
 (function (raiz) {
   const G = () => raiz.GradeDados
   const MIN_RESPOSTAS = 3   // toda casa sorteada tem pelo menos isso de respostas certas (grid pequeno: 4)
-  const SEM_JOGAR = 6       // tantas vezes seguidas sem ninguém pegar casa: acaba e conta as casas
+  const SEM_JOGAR = 10      // tantas vezes seguidas sem ninguém pegar casa: acaba empatado
   const TAM = { min: 2, max: 6, casas: 30 }
 
   const cat = (id) => G().porId[id]
@@ -177,25 +177,27 @@
   const sobra = (J, casa) => { const [l, c] = linCol(J, casa); return respostas(l, c, J.versao).filter((k) => !J.usados.includes(k)) }
   const podeJogar = (J, j) => J.casas.some((_, i) => aberta(J, j, i) && sobra(J, i).length > 0)
   const retaDe = (J, j) => retas(J.L, J.C, J.K).find((r) => r.every((i) => J.casas[i] && J.casas[i].dono === j))
+  // ainda dá pra j fechar alguma sequência? Cada casa da reta tem que ser de j ou dar pra pegar (vazia, ou do outro se pode
+  // roubar) com alguém que ainda vale ali
+  const daPraFechar = (J, j) => retas(J.L, J.C, J.K).some((r) => r.every((i) => (J.casas[i] && J.casas[i].dono === j) || (aberta(J, j, i) && sobra(J, i).length > 0)))
 
   function proximaVez(J) {
     if (J.fase !== 'jogo') return
     J.vez = 1 - J.vez
-    if (J.semJogar >= SEM_JOGAR || (!podeJogar(J, 0) && !podeJogar(J, 1))) terminarPorCasas(J)
+    if (!daPraFechar(J, 0) && !daPraFechar(J, 1)) empatar(J, 'travou')
+    else if (J.semJogar >= SEM_JOGAR || (!podeJogar(J, 0) && !podeJogar(J, 1))) empatar(J, 'parou')
   }
 
-  function terminarPorCasas(J) {
-    const a = contaCasas(J, 0)
-    const b = contaCasas(J, 1)
+  // ninguém fez a sequência: empate (travou = não dá mais pra ninguém fechar; parou = ninguém pegou casa por muito tempo)
+  function empatar(J, motivo) {
     J.fase = 'fim'
-    J.fim = { motivo: 'casas', ganhou: a === b ? -1 : a > b ? 0 : 1, casas: [a, b] }
+    J.fim = { motivo, ganhou: -1, casas: [contaCasas(J, 0), contaCasas(J, 1)] }
   }
 
-  // depois de pegar uma casa: fechou a linha? acabou o grid? senão, próxima vez
+  // depois de pegar uma casa: fechou a linha? senão, próxima vez (que vê se ainda dá pra alguém fechar)
   function depoisDePegar(J, j) {
     const reta = retaDe(J, j)
     if (reta) { J.fase = 'fim'; J.fim = { motivo: 'linha', ganhou: j, reta, casas: [contaCasas(J, 0), contaCasas(J, 1)] }; return }
-    if (!J.roubar && J.casas.every(Boolean)) { terminarPorCasas(J); return }
     proximaVez(J)
   }
 
@@ -261,5 +263,5 @@
     return { casa, key: erradas[Math.floor(rnd() * erradas.length)] }
   }
 
-  raiz.GradeMotor = { medidas, sortearGrade, difCasa, alvoCasa, respostas, retas, novoJogo, jogar, passar, botJogada, linCol, aberta, sobra, podeJogar, contaCasas, vale, MIN_RESPOSTAS, TAM }
+  raiz.GradeMotor = { medidas, sortearGrade, difCasa, alvoCasa, respostas, retas, novoJogo, jogar, passar, botJogada, linCol, aberta, sobra, podeJogar, daPraFechar, contaCasas, vale, MIN_RESPOSTAS, TAM }
 })(typeof window !== 'undefined' ? window : globalThis)

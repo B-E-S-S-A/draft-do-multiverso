@@ -182,7 +182,11 @@
   function estoura(txt) { ui.estouro = txt; clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, 1300) }
   function novidades(a, v) {
     const u = v.ultimo
-    if (!a || a.fase === 'sala' || (a.fase === 'fim' && v.fase === 'jogo')) { ui.casa = -1; ui.busca = ''; ui.revela = -1; ui.visto = u ? u.seq : 0; som('draw'); return }
+    if (!a || a.fase === 'sala' || (a.fase === 'fim' && v.fase === 'jogo')) {
+      ui.casa = -1; ui.busca = ''; ui.revela = -1; ui.visto = u ? u.seq : 0; som('draw')
+      if (v.fase === 'jogo' && !u && window.Uatu) window.Uatu.momento('grade-comeco', { nivel: v.nivel })
+      return
+    }
     if (u && u.seq !== ui.visto) {
       ui.visto = u.seq
       ui.aviso = ''
@@ -190,8 +194,13 @@
         ui.nova = u.casa
         som('sold')
         if (u.roubou >= 0) { estoura(t('ROUBOU!', 'STOLEN!')); if (window.Uatu) window.Uatu.momento('grade-roubo') }
+        else if (window.Uatu) {
+          // acertou uma casa com pouquíssima gente valendo: o Vigia repara
+          const n = M.respostas(v.linhas[Math.floor(u.casa / v.C)], v.colunas[u.casa % v.C], v.versao).length
+          if (n <= 4) window.Uatu.momento('grade-raro', { n, nome: v.js[u.j] ? v.js[u.j].nome : '', personagem: T.nome(u.key) })
+        }
       }
-      else if (u.passou) som('tick')
+      else if (u.passou) { som('tick'); if (u.tempo && window.Uatu) window.Uatu.momento('grade-tempo') }
       else { ui.treme = u.casa; som('undo'); if (window.Uatu) window.Uatu.momento('grade-erro') }
       clearTimeout(ui._n)
       ui._n = setTimeout(() => { ui.nova = -1; ui.treme = -1; render() }, 900)
@@ -203,7 +212,7 @@
       ui.casa = -1
       setTimeout(() => som('win'), 350)
       if (v.fim.motivo === 'linha') estoura(t('LINHA!', 'LINE!'))
-      if (window.Uatu) window.Uatu.momento(v.fim.ganhou >= 0 ? 'grade-fim' : 'grade-empate', { nome: v.fim.ganhou >= 0 ? v.js[v.fim.ganhou].nome : '' })
+      if (window.Uatu) window.Uatu.momento(v.fim.ganhou >= 0 ? 'grade-fim' : v.fim.motivo === 'travou' ? 'grade-travou' : 'grade-empate', { nome: v.fim.ganhou >= 0 ? v.js[v.fim.ganhou].nome : '' })
     }
   }
 

@@ -51,7 +51,7 @@ for (const versao of ['hq', 'ambos', 'tela']) {
   const temas = new Set(G.categoriasDa(versao).map((c) => c.id))
   const gente = new Set(G.poolDa(versao))
   const dif = {}
-  for (const nivel of [1, 5, 9]) {
+  for (const nivel of [2, 6, 9]) {
     dif[nivel] = 0
     for (const [L, C] of [[3, 3], [4, 4], [5, 5], [6, 5]]) {
       for (let g = 0; g < 2; g++) {
@@ -67,7 +67,8 @@ for (const versao of ['hq', 'ambos', 'tela']) {
       }
     }
   }
-  assert(dif[1] < dif[5] && dif[5] < dif[9], `${versao}: o nível não deixa mais difícil (${dif[1].toFixed(1)} ${dif[5].toFixed(1)} ${dif[9].toFixed(1)})`)
+  // Fácil, Médio e Difícil: o Médio bem acima do Fácil, e o Difícil nunca mais fácil que o Médio
+  assert(dif[2] + 0.8 < dif[6] && dif[6] < dif[9] + 0.3, `${versao}: o nível não deixa mais difícil (${dif[2].toFixed(1)} ${dif[6].toFixed(1)} ${dif[9].toFixed(1)})`)
 }
 // no "só filmes e séries", quem nunca apareceu nas telas não vale
 {
@@ -119,6 +120,21 @@ assert.strictEqual(M.retas(5, 4, 4).length, 5 * 1 + 4 * 2 + 2 * 2)
   assert.deepStrictEqual(J.fim.reta, [4, 5, 6, 7])
 }
 
+// quando não dá mais pra ninguém fechar a sequência, acaba empatado na hora (mesmo com casa vazia sobrando)
+{
+  const J = M.novoJogo({ N: 3, jogadores: [{ nome: 'a' }, { nome: 'b' }], comeca: 0 })
+  // A B A / A B B / B . .  → só a última linha ainda dá pro B (precisa das casas 7 e 8)
+  const dono = [0, 1, 0, 0, 1, 1, 1]
+  dono.forEach((d, i) => { J.casas[i] = { dono: d, key: 'x' + i } })
+  assert(M.daPraFechar(J, 1) && !M.daPraFechar(J, 0))
+  const [l7, c7] = M.linCol(J, 7)
+  const r = M.jogar(J, 0, 7, M.respostas(l7, c7).find((k) => !J.usados.includes(k)))
+  assert(r.ok)
+  assert.strictEqual(J.fase, 'fim', 'travou: acabou')
+  assert.strictEqual(J.fim.ganhou, -1, 'travou: empate')
+  assert.strictEqual(J.fim.motivo, 'travou')
+}
+
 // partidas inteiras de bot contra bot, nos dois modos e nos três tamanhos
 let linha = 0, casas = 0, empate = 0, roubos = 0
 for (const roubar of [false, true]) {
@@ -136,9 +152,10 @@ for (const roubar of [false, true]) {
       assert.strictEqual(J.fase, 'fim', `partida ${L}x${C} (roubar ${roubar}) terminou`)
       if (J.fim.motivo === 'linha') linha++
       else if (J.fim.ganhou < 0) empate++
-      else casas++
+      else casas++ // (não acontece mais: sem linha é sempre empate)
     }
   }
 }
 assert(roubos > 0, 'com "pode roubar" os bots roubam')
-console.log(`ok · ${G.categorias.length} categorias · 144 partidas de bots · linha ${linha} · nas casas ${casas} · empate ${empate} · roubos ${roubos}`)
+assert.strictEqual(casas, 0, 'sem linha, sempre empate')
+console.log(`ok · ${G.categorias.length} categorias · 144 partidas de bots · linha ${linha} · empate ${empate} · roubos ${roubos}`)

@@ -100,11 +100,11 @@
       <li>Cada linha e cada coluna do grid tem uma categoria: "Fase 4 do MCU", "Tem irmão ou irmã", "Usa capa"…</li>
       <li>Na sua vez, escolha uma casa e diga um personagem que vale <b>nas duas</b>. É só começar a digitar que os nomes aparecem.</li>
       <li>Acertou: a casa é sua, com a capa do personagem. Errou: passa a vez. Cada personagem só vale uma vez.</li>
-      <li>Faça a sequência (de lado, de cima pra baixo ou na diagonal) e ganhe. Se ninguém fizer, ganha quem tiver mais casas.</li>`, `
+      <li>Faça a sequência (de lado, de cima pra baixo ou na diagonal) e ganhe. Se não der mais pra ninguém fazer, é empate.</li>`, `
       <li>Every row and every column of the grid has a category: "MCU Phase 4", "Has a sibling", "Wears a cape"…</li>
       <li>On your turn, pick a square and name a character who fits <b>both</b>. Start typing and names show up.</li>
       <li>Right: the square is yours, with the character’s cover. Wrong: you lose the turn. Each character only counts once.</li>
-      <li>Get the run (across, down or diagonal) to win. If nobody does, whoever has the most squares wins.</li>`)}
+      <li>Get the run (across, down or diagonal) to win. If nobody can make it anymore, it is a draw.</li>`)}
     </ol>`
   }
 
@@ -267,10 +267,10 @@
   function final(v, ui) {
     if (v.fase !== 'fim') return ''
     const F = v.fim
-    const titulo = F.ganhou < 0 ? t('EMPATE!', 'TIE!') : F.motivo === 'linha' ? t('LINHA!', 'LINE!') : t('FIM!', 'GAME OVER!')
-    const txt = F.ganhou < 0 ? t(`Ninguém fez a sequência e deu ${F.casas[0]} a ${F.casas[1]} nas casas.`, `Nobody got the run and it was ${F.casas[0]} to ${F.casas[1]} in squares.`)
-      : F.motivo === 'linha' ? t(`${esc(nomeJ(v, F.ganhou))} fez ${v.K} seguidas e ganhou!`, `${esc(nomeJ(v, F.ganhou))} got ${v.K} in a row and won!`)
-        : t(`Ninguém fez a sequência. ${esc(nomeJ(v, F.ganhou))} ganhou nas casas: ${F.casas[F.ganhou]} a ${F.casas[1 - F.ganhou]}.`, `Nobody got the run. ${esc(nomeJ(v, F.ganhou))} won on squares: ${F.casas[F.ganhou]} to ${F.casas[1 - F.ganhou]}.`)
+    const titulo = F.ganhou < 0 ? t('EMPATE!', 'DRAW!') : t('LINHA!', 'LINE!')
+    const txt = F.ganhou >= 0 ? t(`${esc(nomeJ(v, F.ganhou))} fez ${v.K} seguidas e ganhou!`, `${esc(nomeJ(v, F.ganhou))} got ${v.K} in a row and won!`)
+      : F.motivo === 'parou' ? t(`Ninguém pegou casa por 10 vezes seguidas. Ficou empatado.`, `Nobody took a square for 10 turns in a row. It is a draw.`)
+        : t(`Não dá mais pra ninguém fazer ${v.K} seguidas. Ficou empatado.`, `Nobody can get ${v.K} in a row anymore. It is a draw.`)
     return `<div class="gd-fim ${F.ganhou >= 0 ? COR[F.ganhou] : 'empate'}"><b class="gd-carimbo">${titulo}</b><p>${txt}</p>
       <p class="note">${t('Toque numa casa pra ver quem valia ali.', 'Tap a square to see who fit there.')}</p>
       ${ui.revela >= 0 ? revelar(v, ui.revela) : ''}
