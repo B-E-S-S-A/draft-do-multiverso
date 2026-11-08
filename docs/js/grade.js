@@ -25,9 +25,9 @@
   })()
 
   const GD = window.GradeDados
-  // dificuldade: Fácil, Médio ou Difícil (por dentro, os níveis 2, 5 e 8 do motor). Quem guardou um nível de 1 a 9 cai na faixa dele.
-  const nivelOk = (n) => [2, 5, 8].includes(n)
-  const faixaDe = (n) => (Number.isInteger(n) && n >= 1 && n <= 9 ? [2, 5, 8][Math.ceil(n / 3) - 1] : 2)
+  // dificuldade: Fácil, Médio ou Difícil (por dentro, os níveis 2, 6 e 9 do motor). Quem guardou um nível de 1 a 9 cai na faixa dele.
+  const nivelOk = (n) => [2, 6, 9].includes(n)
+  const faixaDe = (n) => (Number.isInteger(n) && n >= 1 && n <= 9 ? [2, 6, 9][Math.ceil(n / 3) - 1] : 2)
   const salvo = (() => { try { return JSON.parse(localStorage.getItem('mvd-grade') || '{}') } catch (e) { return {} } })()
   // o tamanho guardado (ou o Clássico: 4 linhas x 4 colunas, 4 seguidas; quem tinha o Clássico antigo, 5x4, passa pro novo)
   const antigo = salvo.L === 5 && salvo.C === 4 && salvo.K === 4

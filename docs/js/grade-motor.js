@@ -4,7 +4,7 @@
 // Cada personagem só vale uma vez. Ganha quem fechar K casas seguidas (de lado, de cima pra baixo ou na diagonal).
 // Se ninguém conseguir, ganha quem tiver mais casas. Com "pode roubar", dá pra tomar a casa do outro dizendo outro
 // personagem que também vale ali.
-// Versões: 'hq' (temas de quadrinhos), 'tela' (só filmes e séries) ou 'ambos'. Nível de 1 a 9 (Fácil 1 até Difícil 3):
+// Versões: 'hq' (temas de quadrinhos), 'tela' (só filmes e séries) ou 'ambos'. Nível de 1 a 9 (Fácil = 2, Médio = 6, Difícil = 9):
 // o grid sai quase todo no nível escolhido, com algumas casas um pouco mais difíceis, pra nenhuma linha ficar fácil demais.
 (function (raiz) {
   const G = () => raiz.GradeDados
@@ -38,8 +38,11 @@
   }
 
   // ---------- o sorteio do grid, por versão e nível ----------
-  // a dificuldade de uma casa: a média das duas categorias, mais fácil quando muita gente vale ali e mais difícil quando pouca
-  function difCasa(l, c, n) { return (l.d + c.d) / 2 + (n >= 12 ? -1 : n >= 6 ? 0 : n >= 4 ? 0.7 : 1.4) }
+  // a dificuldade de uma casa: a média das duas categorias, e pesa muito quanta gente vale ali (com 40 respostas qualquer
+  // chute acerta; com 4, tem que saber). 8 respostas não muda nada; cada vez que dobra fica bem mais fácil, e vice-versa.
+  function difCasa(l, c, n) { return (l.d + c.d) / 2 + 1.3 * (3 - Math.log2(Math.max(1, n))) }
+  // no Médio e no Difícil, nenhuma casa pode ter gente demais valendo (do nível 4 em diante: 11, 10, 8, 7, 6, 5 respostas no máximo)
+  const maxRespostas = (nivel) => (nivel <= 3 ? Infinity : Math.max(5, Math.round(15 - nivel * 1.1)))
   // o nível (1 a 9) vira a dificuldade média que as casas devem ter, dentro do que cada versão consegue fazer com resposta
   // garantida em toda casa (a versão "só filmes e séries" tem menos tema difícil, então o teto dela é mais baixo)
   const FAIXA = { hq: [2.0, 5.0], ambos: [2.0, 5.2], tela: [2.0, 4.4] }
@@ -67,6 +70,7 @@
   }
   // L linhas x C colunas. Regras, da mais importante pra menos:
   //  1. toda casa com respostas suficientes (4 em grid de até 20 casas, 3 nos maiores);
+  //  1b. no Médio e no Difícil, nenhuma casa com gente demais valendo;
   //  2. nenhuma linha nem coluna toda fácil: em cada uma pelo menos uma casa um pouco acima do nível;
   //  3. nenhuma casa absurda pro nível;
   //  4. a dificuldade média das casas perto do nível.
@@ -79,6 +83,7 @@
     const alvo = opcoes.alvo || alvoCasa(nivel, versao)
     const pool = G().categoriasDa(versao)
     const quer = MIN_RESPOSTAS + (L * C <= 20 ? 1 : 0)
+    const teto = maxRespostas(nivel)
     const melhorQue = (a, b) => { for (let k = 0; k < a.length; k++) { if (a[k] !== b[k]) return a[k] < b[k] } return false }
     // grupos repetidos no mesmo lado tudo bem; o que não pode é linha x coluna do mesmo grupo
     const cruzaGrupo = (linhas, colunas) => linhas.some((l) => colunas.some((c) => l.grupo === c.grupo))
@@ -87,9 +92,11 @@
       let pior = Infinity
       let soma = 0
       let absurdas = 0
+      let demais = 0
       const difs = linhas.map((l) => colunas.map((c) => {
         const n = respostas(l.id, c.id, versao).length
         pior = Math.min(pior, n)
+        if (n > teto) demais++
         const d = difCasa(l, c, n)
         soma += d
         if (d > alvo + 3) absurdas++
@@ -97,9 +104,9 @@
       }))
       const desafio = alvo + 0.7
       const facil = difs.filter((linha) => !linha.some((d) => d >= desafio)).length + colunas.filter((_, k) => !difs.some((linha) => linha[k] >= desafio)).length
-      return [Math.max(0, quer - pior), facil, absurdas, Math.round(Math.abs(soma / (L * C) - alvo) * 10)]
+      return [Math.max(0, quer - pior), demais, facil, absurdas, Math.round(Math.abs(soma / (L * C) - alvo) * 10)]
     }
-    const pronto = (n) => !n[0] && !n[1] && !n[2] && n[3] <= 2
+    const pronto = (n) => !n[0] && !n[1] && !n[2] && !n[3] && n[4] <= 2
     let melhor = null
     const guarda = (linhas, colunas, n) => { if (!melhor || melhorQue(n, melhor.nota)) melhor = { nota: n, linhas, colunas } }
     for (let t = 0; t < 1200 && !(melhor && pronto(melhor.nota)); t++) {

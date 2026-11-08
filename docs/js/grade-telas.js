@@ -21,12 +21,12 @@
     { id: 'ambos', pt: 'Os dois', en: 'Both', ps: 'tudo misturado', es: 'everything mixed' },
   ]
   const versaoDe = (id) => VERSOES.find((x) => x.id === id) || VERSOES[2]
-  // Fácil, Médio e Difícil. Por dentro, cada um é o meio dos seus subníveis 1-2-3 (nível 2, 5 e 8 de 9): o grid sai com
-  // temas dos três subníveis e algumas casas da faixa de cima, pra nenhuma linha sair de graça
+  // Fácil, Médio e Difícil. Por dentro viram os níveis 2, 6 e 9 do motor (de 1 a 9): o grid mistura temas de vários
+  // subníveis, com algumas casas mais difíceis pra nenhuma linha sair de graça, e no Médio e no Difícil nenhuma casa tem gente demais
   const NIVEIS = [
     { n: 2, pt: 'Fácil', en: 'Easy', ps: 'temas conhecidos', es: 'well-known topics' },
-    { n: 5, pt: 'Médio', en: 'Medium', ps: 'pra fã', es: 'for fans' },
-    { n: 8, pt: 'Difícil', en: 'Hard', ps: 'pra quem sabe tudo', es: 'for know-it-alls' },
+    { n: 6, pt: 'Médio', en: 'Medium', ps: 'pra fã', es: 'for fans' },
+    { n: 9, pt: 'Difícil', en: 'Hard', ps: 'pra quem sabe tudo', es: 'for know-it-alls' },
   ]
   const nivelDe = (n) => NIVEIS[Math.min(2, Math.max(0, Math.ceil((n || 2) / 3) - 1))]
   const nomeNivel = (n) => t(nivelDe(n).pt, nivelDe(n).en)
