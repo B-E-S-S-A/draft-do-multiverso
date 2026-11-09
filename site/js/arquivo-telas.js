@@ -20,6 +20,7 @@
   // o que cada pista diz, na língua de quem olha: [frase, explicação]
   function textoPista(p, versao) {
     if (p.t === 'tema') { const c = GD().porId[p.id]; return GD().textos(c, versao)[en() ? 'en' : 'pt'] }
+    if (p.t === 'fato') return [en() ? p.en : p.pt, '']
     if (p.t === 'iniciais') return [t(`Nome verdadeiro: ${p.v}`, `Real name: ${p.v}`), t('As iniciais do nome de verdade.', 'The initials of their real name.')]
     if (p.t === 'tamanho') return [t(`O nome tem ${p.pt} letras`, `The name has ${p.en} letters`), '']
     return [t(`O nome começa com ${p.pt}`, `The name starts with ${p.en}`), '']
@@ -61,6 +62,7 @@
         <div class="ap-coluna">
           <div class="panel"><h2>${t('Como jogar', 'How to play')}</h2>${como()}</div>
           <div class="panel"><h2>${t('Cada um no seu celular', 'Each on their own phone')}</h2>
+            <button class="btn green fila-btn" type="button" data-fila="arquivo">${t('Procurar partida', 'Find a match')}</button>
             <label class="imp-meu-nome"><span class="lbl">${t('Seu nome', 'Your name')}</span><input id="aq-meu" maxlength="14" autocomplete="off" value="${esc(ui.meuNome)}"></label>
             <div class="online-row"><button class="btn green" type="button" data-q="criar">${t('Criar sala', 'Create room')}</button>
               <input id="aq-codigo" maxlength="4" autocomplete="off" placeholder="${t('CÓDIGO', 'CODE')}" value="${esc(ui.codigo)}">

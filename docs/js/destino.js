@@ -73,6 +73,18 @@
     ui.res = M.registrar(e.dias, M.dataDo(st.i), st.tipo, M.pontosDe(st))
     if (!ui.res) return
     salvar()
+    const C = window.Conquistas
+    if (C) {
+      C.marca('desafios')
+      C.maximo('seq', ui.res.seq)
+      if (new Date(Date.now() - 3 * 3600000).getUTCHours() < 5) C.liga('coruja')
+      if (st.tipo === 'ficha' && st.acertou && st.pista === 0) C.liga('ficha1')
+      if (st.tipo === 'grade' && st.casas.every(Boolean) && st.vidas === M.VIDAS) C.liga('perfeito')
+      if (ui.res.patente.proxima === null) C.liga('ddPatente')
+      if (st.i === M.TOTAL - 1 && st.acertou) C.liga('ddUltimo')
+      const d = M.dataDo(st.i)
+      if (d >= '2026-12-10' && d <= '2026-12-16') C.marca('ddResiste')
+    }
     setTimeout(() => som(ui.res && ui.res.pontos > 0 ? 'win' : 'undo'), 150)
     const U = window.Uatu
     if (U && ui.res.subiu) U.momento('destino-patente', { patente: T.nomePatente(ui.res.patente) })
@@ -94,6 +106,12 @@
     // qualquer opção de botão da carteirinha (tema, moldura, filtro…)
     op: (v, b) => { ui.cartao[b.dataset.k] = v || ''; render() },
     parc: (k) => { ui.cartao.parceiro = k || ''; ui.buscaP = ''; render() },
+    medalha: (v) => {
+      const lista = ui.cartao.medalhas
+      if (lista.includes(v)) ui.cartao.medalhas = lista.filter((x) => x !== v)
+      else if (lista.length < K.MAX_MEDALHAS) ui.cartao.medalhas = [...lista, v]
+      render()
+    },
     selo: (v) => {
       const lista = ui.cartao.selos
       if (lista.includes(v)) ui.cartao.selos = lista.filter((x) => x !== v)

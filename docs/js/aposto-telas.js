@@ -74,6 +74,7 @@
         <div class="ap-coluna">
           <div class="panel"><h2>${t('Como jogar', 'How to play')}</h2>${como(ui)}</div>
           <div class="panel"><h2>${t('Cada um no seu celular', 'Each on their own phone')}</h2>
+            <button class="btn green fila-btn" type="button" data-fila="aposto">${t('Procurar partida', 'Find a match')}</button>
             <label class="imp-meu-nome"><span class="lbl">${t('Seu nome', 'Your name')}</span><input id="ap-meu" maxlength="14" autocomplete="off" value="${esc(ui.meuNome)}"></label>
             <div class="online-row"><button class="btn green" type="button" data-a="criar">${t('Criar sala', 'Create room')}</button>
               <input id="ap-codigo" maxlength="4" autocomplete="off" placeholder="${t('CÓDIGO', 'CODE')}" value="${esc(ui.codigo)}">

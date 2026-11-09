@@ -64,7 +64,7 @@
     sala.aoStatus = (st) => {
       if (st.status === 'off') { if (m.H && !m.H.local) { clearInterval(m.H.laco); m.H = null } if (!m.H) m.vis = null; m.erro = st.erro ? (ERROS[st.erro] || ERROS.caiu)() : ''; m.status = '' }
       if (st.status === 'creating' || st.status === 'joining') m.status = t('Conectando…', 'Connecting…')
-      if (st.status === 'hosting' && m.H) { m.status = ''; enviarTudo() }
+      if (st.status === 'hosting' && m.H) { m.status = ''; enviarTudo(); if (m.H.aoCodigo) { const f = m.H.aoCodigo; m.H.aoCodigo = null; f(st.code) } }
       if (st.status === 'connected') { m.status = ''; sala.enviar({ type: 'oi', id: MEU_ID, nome: m.meuNome }) }
       o.aoMudar()
     }
@@ -91,6 +91,7 @@
         Object.assign(p, { conn: de, on: true, nome: String(msg.nome || '').trim().slice(0, 14) || p.nome || t('Jogador', 'Player') + ' ' + H.pessoas.length })
         if (H.J && o.aoVoltar) o.aoVoltar(p, H)
         enviarTudo()
+        if (H.auto && !H.J && o.autoComecar) o.autoComecar(H) // veio da fila: começa sozinho quando a outra pessoa chega
         return
       }
       const p = H.pessoas.find((x) => x.conn === de)

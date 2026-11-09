@@ -126,7 +126,7 @@
   sala.aoStatus = (st) => {
     if (st.status === 'off') { if (H && !H.local) { clearInterval(H.laco); H = null } if (!H) vis = null; ui.erro = st.erro ? (ERROS[st.erro] || ERROS.caiu)() : ''; ui.status = '' }
     if (st.status === 'creating' || st.status === 'joining') ui.status = t('Conectando…', 'Connecting…')
-    if (st.status === 'hosting' && H) { ui.status = ''; enviarTudo() }
+    if (st.status === 'hosting' && H) { ui.status = ''; enviarTudo(); if (H.aoCodigo) { const f = H.aoCodigo; H.aoCodigo = null; f(st.code) } }
     if (st.status === 'connected') sala.enviar({ type: 'oi', id: MEU_ID, nome: ui.meuNome })
     render()
   }
@@ -154,6 +154,7 @@
       if (H.J && p.j >= 0 && H.J.js[p.j]) H.J.js[p.j].bot = false // voltou: o bot devolve a vez
       H.sig = ''
       enviarTudo()
+      if (H.auto && !H.J && H.pessoas.filter((x) => x.on).length >= 2) comecar() // veio da fila: começa sozinho
       return
     }
     const p = H.pessoas.find((x) => x.conn === de)
@@ -212,6 +213,7 @@
       ui.casa = -1
       setTimeout(() => som('win'), 350)
       if (v.fim.motivo === 'linha') estoura(t('LINHA!', 'LINE!'))
+      if (!v.local && v.fim.ganhou === v.eu && window.Conquistas) window.Conquistas.vitoria('grade')
       if (window.Uatu) window.Uatu.momento(v.fim.ganhou >= 0 ? 'grade-fim' : v.fim.motivo === 'travou' ? 'grade-travou' : 'grade-empate', { nome: v.fim.ganhou >= 0 ? v.js[v.fim.ganhou].nome : '' })
     }
   }
@@ -378,5 +380,16 @@
     esconder() { document.body.classList.remove('gd-foco') },
     abrir() { ui.meuNome = guarda('mvd-imp-nome') || ui.meuNome; render() },
     entrar(code) { ui.codigo = code; sala.entrar(code) },
+    // partida aleatória: sempre no formato clássico, com relógio, pra ninguém ficar preso esperando
+    partida: {
+      criar(nome, aoCodigo) {
+        ui.meuNome = nome
+        novoHost(false, [{ id: MEU_ID, conn: null, nome, on: true }])
+        Object.assign(H, { L: 4, C: 4, K: 4, roubar: false, relogio: 30, versao: 'ambos', nivel: 6, auto: true, aoCodigo })
+        ui.erro = ''
+        sala.criar()
+      },
+      entrar(code, nome) { ui.meuNome = nome; ui.codigo = code; sala.entrar(code) },
+    },
   }
 })()

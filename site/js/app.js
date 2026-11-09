@@ -63,7 +63,7 @@
   let shown = null
   function render() {
     if (shown !== S.screen) {
-      if (shown === 'auction' && S.screen === 'result') if (window.Uatu) window.Uatu.momento('draft-fim')
+      if (shown === 'auction' && S.screen === 'result') { if (window.Uatu) window.Uatu.momento('draft-fim'); if (S.me != null && window.Conquistas) window.Conquistas.marca('draft') }
       shown = S.screen
       document.body.dataset.screen = S.screen
       app.innerHTML = S.screen === 'setup' ? V.setup(S) : S.screen === 'auction' ? V.auction(S) : V.result(S)
@@ -465,7 +465,10 @@
   } })
   setInterval(() => chat.mostrar(!!S.net && S.net.status === 'connected' && document.body.dataset.jogo === 'draft'), 500)
 
+  let autoFila = null // veio da fila: avisa o código e começa sozinho quando a outra pessoa chega
   Net.on('status', (n) => {
+    if (autoFila && n.status === 'hosting' && autoFila.aoCodigo) { const f = autoFila.aoCodigo; autoFila.aoCodigo = null; f(n.code) }
+    if (autoFila && n.status === 'connected' && n.role === 'host') { autoFila = null; setTimeout(() => dispatch('start'), 900) }
     const wasGuest = S.me === 1
     S.ask = null
     S.net = { status: n.status, code: n.code, error: n.error }
@@ -585,6 +588,10 @@
   // usado pela tela inicial: link de convite (#sala-XXXX) e botão "Jogar online"
   window.Draft = {
     entrarSala(code) { irParaSala(); dispatch('net-join', { code }) },
+    partida: {
+      criar(nome, aoCodigo) { autoFila = { aoCodigo }; irParaSala(); apagarJogo(); commit(); Net.host() },
+      entrar(code) { irParaSala(); dispatch('net-join', { code }) },
+    },
     irParaSala,
   }
 

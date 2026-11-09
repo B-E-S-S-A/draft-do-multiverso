@@ -39,6 +39,7 @@
     if (atual === 'lab') window.Lab.abrir()
     if (atual === 'destino') window.Destino.abrir()
     if (atual === 'missao') window.Missao.abrir()
+    if (atual === 'home' && window.Fila) window.Fila.sairDaPartida()
     if (atual !== 'home' && window.Uatu) window.Uatu.momento('abriu-' + atual)
     if (window.Retorno) window.Retorno.visita(atual)
     window.scrollTo(0, 0)
@@ -72,6 +73,8 @@
     const online = (ir) => `<button class="btn green" type="button" data-ir="${ir}">${t('Jogar online', 'Play online')}</button>`
     telas.home.innerHTML = `<section class="home">
       ${window.Doomsday ? window.Doomsday.banner() : ''}
+      <section class="panel fila-home"><div><h2>${t('Jogar com alguém agora', 'Play with someone now')}</h2><p>${t('A gente acha uma pessoa aleatória e sorteia o jogo.', 'We find a random person and pick the game.')}</p></div>
+        <button class="btn big green" type="button" data-fila="todos">${t('Procurar partida', 'Find a match')}</button></section>
       ${jogo(leque(v.draft), t('Draft do Multiverso', 'Multiverse Draft'),
         t('Leilão pra 2 jogadores. Cada um começa com R$20, dá lances nos personagens que aparecem e monta o time mais forte.',
           'An auction for 2 players. Each starts with R$20, bids on the characters that show up and builds the strongest team.'),

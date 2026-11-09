@@ -241,7 +241,7 @@
     if (ev.target.closest && ev.target.closest('input, textarea')) return
     if (ev.key.length !== 1) return
     digitado = (digitado + ev.key.toLowerCase()).slice(-7)
-    if (/(uatu|vigia|watcher)$/.test(digitado)) { digitado = ''; falar(t('Você me chamou? Eu estava aqui o tempo todo.', 'You called? I was here all along.')) }
+    if (/(uatu|vigia|watcher)$/.test(digitado)) { digitado = ''; falar(t('Você me chamou? Eu estava aqui o tempo todo.', 'You called? I was here all along.')); if (window.Conquistas) window.Conquistas.liga('uatu') }
   })
 
   // trocou a língua: às vezes ele comenta

@@ -78,14 +78,14 @@
       return { ...base, meu: quem >= 0 ? { heroi: [...J.js[quem].heroi], pers: M.daVez(J, quem), n: M.colocados(J, quem) } : null }
     }
     if (J.fase === 'fim') {
-      return { ...base, campeao: { heroi: [...J.js[J.campeao].heroi], donoNome: J.js[J.campeao].nome },
+      return { ...base, campeaoJ: J.campeao, campeao: { heroi: [...J.js[J.campeao].heroi], donoNome: J.js[J.campeao].nome },
         historia: J.historia.map((d) => ({ ganhou: J.js[d.ganhou].nome, perdeu: J.js[d.ganhou === d.a ? d.b : d.a].nome, placar: [...d.placar].sort((x, y) => y - x), desempate: d.desempate, vivos: d.vivos })) }
     }
     const d = J.duelo
     const ultimo = !J.fila.length && J.proxima.length === 0
     const dados = { ...base, duelo: { a: [...J.js[d.a].heroi], b: [...J.js[d.b].heroi], vivos: J.vivos, nDuelo: J.nDuelo, total: J.totalRodada, ultimo },
       podeVotar: eu >= 0 && M.podeVotar(J, eu), meu: { noDuelo: !H.local && (p.j === d.a || p.j === d.b) } }
-    if (J.fase === 'resultado') dados.resultado = { ganhou: d.ganhou === d.a ? 'a' : 'b', placar: d.placar, desempate: d.desempate, donos: [J.js[d.a].nome, J.js[d.b].nome] }
+    if (J.fase === 'resultado') dados.resultado = { ganhouJ: d.ganhou, ganhou: d.ganhou === d.a ? 'a' : 'b', placar: d.placar, desempate: d.desempate, donos: [J.js[d.a].nome, J.js[d.b].nome] }
     return dados
   }
 
@@ -125,10 +125,12 @@
     if (v.fase === 'resultado' && (!a || a.fase !== 'resultado')) {
       som('sold')
       if (v.resultado.desempate) abrirVigia(v)
+      if (v.resultado.desempate && !v.local && v.resultado.ganhouJ === v.eu && window.Conquistas) window.Conquistas.liga('labvigia')
     }
     if (v.fase === 'fim' && (!a || a.fase !== 'fim')) {
       setTimeout(() => som('win'), 200)
       if (U) U.momento('lab-campeao', { nome: v.campeao.donoNome })
+      if (!v.local && v.campeaoJ === v.eu && window.Conquistas) window.Conquistas.vitoria('lab')
     }
   }
 

@@ -27,19 +27,21 @@
 
   const temasDe = (key, versao) => G().categoriasDa(versao).filter((c) => G().membros(c, versao).has(key))
   const gruposDe = (key, versao) => new Set(temasDe(key, versao).map((c) => c.grupo)).size
-  // os mais conhecidos têm mais temas (o desafio do dia só usa esses)
-  const conhecido = (key) => gruposDe(key, 'ambos') >= 8
-  // só entra quem tem tema suficiente pra montar a ficha
-  const candidatos = (versao) => G().poolDa(versao).filter((k) => gruposDe(k, versao) >= 4)
+  // as pistas de fã que valem nessa versão (só entra no jogo quem tem pelo menos uma)
+  const REFS = { hq: ['hq', 'ambos'], tela: ['tela', 'ambos'], ambos: ['hq', 'tela', 'ambos'] }
+  const fatosDe = (key, versao) => ((raiz.ArquivoFatos || {})[key] || []).filter((f) => REFS[versao].includes(f[0]))
+  // o desafio do dia só usa quem tem bastante pista
+  const conhecido = (key) => fatosDe(key, 'ambos').length >= 2
+  const candidatos = (versao) => G().poolDa(versao).filter((k) => gruposDe(k, versao) >= 3 && fatosDe(k, versao).length >= 1)
 
-  // as pistas de um personagem: temas de grupos diferentes, do mais amplo pro mais específico, escolhidos pra sobrar pouca
-  // gente possível no fim; depois as iniciais do nome verdadeiro (se tiver) e a primeira letra do nome
+  // as pistas de um personagem, sempre 6: dois temas amplos, um detalhe de fã, um tema mais fechado, outro detalhe de fã e a
+  // primeira letra do nome. Os temas sozinhos não bastam, e os detalhes dão por onde pensar sem entregar de cara.
   function montarPistas(key, versao, rnd = Math.random) {
     const pool = G().poolDa(versao)
     const tam = (c) => pool.filter((k) => G().membros(c, versao).has(k)).length
     const temas = temasDe(key, versao)
     const ini = iniciais(key, versao)
-    const qtd = ini ? 4 : 5
+    const qtd = 3
     let melhor = null
     for (let t = 0; t < 120; t++) {
       const grupos = new Set()
@@ -50,7 +52,7 @@
         escolha.push(c)
         if (escolha.length === qtd) break
       }
-      if (escolha.length < 4) continue
+      if (escolha.length < qtd) continue
       escolha.sort((a, b) => tam(b) - tam(a))
       let resta = pool
       const sobra = escolha.map((c) => (resta = resta.filter((k) => G().membros(c, versao).has(k))).length)
@@ -58,13 +60,12 @@
       const nota = sobra[sobra.length - 1] + (sobra[0] < 12 ? 20 : 0) + (sobra[1] < 5 ? 10 : 0) + rnd()
       if (!melhor || nota < melhor.nota) melhor = { nota, escolha }
     }
-    const pistas = melhor.escolha.map((c) => ({ t: 'tema', id: c.id }))
-    if (ini) pistas.push({ t: 'iniciais', v: ini })
+    const [t1, t2, t3] = melhor.escolha.map((c) => ({ t: 'tema', id: c.id }))
     const n = nomes(key)
-    // sempre 6 pistas: faltando uma (poucos temas e sem iniciais), entra o tamanho do nome
-    if (pistas.length < PONTOS.length - 1) pistas.push({ t: 'tamanho', pt: tamanho(n.pt), en: tamanho(n.en) })
-    pistas.push({ t: 'letra', pt: letra(n.pt), en: letra(n.en) })
-    return pistas
+    const fatos = embaralha(fatosDe(key, versao), rnd).map((f) => ({ t: 'fato', pt: f[1], en: f[2] }))
+    // só tem um detalhe de fã nessa versão: no lugar do segundo entram as iniciais ou o tamanho do nome
+    const extra = fatos[1] || (ini ? { t: 'iniciais', v: ini } : { t: 'tamanho', pt: tamanho(n.pt), en: tamanho(n.en) })
+    return [t1, t2, fatos[0], t3, extra, { t: 'letra', pt: letra(n.pt), en: letra(n.en) }]
   }
 
   // sorteia os personagens da partida, com mais chance pra quem é mais conhecido (tem mais temas)

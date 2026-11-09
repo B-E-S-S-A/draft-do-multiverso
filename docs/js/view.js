@@ -238,6 +238,7 @@
       <button class="linkish" type="button" data-act="net-leave">${t('Sair da sala', 'Leave room')}</button></div>`
     const guardado = noMeio ? `<p class="note">${t('Se você entrar na sala de alguém, seu leilão salvo fica guardado e volta quando você sair.', 'If you join someone’s room, your saved auction is kept and comes back when you leave.')}</p>` : ''
     return `<div class="online">${head}<p class="note">${t('Cada um no seu computador. Seu amigo não precisa de conta.', 'Each on their own computer. Your friend does not need an account.')}</p>${err}
+      <button class="btn green fila-btn" type="button" data-fila="draft">${t('Procurar partida', 'Find a match')}</button>
       <div class="online-row">
         <button class="btn green" type="button" data-act="net-host">${t('Criar sala', 'Create room')}</button>
         <span class="lbl">${t('ou', 'or')}</span>

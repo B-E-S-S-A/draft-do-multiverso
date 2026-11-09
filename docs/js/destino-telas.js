@@ -22,6 +22,7 @@
     lab: () => [t('Herói do dia', 'Hero of the day'), t('Monte seu herói com os 8 personagens de hoje.', 'Build your hero from today’s 8 characters.')],
   }
   const nomePatente = (p) => (en() ? p.en : p.pt)
+  const CQ = () => window.Conquistas
 
   // ---------- criar ou editar a carteirinha ----------
   function sugPers(busca, acao) {
@@ -59,7 +60,9 @@
         ${grupo(t('Moldura', 'Border'), chips('moldura', K.MOLDURAS))}
         ${grupo(t('Carimbo', 'Stamp'), chips('carimbo', K.CARIMBOS))}
         ${c.carimbo === 'meu' ? campo('ds-carimbo', t('Texto do carimbo', 'Stamp text'), 14, c.carimboTxt, t('Ex.: Procurado', 'E.g. Wanted')) : ''}`,
-      extra: () => `${grupo(t(`Selos (até ${K.MAX_SELOS})`, `Badges (up to ${K.MAX_SELOS})`), `<div class="ds-selos">${Object.keys(K.SELOS).map((s) => `<button type="button" data-d="selo" data-v="${s}" aria-pressed="${c.selos.includes(s)}" aria-label="${s}">${K.seloSvg(s)}</button>`).join('')}</div>`)}
+      extra: () => `${grupo(t(`Conquistas no cartão (até ${K.MAX_MEDALHAS})`, `Earned badges on the card (up to ${K.MAX_MEDALHAS})`), CQ().ganhas().length ? `<div class="ds-selos ds-medalhas">${CQ().ganhas().map((b) => `<button type="button" data-d="medalha" data-v="${b.id}" aria-pressed="${c.medalhas.includes(b.id)}" title="${esc(t(b.nome[0], b.nome[1]))}" style="--c:${CQ().RARIDADES[b.r].cor}">${K.seloSvg(b.i)}</button>`).join('')}</div>` : `<p class="note">${t('Jogue pra ganhar suas primeiras conquistas.', 'Play to earn your first badges.')}</p>`)}
+        ${CQ().ganhas().length ? grupo(t('Título em destaque', 'Featured title'), chips('flex', [{ id: '', nome: ['Nenhum', 'None'] }, ...CQ().ganhas().map((b) => ({ id: b.id, nome: b.nome }))])) : ''}
+        ${grupo(t(`Selos livres (até ${K.MAX_SELOS})`, `Free icons (up to ${K.MAX_SELOS})`), `<div class="ds-selos">${Object.keys(K.SELOS).map((s) => `<button type="button" data-d="selo" data-v="${s}" aria-pressed="${c.selos.includes(s)}" aria-label="${s}">${K.seloSvg(s)}</button>`).join('')}</div>`)}
         ${grupo(t('O que aparece', 'What shows'), `<div class="ds-chaves">${K.MOSTRAR.map((x) => `<label class="switch"><input type="checkbox" id="ds-m-${x.id}"${c.mostra[x.id] ? ' checked' : ''}><span class="knob"></span><span>${t(x.nome[0], x.nome[1])}</span></label>`).join('')}</div>`)}`,
     }
     return `<section class="ds"><div class="ds-editor">
@@ -73,6 +76,16 @@
       </div>
       <div class="panel ds-previa"><span class="lbl">${t('Como vai ficar', 'Preview')}</span><canvas id="ds-canvas" width="1080" height="640" role="img" aria-label="${t('Prévia da carteirinha', 'ID card preview')}"></canvas></div>
     </div></section>`
+  }
+
+  // ---------- a estante de conquistas: as ganhas primeiro; as outras apagadas, dizendo como ganhar ----------
+  function conquistas() {
+    const K = window.DestinoCartao
+    const C = CQ()
+    const ordem = [...C.LISTA].sort((a, b) => Number(C.tem(b.id)) - Number(C.tem(a.id)))
+    return `<div class="panel ds-cq"><h2>${t('Conquistas', 'Badges')} <small>${C.ganhas().length}/${C.LISTA.length}</small></h2>
+      <p class="note">${t('Escolha quais exibir na carteirinha, em editar › Detalhes.', 'Pick which to show on your card under edit › Details.')}</p>
+      <div class="cq-grade">${ordem.map((b) => `<div class="cq${C.tem(b.id) ? '' : ' fechada'}" style="--c:${C.RARIDADES[b.r].cor}"><i>${K.seloSvg(b.i)}</i><span><b>${esc(t(b.nome[0], b.nome[1]))}</b><small>${esc(t(b.como[0], b.como[1]))}</small><em>${t(C.RARIDADES[b.r].nome[0], C.RARIDADES[b.r].nome[1])}</em></span></div>`).join('')}</div></div>`
   }
 
   // ---------- a tela principal: o desafio de hoje, a carteirinha, os dias e as patentes ----------
@@ -99,6 +112,7 @@
           <div class="online-row"><button class="btn" type="button" data-d="baixar">${t('Baixar carteirinha', 'Download ID card')}</button><button class="linkish" type="button" data-d="editar">${t('editar', 'edit')}</button></div></div>
         <div class="panel ds-dias"><h2>${t('Os dias', 'The days')}</h2><div class="ds-cal">${cal}</div></div>
         <div class="panel ds-patentes"><h2>${t('Patentes', 'Ranks')}</h2><ol>${degraus}</ol></div>
+        ${conquistas()}
       </div>
     </section>`
   }

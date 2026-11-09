@@ -56,6 +56,7 @@
     x: 'XX....XX|XXX..XXX|.XXXXXX.|..XXXX..|..XXXX..|.XXXXXX.|XXX..XXX|XX....XX',
   }
   const MAX_SELOS = 3
+  const MAX_MEDALHAS = 4
   const cor = (x, padrao) => (/^#[0-9a-f]{6}$/i.test(String(x || '')) ? x : padrao)
   const naLista = (lista, v, padrao) => (lista.some((y) => y.id === v) ? v : padrao)
   // o que estiver guardado errado volta pro padrão
@@ -65,7 +66,7 @@
     return { tema: naLista(TEMAS, x.tema, 'classico'), codinome: String(x.codinome || '').slice(0, 20), lema: String(x.lema || '').slice(0, 44), titulo: String(x.titulo || '').slice(0, 26),
       equipe: naLista(EQUIPES, x.equipe, ''), carimbo: naLista(CARIMBOS, x.carimbo, 'doomsday'), carimboTxt: String(x.carimboTxt || '').slice(0, 14), lado: naLista(LADOS, x.lado, 'esq'),
       filtro: naLista(FILTROS, x.filtro, 'normal'), moldura: naLista(MOLDURAS, x.moldura, 'grossa'), textura: naLista(TEXTURAS, x.textura, 'lisa'), fonte: naLista(FONTES, x.fonte, 'jersey'), zoom: naLista(ZOOMS, x.zoom, '1'),
-      parceiro: String(x.parceiro || ''), selos: (Array.isArray(x.selos) ? x.selos : []).filter((s) => SELOS[s]).slice(0, MAX_SELOS),
+      parceiro: String(x.parceiro || ''), medalhas: (Array.isArray(x.medalhas) ? x.medalhas : []).filter((s) => window.Conquistas.porId[s]).slice(0, MAX_MEDALHAS), flex: window.Conquistas.porId[x.flex] ? x.flex : '', selos: (Array.isArray(x.selos) ? x.selos : []).filter((s) => SELOS[s]).slice(0, MAX_SELOS),
       fundoCor: cor(x.fundoCor, '#fff4d6'), faixaCor: cor(x.faixaCor, '#7a1fa2'), destaqueCor: cor(x.destaqueCor, '#e0267a'),
       mostra: Object.fromEntries(MOSTRAR.map((y) => [y.id, m[y.id] !== false])) }
   }
@@ -219,7 +220,20 @@
     const x = cartao.lado === 'dir' ? 48 : 424
     const largura = L - 424 - 48
     rotulo(t('Agente', 'Agent'), x, 140)
-    cartao.selos.forEach((s, i) => selo(c, s, x + largura - 44 - i * 54, 110, 44, T.destaque))
+    // as conquistas coloridas e, depois delas, os selos livres
+    const CQ = window.Conquistas
+    let cx = x + largura - 48
+    cartao.medalhas.filter(CQ.tem).forEach((id) => {
+      const b = CQ.porId[id]
+      c.fillStyle = CQ.RARIDADES[b.r].cor
+      c.fillRect(cx, 106, 48, 48)
+      c.strokeStyle = T.tinta
+      c.lineWidth = 4
+      c.strokeRect(cx, 106, 48, 48)
+      selo(c, b.i, cx + 8, 114, 32, '#ffffff')
+      cx -= 58
+    })
+    cartao.selos.forEach((s) => { selo(c, s, cx + 2, 110, 44, T.destaque); cx -= 54 })
     const fonte = FONTES.find((y) => y.id === cartao.fonte)
     c.fillStyle = T.tinta
     cabe(c, d.nome || t('Seu nome', 'Your name'), x, 212, largura, fonte.tam, fonte.f)
@@ -245,6 +259,17 @@
       c.lineWidth = 5
       c.strokeRect(x, 474, largura, 24)
       rotulo(d.falta, x, 532)
+    }
+    // o título em destaque, numa etiqueta da cor da raridade
+    if (cartao.flex && CQ.tem(cartao.flex)) {
+      const b = CQ.porId[cartao.flex]
+      const nome = b.nome[lang].toUpperCase()
+      c.font = `16px ${LABEL}`
+      const l = Math.min(290, c.measureText(nome).width + 28)
+      c.fillStyle = CQ.RARIDADES[b.r].cor
+      c.fillRect(x + largura - l, 510, l, 34)
+      c.fillStyle = '#ffffff'
+      cabe(c, nome, x + largura - l + 14, 533, l - 28, 16, LABEL)
     }
     if (cartao.lema) { c.fillStyle = T.tinta; cabe(c, `“${cartao.lema}”`, x, 578, largura, 30, CORPO) }
     // o carimbo, em cima da foto, pra nunca bater no nome
@@ -276,5 +301,5 @@
     a.remove()
   }
 
-  window.DestinoCartao = { desenhar, baixar, normaliza, seloSvg, TEMAS, EQUIPES, CARIMBOS, FILTROS, MOLDURAS, TEXTURAS, FONTES, ZOOMS, LADOS, MOSTRAR, SELOS, MAX_SELOS }
+  window.DestinoCartao = { desenhar, baixar, normaliza, seloSvg, TEMAS, EQUIPES, CARIMBOS, FILTROS, MOLDURAS, TEXTURAS, FONTES, ZOOMS, LADOS, MOSTRAR, SELOS, MAX_SELOS, MAX_MEDALHAS }
 })()

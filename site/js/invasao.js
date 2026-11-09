@@ -40,6 +40,7 @@
   function marcar(jogo) {
     atual = jogo
     document.documentElement.classList.toggle('doom-on', tomado(jogo))
+    if (raiz.Conquistas) { if (tomado(jogo) && jogo !== 'home') raiz.Conquistas.liga('ddSubdito'); if (dia() === ESTREIA) raiz.Conquistas.liga('ddEstreia') }
     // na tela inicial, durante a invasão, o Uatu tenta avisar uma vez (ele não pode interferir)
     if (jogo === 'home' && fase() === 'invadindo' && !avisou && raiz.Uatu) { avisou = true; setTimeout(() => { if (atual === 'home' && !tomado('home')) raiz.Uatu.falar(t('Eu não posso interferir… mas olhem o que ele já tomou.', 'I cannot interfere… but look at what he has already taken.')) }, 2500) }
   }

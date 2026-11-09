@@ -23,6 +23,7 @@
     tick,
     aoVisao: novaVisao,
     aoMudar: render,
+    autoComecar: () => comecar(),
     aoCair: (p, H) => { if (H.J.js[p.j]) H.J.js[p.j].bot = true },
     aoVoltar: (p, H) => { if (H.J.js[p.j]) H.J.js[p.j].bot = false },
   })
@@ -134,6 +135,7 @@
         if (meu || v.modo === 'turno') { estoura('+' + u.ganho); som('sold'); ui.busca = '' }
         else if (v.fase === 'pista') avisar(t(`${nomeDele} acertou!`, `${nomeDele} got it!`), 'ok')
         if (u.pista <= 1 && U) U.momento('arquivo-cedo', { nome: nomeDele, pista: u.pista + 1 })
+        if (meu && u.pista === 0 && v.modo === 'junto' && window.Conquistas) window.Conquistas.liga('pista1')
       } else if (u.passou) { if (meu) ui.busca = '' } else if (meu || v.modo === 'turno') {
         ui.busca = ''
         som('undo')
@@ -150,6 +152,7 @@
       setTimeout(() => som('win'), 200)
       const top = [...v.js].sort((x, y) => y.pts - x.pts)[0]
       if (U) U.momento('arquivo-fim', { nome: top.nome })
+      if (!v.local && v.js[v.eu] && v.js[v.eu].pts === top.pts && window.Conquistas) window.Conquistas.vitoria('arquivo')
     }
   }
 
@@ -251,5 +254,9 @@
     esconder() {},
     abrir() { ui.meuNome = guarda('mvd-imp-nome') || ui.meuNome; render() },
     entrar(code) { ui.codigo = code; m.meuNome = ui.meuNome; m.entrar(code) },
+    partida: {
+      criar(nome, aoCodigo) { ui.meuNome = nome; m.meuNome = nome; m.criar(nome, { versao: 'ambos', auto: true, aoCodigo }); render() },
+      entrar(code, nome) { ui.meuNome = nome; ui.codigo = code; m.meuNome = nome; m.entrar(code) },
+    },
   }
 })()

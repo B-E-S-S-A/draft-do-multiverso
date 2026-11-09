@@ -6,6 +6,7 @@ globalThis.window = globalThis
 require('../site/data.js')
 require('../site/js/impostor-nomes.js')
 require('../site/js/grade-dados.js')
+require('../site/js/arquivo-fatos.js')
 require('../site/js/arquivo-motor.js')
 const G = globalThis.GradeDados
 const M = globalThis.ArquivoMotor
@@ -13,12 +14,13 @@ const M = globalThis.ArquivoMotor
 let somaResta = 0, conta = 0, unicos = 0
 for (const versao of ['hq', 'ambos', 'tela']) {
   const lista = M.candidatos(versao)
-  assert(lista.length >= 60, `${versao}: poucos personagens (${lista.length})`)
+  assert(lista.length >= 35, `${versao}: poucos personagens (${lista.length})`)
   const pool = G.poolDa(versao)
   for (const key of lista) {
     const p = M.montarPistas(key, versao)
     assert.strictEqual(p.length, 6, `${key}: ${p.length} pistas`)
     assert.strictEqual(p[5].t, 'letra', `${key}: a última é a letra`)
+    assert.strictEqual(p[2].t, 'fato', `${key}: a 3ª é um detalhe de fã`)
     assert(/^[A-Z0-9]$/.test(p[5].pt) && /^[A-Z0-9]$/.test(p[5].en), `${key}: letra ruim ${p[5].pt}/${p[5].en}`)
     let resta = pool
     const grupos = new Set()
@@ -32,6 +34,23 @@ for (const versao of ['hq', 'ambos', 'tela']) {
     }
     assert(resta.includes(key))
     somaResta += resta.length; conta += 1; if (resta.length === 1) unicos += 1
+  }
+}
+
+// os detalhes de fã: bem escritos, de personagens que existem, e nenhum diz o nome de quem é
+{
+  const F = globalThis.ArquivoFatos
+  const D = globalThis.DRAFT_DATA
+  assert(Object.keys(F).length >= 60)
+  const sem = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  for (const [k, lista] of Object.entries(F)) {
+    const h = D.hq.find((x) => x.key === k)
+    assert(h, `${k}: não existe`)
+    const proibidos = [h.n, globalThis.IMPOSTOR_EN[k], k.replace(/-/g, ' ')].filter(Boolean).map(sem)
+    for (const [ref, pt, en] of lista) {
+      assert(['hq', 'tela', 'ambos'].includes(ref) && pt && en, `${k}: pista mal formada`)
+      for (const p of proibidos) assert(!sem(pt).includes(p) && !sem(en).includes(p), `${k}: a pista diz o nome (${pt})`)
+    }
   }
 }
 
