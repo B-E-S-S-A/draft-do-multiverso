@@ -121,6 +121,12 @@ assert.strictEqual(M.tipoDe(0), 'ficha'); assert.strictEqual(M.tipoDe(1), 'grade
   assert.strictEqual(M.patente(M.total(todos)).pt, 'Sobrevivente de Doomsday')
 }
 
+// o grid que já estava no ar quando chegaram os temas novos continua igual
+{
+  const d = M.desafio(1)
+  assert.deepStrictEqual([...d.linhas, ...d.colunas].sort(), ['adolescente', 'serie', 'anos70', 'orfao', 'tempo', 'genio'].sort())
+}
+
 // o cofre: nada legível no arquivo, e código errado não abre nem libera nada
 {
   const guardado = {}

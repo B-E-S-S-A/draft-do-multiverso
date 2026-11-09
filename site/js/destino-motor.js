@@ -35,13 +35,15 @@
     if (!ordem) ordem = embaralha(A().candidatos('ambos').filter((k) => k !== 'doctor-doom' && A().conhecido(k)), aleatorio(semente('fichas-destino')))
     return ordem[Math.floor(i / 3) % ordem.length]
   }
+  // o grid desse dia já estava no ar quando chegaram os temas novos: continua igual pra quem já jogou
+  const ULTIMO_GRID_ANTIGO = 1
   const cache = {}
   function desafio(i) {
     if (cache[i]) return cache[i]
     const rnd = aleatorio(semente('destino-' + i))
     const tipo = tipoDe(i)
     if (tipo === 'ficha') { const key = fichaDe(i); cache[i] = { tipo, key, pistas: A().montarPistas(key, 'ambos', rnd) } }
-    if (tipo === 'grade') cache[i] = { tipo, ...GM().sortearGrade(3, 3, rnd, { versao: 'ambos', nivel: 6 }) }
+    if (tipo === 'grade') cache[i] = { tipo, ...GM().sortearGrade(3, 3, rnd, { versao: 'ambos', nivel: 6, soAntigos: i <= ULTIMO_GRID_ANTIGO }) }
     if (tipo === 'lab') cache[i] = { tipo, baralho: embaralha(LE().chaves, rnd).slice(0, LM().PADRAO.length), topicos: LM().PADRAO }
     return cache[i]
   }

@@ -25,7 +25,7 @@
     return grandes.length >= 2 ? grandes.map((p) => p[0] + '.').join(' ') : ''
   }
 
-  const temasDe = (key, versao) => G().categoriasDa(versao).filter((c) => G().membros(c, versao).has(key))
+  const temasDe = (key, versao) => G().categoriasDa(versao).filter((c) => !c.leva && G().membros(c, versao).has(key)) // os temas novos da Grade não entram: a dificuldade daqui já foi acertada
   const gruposDe = (key, versao) => new Set(temasDe(key, versao).map((c) => c.grupo)).size
   // as pistas de fã que valem nessa versão (só entra no jogo quem tem pelo menos uma)
   const REFS = { hq: ['hq', 'ambos'], tela: ['tela', 'ambos'], ambos: ['hq', 'tela', 'ambos'] }

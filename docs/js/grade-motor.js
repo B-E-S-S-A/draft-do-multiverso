@@ -81,7 +81,7 @@
     const versao = G().versao(opcoes.versao)
     const nivel = Math.min(9, Math.max(1, Math.round(opcoes.nivel) || 3))
     const alvo = opcoes.alvo || alvoCasa(nivel, versao)
-    const pool = G().categoriasDa(versao)
+    const pool = G().categoriasDa(versao).filter((c) => !opcoes.soAntigos || !c.leva) // soAntigos: mantém igual um grid que já estava no ar
     const quer = MIN_RESPOSTAS + (L * C <= 20 ? 1 : 0)
     const teto = maxRespostas(nivel)
     const melhorQue = (a, b) => { for (let k = 0; k < a.length; k++) { if (a[k] !== b[k]) return a[k] < b[k] } return false }
@@ -119,7 +119,7 @@
       if (cruzaGrupo(linhas, colunas)) continue
       guarda(linhas, colunas, nota(linhas, colunas))
     }
-    if (!melhor) return sortearGrade(L, C, rnd, { versao, nivel: Math.max(1, nivel - 1) })
+    if (!melhor) return sortearGrade(L, C, rnd, { versao, nivel: Math.max(1, nivel - 1), soAntigos: opcoes.soAntigos })
     // ajuste fino: troca um tema por outro que não está no grid e fica com a troca se não piorou
     let lin = melhor.linhas
     let col = melhor.colunas
