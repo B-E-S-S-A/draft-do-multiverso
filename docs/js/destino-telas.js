@@ -42,6 +42,9 @@
     const pers = (key) => `<div class="gd-sug primeira"><span class="gd-mini">${capa(key)}</span><b>${esc(nome(key))}</b><small>${esc(ident(key))}</small></div>`
     const busca = (id, sug, val, conteudo) => `<label class="gd-busca"><span class="sr-only">${t('Personagem', 'Character')}</span><input id="${id}" maxlength="30" autocomplete="off" placeholder="${t('Procurar personagem…', 'Search for a character…')}" value="${esc(val)}"></label><div class="gd-sugestoes" id="${sug}">${conteudo}</div>`
     const ABAS = [['id', t('Agente', 'Agent')], ['foto', t('Foto', 'Photo')], ['cor', t('Cor', 'Color')], ['estilo', t('Estilo', 'Style')], ['extra', t('Detalhes', 'Details')]]
+    const codigo = () => (ui.codigo
+      ? `<div class="ds-codigo"><label class="imp-meu-nome"><span class="lbl">${t('Código', 'Code')}</span><input id="ds-codigo" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false"></label><button class="btn" type="button" data-d="codigo-usa">${t('Usar', 'Use')}</button></div>`
+      : `<button class="linkish ds-tem-codigo" type="button" data-d="codigo">${t('tem um código?', 'got a code?')}</button>`)
     const paineis = {
       id: () => `${campo('ds-nome', t('Seu nome', 'Your name'), 14, ui.nome)}
         ${grupo(t('Personagem da foto', 'Photo character'), `${ui.fav ? pers(ui.fav) : ''}${busca('ds-fav', 'ds-sug', ui.busca, sugestoesFav(ui))}`)}
@@ -50,20 +53,22 @@
         ${campo('ds-titulo', t('Título da carteirinha (opcional)', 'Card title (optional)'), 26, c.titulo, t('Carteirinha de agente', 'Agent ID card'))}
         ${grupo(t('Equipe', 'Team'), chips('equipe', K.EQUIPES))}
         ${grupo(t('Letra do nome', 'Name font'), chips('fonte', K.FONTES))}`,
-      foto: () => `${grupo(t('Lado da foto', 'Photo side'), chips('lado', K.LADOS))}
+      foto: () => `${window.Cofre.foto() ? grupo(t('Qual foto', 'Which photo'), chips('secreta', [{ id: 'nao', nome: ['Personagem', 'Character'] }, { id: 'sim', nome: ['Foto secreta', 'Secret photo'] }])) : ''}
+        ${grupo(t('Lado da foto', 'Photo side'), chips('lado', K.LADOS))}
         ${grupo(t('Zoom', 'Zoom'), chips('zoom', K.ZOOMS))}
         ${grupo(t('Filtro', 'Filter'), chips('filtro', K.FILTROS))}
         ${grupo(t('Parceiro (foto pequena no canto)', 'Partner (small photo in the corner)'), `${c.parceiro ? `${pers(c.parceiro)}<button class="linkish" type="button" data-d="parc" data-v="">${t('tirar parceiro', 'remove partner')}</button>` : ''}${busca('ds-parc', 'ds-sug-parc', ui.buscaP, sugestoesParc(ui))}`)}`,
       cor: () => `${grupo(t('Tema', 'Theme'), `<div class="ds-temas">${K.TEMAS.map((x) => `<button type="button" data-d="op" data-k="tema" data-v="${x.id}" aria-pressed="${c.tema === x.id}" style="--f:${x.id === 'meu' ? c.fundoCor : x.fundo};--b:${x.id === 'meu' ? c.faixaCor : x.faixa};--d:${x.id === 'meu' ? c.destaqueCor : x.destaque}"><i></i><span>${t(x.nome[0], x.nome[1])}</span></button>`).join('')}</div>`)}
         ${c.tema === 'meu' ? grupo(t('Suas cores', 'Your colors'), `<div class="ds-cores">${[['ds-cor-fundo', c.fundoCor, t('Fundo', 'Background')], ['ds-cor-faixa', c.faixaCor, t('Faixa', 'Band')], ['ds-cor-destaque', c.destaqueCor, t('Destaque', 'Accent')]].map(([id, v, r]) => `<label><input type="color" id="${id}" value="${v}"><span>${r}</span></label>`).join('')}</div>`) : ''}`,
       estilo: () => `${grupo(t('Textura do fundo', 'Background texture'), chips('textura', K.TEXTURAS))}
-        ${grupo(t('Moldura', 'Border'), chips('moldura', K.MOLDURAS))}
+        ${grupo(t('Moldura', 'Border'), chips('moldura', K.molduras()))}
         ${grupo(t('Carimbo', 'Stamp'), chips('carimbo', K.CARIMBOS))}
         ${c.carimbo === 'meu' ? campo('ds-carimbo', t('Texto do carimbo', 'Stamp text'), 14, c.carimboTxt, t('Ex.: Procurado', 'E.g. Wanted')) : ''}`,
       extra: () => `${grupo(t(`Conquistas no cartão (até ${K.MAX_MEDALHAS})`, `Earned badges on the card (up to ${K.MAX_MEDALHAS})`), CQ().ganhas().length ? `<div class="ds-selos ds-medalhas">${CQ().ganhas().map((b) => `<button type="button" data-d="medalha" data-v="${b.id}" aria-pressed="${c.medalhas.includes(b.id)}" title="${esc(t(b.nome[0], b.nome[1]))}" style="--c:${CQ().RARIDADES[b.r].cor}">${K.seloSvg(b.i)}</button>`).join('')}</div>` : `<p class="note">${t('Jogue pra ganhar suas primeiras conquistas.', 'Play to earn your first badges.')}</p>`)}
         ${CQ().ganhas().length ? grupo(t('Título em destaque', 'Featured title'), chips('flex', [{ id: '', nome: ['Nenhum', 'None'] }, ...CQ().ganhas().map((b) => ({ id: b.id, nome: b.nome }))])) : ''}
         ${grupo(t(`Selos livres (até ${K.MAX_SELOS})`, `Free icons (up to ${K.MAX_SELOS})`), `<div class="ds-selos">${Object.keys(K.SELOS).map((s) => `<button type="button" data-d="selo" data-v="${s}" aria-pressed="${c.selos.includes(s)}" aria-label="${s}">${K.seloSvg(s)}</button>`).join('')}</div>`)}
-        ${grupo(t('O que aparece', 'What shows'), `<div class="ds-chaves">${K.MOSTRAR.map((x) => `<label class="switch"><input type="checkbox" id="ds-m-${x.id}"${c.mostra[x.id] ? ' checked' : ''}><span class="knob"></span><span>${t(x.nome[0], x.nome[1])}</span></label>`).join('')}</div>`)}`,
+        ${grupo(t('O que aparece', 'What shows'), `<div class="ds-chaves">${K.MOSTRAR.map((x) => `<label class="switch"><input type="checkbox" id="ds-m-${x.id}"${c.mostra[x.id] ? ' checked' : ''}><span class="knob"></span><span>${t(x.nome[0], x.nome[1])}</span></label>`).join('')}</div>`)}
+        ${codigo()}`,
     }
     return `<section class="ds"><div class="ds-editor">
       <div class="panel ds-criar">
@@ -72,6 +77,7 @@
         <div class="ds-abas" role="tablist">${ABAS.map(([id, r]) => `<button type="button" role="tab" data-d="aba" data-v="${id}" aria-selected="${ui.aba === id}">${r}</button>`).join('')}</div>
         ${paineis[ui.aba]()}
         ${ui.aviso ? `<p class="neterr" role="alert">${esc(ui.aviso)}</p>` : ''}
+        ${ui.ok ? `<p class="ds-ok" role="status">${esc(ui.ok)}</p>` : ''}
         <div class="go-row">${ui.editando ? `<button class="linkish" type="button" data-d="voltar">${t('voltar', 'back')}</button>` : ''}<button class="btn big" type="button" data-d="salvar-cartao">${ui.editando ? t('Salvar', 'Save') : t('Criar', 'Create')}</button></div>
       </div>
       <div class="panel ds-previa"><span class="lbl">${t('Como vai ficar', 'Preview')}</span><canvas id="ds-canvas" width="1080" height="640" role="img" aria-label="${t('Prévia da carteirinha', 'ID card preview')}"></canvas></div>

@@ -1,6 +1,7 @@
 // Testes dos Dias de Destino: o desafio é o mesmo pra todos, os pontos batem e a patente sobe.
 import { createRequire } from 'module'
 import assert from 'assert'
+import { readFileSync } from 'fs'
 const require = createRequire(import.meta.url)
 globalThis.window = globalThis
 require('../site/data.js')
@@ -118,5 +119,19 @@ assert.strictEqual(M.tipoDe(0), 'ficha'); assert.strictEqual(M.tipoDe(1), 'grade
   const todos = {}
   for (let i = 0; i < M.TOTAL; i++) M.registrar(todos, M.dataDo(i), 'ficha', 70)
   assert.strictEqual(M.patente(M.total(todos)).pt, 'Sobrevivente de Doomsday')
+}
+
+// o cofre: nada legível no arquivo, e código errado não abre nem libera nada
+{
+  const guardado = {}
+  globalThis.localStorage = { getItem: (k) => guardado[k] ?? null, setItem: (k, v) => { guardado[k] = v } }
+  globalThis.document = { currentScript: null }
+  require('../site/js/cofre.js')
+  require('../site/js/cofre-dados.js')
+  const texto = readFileSync(new URL('../site/js/cofre-dados.js', import.meta.url), 'utf8')
+  assert(!texto.includes('data:image') && !/admin|asgard/i.test(texto), 'o cofre está legível')
+  for (const errado of ['', 'abc', 'codigo-errado-1234', 'NOS-SOMOS-ADMIN', 'OURO-DE-ASGARD']) assert.strictEqual(await globalThis.Cofre.tentar(errado), null, `abriu com ${errado}`)
+  assert.strictEqual(globalThis.Cofre.foto(), '')
+  assert(!globalThis.Cofre.tem('ouro'))
 }
 console.log(`ok · ${M.TOTAL} dias · ${nFicha} fichas · grid mais apertado com ${minimo} respostas`)

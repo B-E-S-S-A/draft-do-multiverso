@@ -101,8 +101,28 @@
       salvar(); som('draw'); render()
     },
     voltar: () => { ui.tela = 'painel'; ui.editando = false; ui.busca = ''; ui.aviso = ''; if (e.andamento && e.andamento.fim) { e.andamento = null; ui.res = null; salvar() } render() },
-    editar: () => { ui.tela = 'criar'; ui.editando = true; ui.nome = e.nome; ui.fav = e.fav; ui.cartao = K.normaliza(e.cartao); ui.aba = 'id'; ui.busca = ''; ui.buscaP = ''; ui.aviso = ''; render() },
-    aba: (v) => { ui.aba = v; render() },
+    editar: () => { ui.tela = 'criar'; ui.editando = true; ui.nome = e.nome; ui.fav = e.fav; ui.cartao = K.normaliza(e.cartao); ui.aba = 'id'; ui.busca = ''; ui.buscaP = ''; ui.aviso = ''; ui.ok = ''; ui.codigo = false; render() },
+    aba: (v) => { ui.aba = v; ui.aviso = ''; ui.ok = ''; render() },
+    // os códigos secretos: abrem a foto ou a moldura dourada e já colocam na carteirinha
+    codigo: () => { ui.codigo = true; ui.aviso = ''; ui.ok = ''; render(); const x = document.getElementById('ds-codigo'); if (x) x.focus() },
+    'codigo-usa': async () => {
+      const x = document.getElementById('ds-codigo')
+      if (!x || ui.testando) return
+      ui.testando = true
+      let tipo = null, falhou = false
+      try { tipo = await window.Cofre.tentar(x.value) } catch (err) { falhou = true }
+      ui.testando = false
+      ui.ok = ''
+      ui.aviso = ''
+      if (tipo === 'foto') { ui.cartao.secreta = 'sim'; ui.ok = t('Foto secreta liberada. Agora é só salvar.', 'Secret photo unlocked. Just save it.') }
+      if (tipo === 'ouro') { ui.cartao.moldura = 'ouro'; ui.ok = t('Moldura dourada liberada. Agora é só salvar.', 'Gold frame unlocked. Just save it.') }
+      if (!tipo) ui.aviso = falhou ? t('Não deu pra conferir agora. Tenta de novo.', 'Could not check that right now. Try again.') : t('Código errado.', 'Wrong code.')
+      ui.codigo = !tipo
+      som(tipo ? 'sold' : 'undo')
+      render()
+      const y = document.getElementById('ds-codigo')
+      if (y) y.focus()
+    },
     // qualquer opção de botão da carteirinha (tema, moldura, filtro…)
     op: (v, b) => { ui.cartao[b.dataset.k] = v || ''; render() },
     parc: (k) => { ui.cartao.parceiro = k || ''; ui.buscaP = ''; render() },
@@ -124,7 +144,7 @@
       if (!ui.nome.trim()) { ui.aviso = t('Escreve seu nome.', 'Write your name.'); render(); return }
       if (!ui.fav) { ui.aba = 'id'; ui.aviso = t('Escolhe um personagem.', 'Pick a character.'); render(); return }
       e.nome = ui.nome.trim().slice(0, 14); e.fav = ui.fav; e.cartao = K.normaliza(ui.cartao)
-      ui.tela = 'painel'; ui.editando = false; ui.aviso = ''; salvar(); render()
+      ui.tela = 'painel'; ui.editando = false; ui.aviso = ''; ui.ok = ''; ui.codigo = false; salvar(); render()
     },
     baixar: () => { const c = document.getElementById('ds-canvas'); if (c) K.baixar(c, e.nome) },
     // ---------- ficha ----------
@@ -187,6 +207,7 @@
     if (m) { ui.cartao.mostra[m[1]] = ev.target.checked; previa() }
   })
   el.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && ev.target.id === 'ds-codigo') { acoes['codigo-usa'](); return }
     if (ev.key !== 'Enter' || ev.target.id !== 'ds-busca') return
     const st = e.andamento
     const k = window.GradeTelas.achar(ui.busca, 'ambos').find((x) => (st.tipo === 'grade' ? !st.casas.includes(x) : !st.errados.includes(x)))

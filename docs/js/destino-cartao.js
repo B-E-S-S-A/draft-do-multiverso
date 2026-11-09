@@ -35,6 +35,9 @@
   ]
   const FILTROS = [{ id: 'normal', nome: ['Normal', 'Normal'] }, { id: 'pb', nome: ['Preto e branco', 'Black & white'] }, { id: 'sepia', nome: ['Sépia', 'Sepia'] }, { id: 'duo', nome: ['Duas cores', 'Duotone'] }, { id: 'negativo', nome: ['Negativo', 'Negative'] }]
   const MOLDURAS = [{ id: 'grossa', nome: ['Grossa', 'Thick'] }, { id: 'dupla', nome: ['Dupla', 'Double'] }, { id: 'tracejada', nome: ['Tracejada', 'Dashed'] }, { id: 'pixel', nome: ['Pixel', 'Pixel'] }, { id: 'nenhuma', nome: ['Sem moldura', 'None'] }]
+  // a dourada só aparece pra quem abriu o cofre
+  const OURO = { id: 'ouro', nome: ['Dourada', 'Gold'] }
+  const molduras = () => (window.Cofre.tem('ouro') ? [...MOLDURAS, OURO] : MOLDURAS)
   const TEXTURAS = [{ id: 'lisa', nome: ['Lisa', 'Plain'] }, { id: 'reticula', nome: ['Retícula', 'Halftone'] }, { id: 'listras', nome: ['Listras', 'Stripes'] }, { id: 'xadrez', nome: ['Xadrez', 'Checks'] }, { id: 'estrelas', nome: ['Estrelas', 'Stars'] }]
   const FONTES = [{ id: 'jersey', nome: ['Letreiro', 'Marquee'], f: DISPLAY, tam: 84 }, { id: 'pixelify', nome: ['Arredondada', 'Rounded'], f: CORPO, tam: 66 }, { id: 'silk', nome: ['Máquina', 'Typewriter'], f: LABEL, tam: 50 }]
   const ZOOMS = [{ id: '1', nome: ['Inteira', 'Full'] }, { id: '1.4', nome: ['Perto', 'Close'] }, { id: '1.9', nome: ['Bem perto', 'Very close'] }]
@@ -65,7 +68,7 @@
     const m = x.mostra && typeof x.mostra === 'object' ? x.mostra : {}
     return { tema: naLista(TEMAS, x.tema, 'classico'), codinome: String(x.codinome || '').slice(0, 20), lema: String(x.lema || '').slice(0, 44), titulo: String(x.titulo || '').slice(0, 26),
       equipe: naLista(EQUIPES, x.equipe, ''), carimbo: naLista(CARIMBOS, x.carimbo, 'doomsday'), carimboTxt: String(x.carimboTxt || '').slice(0, 14), lado: naLista(LADOS, x.lado, 'esq'),
-      filtro: naLista(FILTROS, x.filtro, 'normal'), moldura: naLista(MOLDURAS, x.moldura, 'grossa'), textura: naLista(TEXTURAS, x.textura, 'lisa'), fonte: naLista(FONTES, x.fonte, 'jersey'), zoom: naLista(ZOOMS, x.zoom, '1'),
+      filtro: naLista(FILTROS, x.filtro, 'normal'), moldura: naLista(molduras(), x.moldura, 'grossa'), secreta: x.secreta === 'sim' && window.Cofre.foto() ? 'sim' : 'nao', textura: naLista(TEXTURAS, x.textura, 'lisa'), fonte: naLista(FONTES, x.fonte, 'jersey'), zoom: naLista(ZOOMS, x.zoom, '1'),
       parceiro: String(x.parceiro || ''), medalhas: (Array.isArray(x.medalhas) ? x.medalhas : []).filter((s) => window.Conquistas.porId[s]).slice(0, MAX_MEDALHAS), flex: window.Conquistas.porId[x.flex] ? x.flex : '', selos: (Array.isArray(x.selos) ? x.selos : []).filter((s) => SELOS[s]).slice(0, MAX_SELOS),
       fundoCor: cor(x.fundoCor, '#fff4d6'), faixaCor: cor(x.faixaCor, '#7a1fa2'), destaqueCor: cor(x.destaqueCor, '#e0267a'),
       mostra: Object.fromEntries(MOSTRAR.map((y) => [y.id, m[y.id] !== false])) }
@@ -83,12 +86,13 @@
   }
 
   // ---------- foto ----------
+  const imagem = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src })
   function fotoDe(key) {
     const i = E.D.hq.findIndex((h) => h.key === key)
     if (i < 0) return Promise.resolve(null)
     const m = V.cover(E.lotOf('hq:' + i)).match(/src="([^"]+)"/)
     if (!m) return Promise.resolve(null)
-    return new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = m[1] })
+    return imagem(m[1])
   }
   function comFiltro(foto, filtro, T) {
     if (!foto || filtro === 'normal') return foto
@@ -137,7 +141,29 @@
     if (tipo === 'estrelas') { c.globalAlpha = 0.5; let s = 12345; const r = () => (s = (s * 16807) % 2147483647) / 2147483647; for (let i = 0; i < 150; i++) { const k = r() < 0.2 ? 5 : 3; c.fillRect(Math.floor(r() * L), 92 + Math.floor(r() * (A - 92)), k, k) } }
     c.restore()
   }
+  // a moldura secreta: ouro em faixas, com coroa nos cantos e brilhos
+  function molduraOuro(c) {
+    const ESCURO = '#4f3405'
+    const CANTO = 42
+    const ouro = c.createLinearGradient(0, 0, L, A)
+    ;[[0, '#a06c10'], [0.18, '#ffd75e'], [0.32, '#fff4bf'], [0.46, '#d99a12'], [0.62, '#ffd75e'], [0.78, '#fff4bf'], [1, '#a06c10']].forEach(([p, x]) => ouro.addColorStop(p, x))
+    const aro = (m, l, cor) => { c.strokeStyle = cor; c.lineWidth = l; c.strokeRect(m + l / 2, m + l / 2, L - 2 * m - l, A - 2 * m - l) }
+    aro(0, 5, ESCURO)
+    aro(5, 14, ouro)
+    aro(19, 3, '#fff4bf')
+    aro(22, 3, ESCURO)
+    for (const [x, y] of [[0, 0], [L - CANTO, 0], [0, A - CANTO], [L - CANTO, A - CANTO]]) {
+      c.fillStyle = ESCURO
+      c.fillRect(x, y, CANTO, CANTO)
+      c.fillStyle = ouro
+      c.fillRect(x + 4, y + 4, CANTO - 8, CANTO - 8)
+      selo(c, 'coroa', x + 5, y + 5, 32, ESCURO)
+    }
+    c.fillStyle = '#ffffff'
+    for (const [x, y] of [[214, 12], [640, 12], [930, A - 13], [380, A - 13], [12, 250], [L - 13, 400]]) { c.fillRect(x - 2, y - 8, 4, 16); c.fillRect(x - 8, y - 2, 16, 4) }
+  }
   function moldura(c, tipo, T) {
+    if (tipo === 'ouro') return molduraOuro(c)
     if (tipo === 'nenhuma') return
     c.strokeStyle = T.borda
     if (tipo === 'grossa') { c.lineWidth = 14; c.strokeRect(7, 7, L - 14, A - 14) }
@@ -171,7 +197,7 @@
     const vez = (cv._vez = (cv._vez || 0) + 1) // desenhos pedidos em seguida: só o último vale
     const cartao = normaliza(d.cartao)
     try { await Promise.all(['90px "Jersey 10"', '20px Silkscreen', '26px "Pixelify Sans"'].map((f) => document.fonts.load(f))) } catch (e) {}
-    const [foto, parceiro] = await Promise.all([fotoDe(d.fav), cartao.parceiro ? fotoDe(cartao.parceiro) : null])
+    const [foto, parceiro] = await Promise.all([cartao.secreta === 'sim' ? imagem(window.Cofre.foto()) : fotoDe(d.fav), cartao.parceiro ? fotoDe(cartao.parceiro) : null])
     if (cv._vez !== vez) return
     const T = temaDe(cartao)
     const lang = window.Lingua.en() ? 1 : 0
@@ -203,7 +229,7 @@
     c.fillStyle = '#e4e1d8'
     c.fillRect(fx, fy, fl, fa)
     if (foto) colocaFoto(c, comFiltro(foto, cartao.filtro, T), fx, fy, fl, fa, Number(cartao.zoom))
-    c.strokeStyle = T.tinta
+    c.strokeStyle = cartao.moldura === 'ouro' ? '#e8b923' : T.tinta
     c.lineWidth = 8
     c.strokeRect(fx, fy, fl, fa)
     // o parceiro, pequenininho no canto da foto
@@ -301,5 +327,5 @@
     a.remove()
   }
 
-  window.DestinoCartao = { desenhar, baixar, normaliza, seloSvg, TEMAS, EQUIPES, CARIMBOS, FILTROS, MOLDURAS, TEXTURAS, FONTES, ZOOMS, LADOS, MOSTRAR, SELOS, MAX_SELOS, MAX_MEDALHAS }
+  window.DestinoCartao = { desenhar, baixar, normaliza, seloSvg, molduras, TEMAS, EQUIPES, CARIMBOS, FILTROS, MOLDURAS, TEXTURAS, FONTES, ZOOMS, LADOS, MOSTRAR, SELOS, MAX_SELOS, MAX_MEDALHAS }
 })()
