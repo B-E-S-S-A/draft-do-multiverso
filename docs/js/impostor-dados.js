@@ -2,6 +2,18 @@
 // e os textos do jogo em português e inglês.
 (function () {
   const PARES = [
+    // a terceira leva de personagens
+    ['angel', 'falcon'], ['havok', 'cyclops'], ['polaris', 'magneto'], ['dazzler', 'jubilee'], ['banshee', 'black-bolt'], ['magik', 'doctor-strange'],
+    ['sunspot', 'human-torch'], ['cannonball', 'nova'], ['legion', 'professor-x'], ['blob', 'juggernaut'], ['toad', 'lizard'], ['pyro', 'human-torch'],
+    ['lady-deathstrike', 'x-23'], ['omega-red', 'sabretooth'], ['sebastian-shaw', 'emma-frost'], ['bishop', 'cable'], ['multiple-man', 'mystique'],
+    ['spider-ham', 'howard'], ['silk', 'spider-woman'], ['spider-noir', 'spider-man'], ['spider-punk', 'spider-man-2099'], ['scarlet-spider', 'spider-man'],
+    ['prowler', 'black-cat'], ['mj', 'black-cat'], ['hobgoblin', 'green-goblin'], ['scorpion', 'rhino'], ['shocker', 'electro'], ['chameleon', 'mystique'], ['spot', 'nightcrawler'],
+    ['hank-pym', 'ant-man'], ['tigra', 'black-cat'], ['mockingbird', 'black-widow'], ['hulkling', 'wiccan'], ['black-knight', 'valkyrie'], ['brother-voodoo', 'doctor-strange'],
+    ['quake', 'black-widow'], ['sif', 'valkyrie'], ['heimdall', 'odin'], ['amadeus-cho', 'hulk'], ['moon-girl', 'squirrel-girl'],
+    ['misty-knight', 'luke-cage'], ['colleen-wing', 'elektra'], ['typhoid-mary', 'elektra'], ['the-hood', 'ghost-rider'], ['crossbones', 'punisher'], ['viper', 'mystique'],
+    ['baron-strucker', 'red-skull'], ['absorbing-man', 'sandman'], ['klaue', 'shocker'], ['mole-man', 'leader'],
+    ['collector', 'grandmaster'], ['living-tribunal', 'watcher'], ['death', 'hela'], ['nightmare', 'dormammu'], ['mordo', 'doctor-strange'], ['malekith', 'loki'],
+    ['fin-fang-foom', 'devil-dinosaur'], ['lockjaw', 'cosmo'], ['throg', 'thor'], ['yondu', 'star-lord'], ['gwenpool', 'deadpool'],
     // Aranhaverso
     ['spider-man', 'miles-morales'], ['spider-man', 'spider-man-2099'], ['miles-morales', 'spider-gwen'],
     ['spider-gwen', 'spider-woman'], ['black-cat', 'spider-woman'], ['venom', 'carnage'], ['venom', 'knull'],

@@ -33,9 +33,14 @@
     ['arthur-harrow', 'Arthur Harrow', '', 'mk'], ['scarlet-scarab', 'Escaravelho Escarlate', 'Scarlet Scarab', 'mk'], ['titania', 'Titania', '', 'shehulk'], ['kazi', 'Kazi', '', 'hawkeye'],
     ['foggy', 'Foggy Nelson', '', 'ddba'], ['karen-page', 'Karen Page', '', 'ddba'], ['the-hood', 'Capuz', 'The Hood', 'ironheart'], ['trish', 'Trish Walker', '', 'jj'], ['misty-knight', 'Misty Knight', '', 'lc'], ['cottonmouth', 'Cottonmouth', '', 'lc'],
   ]
-  const extras = {}
-  EXTRAS.forEach(([key, n, en, w]) => { extras[key] = { key, n, en: en || n, w } })
   const hq = new Set(D.hq.map((h) => h.key))
+  // quem já ganhou capa de HQ ou entrou no Draft dos filmes sai da lista de extras
+  const noDraft = new Set([...hq, ...D.mcu.map((m) => m.key)])
+  const extras = {}
+  EXTRAS.forEach(([key, n, en, w]) => { if (!noDraft.has(key)) extras[key] = { key, n, en: en || n, w } })
   const soMcu = D.mcu.map((m, i) => ({ key: m.key, i })).filter((x) => !hq.has(x.key))
-  raiz.LabElenco = { chaves: [...hq, ...soMcu.map((x) => x.key), ...Object.keys(extras)], extras, soMcu }
+  // a lista de antes dos personagens novos: o desafio do dia que já estava no ar continua igual
+  const eraHq = D.hq.slice(0, 154).map((h) => h.key)
+  const antigas = [...eraHq, ...D.mcu.slice(0, 104).filter((m) => !eraHq.includes(m.key)).map((m) => m.key), ...EXTRAS.map((x) => x[0])]
+  raiz.LabElenco = { chaves: [...hq, ...soMcu.map((x) => x.key), ...Object.keys(extras)], extras, soMcu, antigas }
 })(typeof window !== 'undefined' ? window : globalThis)

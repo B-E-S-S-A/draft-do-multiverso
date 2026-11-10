@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url)
 globalThis.window = globalThis
 require('../site/data.js')
 require('../site/js/impostor-nomes.js')
+require('../site/js/grade-mais.js')
 require('../site/js/grade-dados.js')
 require('../site/js/grade-motor.js')
 require('../site/js/arquivo-fatos.js')

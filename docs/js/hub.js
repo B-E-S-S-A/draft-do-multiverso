@@ -5,7 +5,7 @@
   const D = E.D
   const L = window.Lingua
   const t = L.t
-  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), grade: document.getElementById('grade'), arquivo: document.getElementById('arquivo'), lab: document.getElementById('lab'), destino: document.getElementById('destino'), missao: document.getElementById('missao') }
+  const telas = { home: document.getElementById('home'), draft: document.getElementById('app'), impostor: document.getElementById('impostor'), aposto: document.getElementById('aposto'), grade: document.getElementById('grade'), arquivo: document.getElementById('arquivo'), identidade: document.getElementById('identidade'), lab: document.getElementById('lab'), destino: document.getElementById('destino'), missao: document.getElementById('missao') }
   const h1 = document.querySelector('.sign h1')
   const sub = document.querySelector('.sign p')
   const voltar = document.getElementById('voltar')
@@ -16,7 +16,7 @@
   let atual = 'home'
 
   function letreiro() {
-    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'arquivo' ? window.Arquivo.letreiro() : atual === 'lab' ? window.Lab.letreiro() : atual === 'destino' ? window.Destino.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
+    const l = atual === 'impostor' ? window.Impostor.letreiro() : atual === 'aposto' ? window.Aposto.letreiro() : atual === 'grade' ? window.Grade.letreiro() : atual === 'arquivo' ? window.Arquivo.letreiro() : atual === 'identidade' ? window.Identidade.letreiro() : atual === 'lab' ? window.Lab.letreiro() : atual === 'destino' ? window.Destino.letreiro() : atual === 'missao' ? window.Missao.letreiro() : LETREIRO[atual]()
     const [titulo, frase] = window.Invasao ? window.Invasao.letreiro(atual, l) : l
     h1.innerHTML = titulo
     sub.textContent = frase
@@ -36,6 +36,7 @@
     if (atual === 'aposto') window.Aposto.abrir()
     if (atual === 'grade') window.Grade.abrir()
     if (atual === 'arquivo') window.Arquivo.abrir()
+    if (atual === 'identidade') window.Identidade.abrir()
     if (atual === 'lab') window.Lab.abrir()
     if (atual === 'destino') window.Destino.abrir()
     if (atual === 'missao') window.Missao.abrir()
@@ -62,6 +63,12 @@
 
   // a capa do Arquivo Secreto: uma ficha com foto em branco e tarjas pretas
   const capaArquivo = () => `<div class="capa-arquivo" aria-hidden="true"><div class="topo"><u>?</u><b>${t('CONFIDENCIAL', 'CLASSIFIED')}</b></div><i></i><i></i><i></i><p>${t('Quem é?', 'Who is it?')}</p></div>`
+
+  // a capa da Identidade Secreta: um tabuleirinho com cartas em pé e viradas
+  function capaIdentidade() {
+    const casas = ['loki', '', 'hulk', '', 'mystique', 'wolverine']
+    return `<div class="capa-identidade" aria-hidden="true">${casas.map((k) => (k ? `<i>${V.cover(hq(k))}</i>` : '<i class="v"></i>')).join('')}<b>?</b></div>`
+  }
 
   let v = null
   function home() {
@@ -100,6 +107,11 @@
           'A character’s file opens one clue at a time. The sooner you guess who it is, the more points you get. Miss, lose 1 and try on the next one.'),
         t('2 a 8 jogadores · HQ, filmes ou os dois · num celular só ou online', '2 to 8 players · comics, movies or both · on one phone or online'),
         `<button class="btn big" type="button" data-ir="arquivo">${t('Jogar Arquivo', 'Play Secret File')}</button>${online('arquivo-online')}`)}
+      ${jogo(capaIdentidade(), t('Identidade Secreta', 'Secret Identity'),
+        t('Cada um tem um personagem secreto no mesmo tabuleiro. Pergunte "voa?", "é vilão?", vire as cartas de quem não bate e chute quem é. Errou o chute, perdeu.',
+          'Each of you has a secret character on the same board. Ask "can they fly?", "villain?", flip down whoever doesn’t fit and guess who it is. Miss the guess, you lose.'),
+        t('1 contra 1 · HQ, filmes ou os dois · online ou contra o computador', '1 vs 1 · comics, movies or both · online or against the computer'),
+        `<button class="btn big" type="button" data-ir="identidade">${t('Jogar Identidade', 'Play Secret Identity')}</button>${online('identidade-online')}`)}
       ${jogo(leque([hq('hulk'), hq('high-evolutionary'), hq('spider-man')]), t('Laboratório do Alto Evolucionário', 'The High Evolutionary’s Lab'),
         t('Sai um personagem e você decide o que ele vira no seu herói: a Força, o Corpo, a Agilidade, a Inteligência… Sem trocar e sem saber quem vem depois. No fim, os heróis se enfrentam em mata-mata e a turma vota.',
           'A character shows up and you decide what they become in your hero: the Strength, the Body, the Agility, the Intelligence… No changing it, and no knowing who is next. Then the heroes face off in a knockout and the gang votes.'),
@@ -123,6 +135,7 @@
     else if (b.dataset.ir === 'impostor-online') { ir('impostor'); foca('imp-on-nome') }
     else if (b.dataset.ir === 'aposto-online') { ir('aposto'); foca('ap-meu') }
     else if (b.dataset.ir === 'grade-online') { ir('grade'); foca('gd-meu') }
+    else if (b.dataset.ir === 'identidade-online') { ir('identidade'); foca('se-meu') }
     else if (b.dataset.ir === 'arquivo-online') { ir('arquivo'); foca('aq-meu') }
     else if (b.dataset.ir === 'lab-online') { ir('lab'); foca('lab-meu') }
     else ir(b.dataset.ir)
@@ -145,6 +158,8 @@
     if (salaAp) { ir('aposto'); window.Aposto.entrar(salaAp[1]); return }
     const salaGd = pedido.match(/^grade-([A-Za-z0-9]{4})$/)
     if (salaGd) { ir('grade'); window.Grade.entrar(salaGd[1]); return }
+    const salaId = pedido.match(/^identidade-([A-Za-z0-9]{4})$/)
+    if (salaId) { ir('identidade'); window.Identidade.entrar(salaId[1]); return }
     const salaAq = pedido.match(/^arquivo-([A-Za-z0-9]{4})$/)
     if (salaAq) { ir('arquivo'); window.Arquivo.entrar(salaAq[1]); return }
     const salaLab = pedido.match(/^lab-([A-Za-z0-9]{4})$/)

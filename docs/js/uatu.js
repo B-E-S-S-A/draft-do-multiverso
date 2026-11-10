@@ -177,6 +177,12 @@
     'arquivo-ninguem': [0.8, [
       () => t('Ninguém? Eu li essa ficha antes de ela existir.', 'Nobody? I read that file before it existed.'),
       () => t('Vou arquivar como "ninguém faz ideia".', 'I will file this under "nobody has a clue".')]],
+    'identidade-acertou': [0.7, [
+      (d) => t(`${d.nome} descobriu. Identidade secreta não dura muito perto de mim.`, `${d.nome} figured it out. Secret identities do not last long around me.`),
+      () => t('Acertou. Eu sabia desde a primeira carta.', 'Correct. I knew from the first card.')]],
+    'identidade-errou': [0.8, [
+      (d) => t(`${d.nome} chutou errado. Eu vi a carta o tempo todo.`, `${d.nome} guessed wrong. I saw the card the whole time.`),
+      () => t('Errou. Até o Camaleão ficaria com vergonha.', 'Wrong. Even the Chameleon would be embarrassed.')]],
     'arquivo-fim': [0.9, [
       (d) => t(`${d.nome} leu mais fichas que a S.H.I.E.L.D. inteira.`, `${d.nome} has read more files than all of S.H.I.E.L.D.`),
       () => t('Arquivo encerrado. Eu guardo uma cópia.', 'File closed. I am keeping a copy.')]],
@@ -197,6 +203,7 @@
     'abriu-impostor': [0.25, [() => t('Um impostor entre vocês? Eu já sei quem é.', 'An impostor among you? I already know who.')]],
     'abriu-aposto': [0.25, [() => t('Aposto que sei? Eu sei. Sempre.', 'Bet you know? I do. Always.')]],
     'abriu-grade': [0.25, [() => t('A Grade. Eu sei todas as respostas de todas as casas.', 'The Grid. I know every answer to every square.')]],
+    'abriu-identidade': [0.25, [() => t('Eu sei quem cada um é. Mas não posso contar.', 'I know who everyone is. But I cannot tell.')]],
     'abriu-arquivo': [0.25, [() => t('Essas fichas? Fui eu que escrevi.', 'These files? I wrote them.')]],
     'abriu-lab': [0.25, [() => t('Pedaços de heróis. O que pode dar errado?', 'Pieces of heroes. What could go wrong?')]],
     'abriu-destino': [0.25, [() => t('Um desafio por dia. Eu já sei até o último.', 'One challenge a day. I already know the last one.')]],

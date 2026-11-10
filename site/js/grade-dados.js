@@ -274,6 +274,11 @@
     guerrainf: ['tela', 3], xfox: ['tela', 3], aeroporto: ['tela', 4], aranhaverso: ['tela', 5], vilaomorto: ['tela', 5], xdesenho: ['tela', 6], deadwolv: ['tela', 6],
     defensores: ['hq', 6], illuminati: ['hq', 7], secret84: ['hq', 8], claremont: ['hq', 8], roythomas: ['hq', 9],
   }
+  // a terceira leva (grade-mais.js): temas feitos à mão e temas contados em cima dos dados
+  const LEVA3 = raiz.GRADE_MAIS || { TAGS: {}, TEMAS: [], CONTAS: [] }
+  LEVA3.TEMAS.forEach(([id, grupo, ref, d, pt, en, m]) => C.push({ id, grupo, nivel: d <= 2 ? 1 : 2, pt, en, m: L(m), ficha: [ref, d], leva: 3 }))
+  LEVA3.CONTAS.forEach(([id, grupo, d, pt, en, f]) => C.push({ id, grupo, nivel: 2, pt, en, m: new Set(D.hq.filter((h) => f(ano(h), por(h))).map((h) => h.key)), ficha: ['hq', d], leva: 3 }))
+
   C.forEach((c) => { const f = c.ficha || FICHA[c.id] || ['ambos', 5]; c.ref = f[0]; c.d = f[1] })
 
   // ---------- a versão "só filmes e séries" ----------
@@ -317,6 +322,21 @@
   nasTelas('timestark', 'iron-man war-machine black-widow black-panther vision spider-man',
     ['Time Homem de Ferro', 'Do lado da armadura no filme Guerra Civil.'], ['Team Iron Man', 'On the armor’s side in the movie Civil War.'])
 
+  // os personagens novos entram nos temas: "tema" (HQ), "tema+" (HQ e filmes), "tema:t" (só filmes)
+  const elenco = new Set(D.hq.map((h) => h.key))
+  for (const [key, tags] of Object.entries(LEVA3.TAGS)) {
+    if (!elenco.has(key)) continue
+    for (const tag of L(tags)) {
+      const id = tag.replace(/(\+|:t)$/, '')
+      const c = C.find((x) => x.id === id)
+      if (!c) throw new Error(`tema desconhecido: ${id} (${key})`)
+      const nasTelasTambem = id !== tag
+      if (!tag.endsWith(':t')) c.m.add(key)
+      if (c.tela && nasTelasTambem) c.tela.m.add(key)
+      if (c.ref === 'tela' || nasTelasTambem) TELA.add(key)
+    }
+  }
+
   // ---------- o que muda por versão: as categorias, quem vale e quem conta como resposta ----------
   const VERSOES = { hq: ['hq', 'ambos'], ambos: ['hq', 'tela', 'ambos'], tela: ['tela', 'ambos'] }
   const versao = (v) => (VERSOES[v] ? v : 'ambos')
@@ -328,5 +348,7 @@
 
   const porId = Object.fromEntries(C.map((c) => [c.id, c]))
   const chaves = D.hq.map((h) => h.key)
-  raiz.GradeDados = { categorias: C, porId, chaves, ano, revista, TELA, VERSOES, versao, categoriasDa, membros, poolDa, textos }
+  // quem já estava no elenco quando os dias de desafio começaram (o grid que já foi ao ar não pode mudar)
+  const antigos = new Set(chaves.slice(0, 154))
+  raiz.GradeDados = { categorias: C, porId, chaves, antigos, ano, revista, TELA, VERSOES, versao, categoriasDa, membros, poolDa, textos }
 })(typeof window !== 'undefined' ? window : globalThis)

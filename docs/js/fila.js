@@ -6,8 +6,8 @@
   const PREFIXO = 'mvfila-v1-'
   const VAGAS = 5
   const AVISO_MS = 60000
-  const JOGOS = { draft: ['Draft', 'Draft'], grade: ['Grade', 'Grid'], arquivo: ['Arquivo Secreto', 'Secret File'], aposto: ['Aposto Que Sei', 'Bet I Know'] }
-  const CONTROLE = { draft: () => window.Draft, grade: () => window.Grade, arquivo: () => window.Arquivo, aposto: () => window.Aposto }
+  const JOGOS = { draft: ['Draft', 'Draft'], grade: ['Grade', 'Grid'], arquivo: ['Arquivo Secreto', 'Secret File'], aposto: ['Aposto Que Sei', 'Bet I Know'], identidade: ['Identidade Secreta', 'Secret Identity'] }
+  const CONTROLE = { draft: () => window.Draft, grade: () => window.Grade, arquivo: () => window.Arquivo, aposto: () => window.Aposto, identidade: () => window.Identidade }
   let b = null // a busca em andamento
   let aleatoria = false
 

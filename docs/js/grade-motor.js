@@ -62,8 +62,8 @@
   // um lado do grid traz os temas do nível; o outro, temas mais amplos (com muita gente), um pouco abaixo do nível.
   // É o cruzamento de um tema difícil com um amplo que faz casa difícil que ainda tem resposta.
   const perto = (d, centro) => 0.12 + Math.exp(-((d - centro) ** 2) / (2 * 1.6 * 1.6))
-  function sorteiaCategorias(pool, nA, nB, nivel, versao, rnd) {
-    const tamanho = (c) => G().membros(c, versao).size
+  function sorteiaCategorias(pool, nA, nB, nivel, versao, rnd, soAntigos) {
+    const tamanho = (c) => (soAntigos ? [...G().membros(c, versao)].filter((k) => G().antigos.has(k)).length : G().membros(c, versao).size)
     const a = sorteiaComPeso(pool, nA, (c) => perto(c.d, nivel), [], rnd)
     const b = sorteiaComPeso(pool, nB, (c) => perto(c.d, Math.max(1, nivel - 2)) * Math.pow(tamanho(c) / 40, 0.8), a, rnd)
     return [a, b]
@@ -94,7 +94,8 @@
       let absurdas = 0
       let demais = 0
       const difs = linhas.map((l) => colunas.map((c) => {
-        const n = respostas(l.id, c.id, versao).length
+        const certas = respostas(l.id, c.id, versao)
+        const n = opcoes.soAntigos ? certas.filter((k) => G().antigos.has(k)).length : certas.length
         pior = Math.min(pior, n)
         if (n > teto) demais++
         const d = difCasa(l, c, n)
@@ -112,7 +113,7 @@
     for (let t = 0; t < 1200 && !(melhor && pronto(melhor.nota)); t++) {
       // qual lado fica com os temas do nível muda a cada tentativa
       const deitado = rnd() < 0.5
-      const [a, b] = sorteiaCategorias(pool, deitado ? L : C, deitado ? C : L, nivel, versao, rnd)
+      const [a, b] = sorteiaCategorias(pool, deitado ? L : C, deitado ? C : L, nivel, versao, rnd, opcoes.soAntigos)
       if (a.length + b.length < L + C) continue
       const linhas = embaralha(deitado ? a : b, rnd)
       const colunas = embaralha(deitado ? b : a, rnd)

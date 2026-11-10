@@ -1,0 +1,126 @@
+/* Identidade Secreta: o tabuleiro de capas que viram, no mesmo visual da banca (papel, tinta grossa, sombra dura). */
+.se-modos { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+.se-jogo { display: grid; gap: 12px }
+.se-mesa { display: grid; gap: 14px }
+.se-lado { display: grid; gap: 12px; min-width: 0; align-content: start }
+@media (min-width: 900px) {
+  .se-mesa { grid-template-columns: minmax(0, 1fr) 360px; align-items: start }
+  .se-lado { position: sticky; top: 12px }
+}
+
+/* placar: um de cada lado, quem está jogando fica amarelo */
+.se-barra { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; padding: 8px 10px }
+.se-jog { --cor: var(--p1); display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; padding: 4px 10px; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--cor) }
+.se-jog.p2 { --cor: var(--p2) }
+.se-jog.vez { background: var(--sun) }
+.se-jog b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px }
+.se-jog b small { font-weight: 400; color: var(--muted) }
+.se-jog > small { grid-column: 1; font-family: var(--label); font-size: 9px; color: var(--muted) }
+.se-jog.vez > small { color: var(--ink) }
+.se-jog em { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-style: normal; font-family: var(--display); font-size: 32px; line-height: 1 }
+.se-vs { font-style: normal; font-family: var(--display); font-size: 24px; color: var(--muted) }
+
+/* o tabuleiro */
+.se-tab { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 10px 8px }
+.se-carta { display: grid; gap: 4px; padding: 0; margin: 0; background: none; border: 0; color: var(--ink); font: inherit; text-align: center; cursor: pointer; perspective: 700px }
+.se-carta:disabled { cursor: default }
+.se-carta:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px }
+.se-gira { position: relative; display: block; aspect-ratio: 2 / 3; transform-style: preserve-3d; transition: transform .38s cubic-bezier(.3, .7, .3, 1.2) }
+.se-carta.caiu .se-gira { transform: rotateY(180deg) }
+.se-face { position: absolute; inset: 0; overflow: hidden; border: 3px solid var(--ink); background: #e4e1d8; box-shadow: 3px 3px 0 var(--ink); backface-visibility: hidden; -webkit-backface-visibility: hidden }
+.se-face .cv { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top }
+.se-verso { transform: rotateY(180deg); display: grid; place-items: center; background: var(--paper) radial-gradient(circle, #cfc9b8 1.6px, transparent 1.8px) 0 0 / 9px 9px; box-shadow: none }
+.se-verso i { font-style: normal; font-family: var(--display); font-size: 40px; color: #b9b19c }
+.se-nome { font-size: 12px; font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; min-height: 2.2em }
+.se-carta.caiu .se-nome { color: #b9b19c; text-decoration: line-through }
+@media (hover: hover) { .se-carta:not(:disabled):not(.caiu):hover .se-gira { transform: translateY(-3px) } }
+/* chutando: as que caíram somem um pouco e quem está em pé chama o dedo */
+.se-tab.chutando .se-carta.caiu { opacity: .35; cursor: default }
+.se-tab.chutando .se-carta:not(.caiu) .se-face { border-color: #c8321f }
+.se-carta.alvo .se-face { border-color: #c8321f; box-shadow: 0 0 0 4px var(--sun), 4px 4px 0 var(--ink) }
+.se-carta.alvo .se-gira { transform: translateY(-4px) }
+/* no fim, os dois segredos aparecem mesmo se estavam virados */
+.se-carta.segredo .se-gira { transform: none }
+.se-carta.segredo .se-face { border-color: #c8321f; box-shadow: 0 0 0 4px var(--sun), 4px 4px 0 var(--ink) }
+
+/* seu personagem */
+.se-meu { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 12px }
+.se-meu-capa { display: block; width: 58px; aspect-ratio: 2 / 3; overflow: hidden; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); background: #e4e1d8 }
+.se-meu-capa .cv { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top }
+.se-meu .lbl { margin: 0 }
+.se-meu b { display: block; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: .95; overflow-wrap: anywhere }
+.se-meu small { font-family: var(--label); font-size: 9px; color: var(--muted) }
+
+/* o painel de ação */
+.se-acao { padding: 12px }
+.se-msg { display: grid; gap: 8px }
+.se-msg > b { font-size: 18px; line-height: 1.2 }
+.se-msg p { margin: 0 }
+.se-msg .lbl { margin: 0 }
+.se-botoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.se-mao { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px }
+.se-mao .btn { font-size: 15px; line-height: 1.15; padding: 8px 8px 10px; text-align: left; white-space: normal; min-height: 48px }
+.se-escreve input { flex: 1; min-width: 0 }
+.se-enviada { font-size: 17px }
+.se-msg .se-resp { justify-self: start; font-family: var(--display); font-weight: 400; font-size: 52px; line-height: .9; padding: 2px 14px 6px; border: 3px solid var(--ink); background: #fff; box-shadow: 3px 3px 0 var(--ink); animation: se-carimbo .25s ease-out }
+.se-resp.sim { background: #c9efd9 }
+.se-resp.nao { background: #ffd2c9 }
+@keyframes se-carimbo { from { transform: scale(1.5) rotate(-6deg); opacity: 0 } }
+.se-responde .btn { font-size: 22px; min-width: 88px }
+.se-sair { justify-self: start }
+
+/* o fim */
+.se-fim { justify-items: center; text-align: center }
+.se-fim-titulo { font-family: var(--display); font-weight: 400; font-size: clamp(38px, 8vw, 54px) !important; line-height: .95 !important }
+.se-fim.ganhou .se-fim-titulo { color: var(--banca) }
+.se-fim.perdeu .se-fim-titulo { color: #c8321f }
+.se-revelas { display: flex; gap: 14px; justify-content: center }
+.se-revela { --cor: var(--p1); margin: 0; display: grid; gap: 4px; width: 104px }
+.se-revela.p2 { --cor: var(--p2) }
+.se-revela .cv { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; object-position: top; border: 3px solid var(--ink); border-bottom: 8px solid var(--cor); box-shadow: 3px 3px 0 var(--ink); animation: aq-revela .4s ease-out }
+.se-revela small { display: block; font-family: var(--label); font-size: 9px; color: var(--muted) }
+.se-revela b { display: block; font-size: 14px; line-height: 1.1 }
+
+/* o histórico */
+.se-log { padding: 10px 12px }
+.se-log .lbl { margin: 0 0 6px }
+.se-log ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 220px; overflow-y: auto }
+.se-log li { --cor: var(--p1); padding: 3px 8px; border-left: 6px solid var(--cor); background: var(--paper); font-size: 14px; line-height: 1.25 }
+.se-log li.p2 { --cor: var(--p2) }
+.se-log em { font-style: normal; font-weight: 700 }
+.se-log em.sim { color: var(--banca) }
+.se-log em.nao { color: #c8321f }
+
+/* a capa na tela inicial: cartas em pé e uma virada */
+.capa-identidade { position: relative; justify-self: center; display: grid; grid-template-columns: repeat(3, 52px); gap: 6px; padding: 10px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink) }
+.capa-identidade i { display: block; aspect-ratio: 2 / 3; overflow: hidden; border: 2px solid var(--ink); background: #e4e1d8 }
+.capa-identidade i .cv { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top }
+.capa-identidade i.v { background: var(--paper) radial-gradient(circle, #cfc9b8 1.4px, transparent 1.6px) 0 0 / 7px 7px }
+.capa-identidade b { position: absolute; right: -10px; bottom: -12px; padding: 2px 8px 4px; font-family: var(--display); font-weight: 400; font-size: 26px; background: var(--sun); border: 3px solid var(--ink); transform: rotate(-6deg) }
+
+@media (max-width: 560px) {
+  .se-tab { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px 5px }
+  .se-nome { font-size: 9px }
+  .se-verso i { font-size: 28px }
+  .se-face { box-shadow: 2px 2px 0 var(--ink); border-width: 2px }
+  .se-barra { padding: 6px; gap: 6px }
+  .se-jog { padding: 3px 6px; border-left-width: 6px }
+  .se-jog b { font-size: 13px }
+  .se-jog em { font-size: 26px }
+  .se-vs { font-size: 18px }
+  .se-mao { grid-template-columns: minmax(0, 1fr) }
+  .se-mao .btn { min-height: 40px }
+  .se-msg .se-resp { font-size: 40px }
+  .se-meu { grid-template-columns: 44px minmax(0, 1fr); padding: 8px 10px }
+  .se-meu-capa { width: 44px }
+  .se-meu b { font-size: 24px }
+}
+/* no celular: quem você é e o que fazer vêm antes do tabuleiro; o histórico fica no fim */
+@media (max-width: 899px) {
+  .se-lado { display: contents }
+  .se-meu { order: 1 }
+  .se-acao { order: 2 }
+  .se-lado-a { order: 3 }
+  .se-log { order: 4 }
+  .se-sair { order: 5 }
+}

@@ -54,6 +54,15 @@ const FIX = {
   surtur: { debut: 'Journey into Mystery #97', year: 1963, by: 'Stan Lee e Jack Kirby' },
   'captain-britain': { by: 'Chris Claremont e Herb Trimpe' },
   'squirrel-girl': { debut: 'Marvel Super-Heroes #8', year: 1992 },
+  sunspot: { debut: 'Marvel Graphic Novel #4', year: 1982 },
+  cannonball: { debut: 'Marvel Graphic Novel #4', year: 1982 },
+  legion: { debut: 'The New Mutants #25' },
+  'spider-ham': { debut: 'Marvel Tails Starring Peter Porker #1', year: 1983 },
+  'spider-noir': { by: 'David Hine, Fabrice Sapolsky e Carmine Di Giandomenico' },
+  mj: { debut: 'The Amazing Spider-Man #25' },
+  crossbones: { debut: 'Captain America #359' },
+  'moon-girl': { debut: 'Moon Girl and Devil Dinosaur #1', year: 2015, by: 'Amy Reeder, Brandon Montclare e Natacha Bustos' },
+  throg: { debut: 'Thor #363', year: 1986, by: 'Walt Simonson' },
 }
 
 const hqHave = HQ.filter(([key]) => meta.hq[key])
@@ -67,8 +76,9 @@ const workKeys = workHave.filter((wk, i) => mcuAtlas.kinds[i] !== 'fail')
 
 const data = {
   atlas: {
-    hq: { src: 'img/hq.png', cols: hqAtlas.cols, rows: hqAtlas.rows },
-    mcu: { src: 'img/mcu.png', cols: mcuAtlas.cols, rows: mcuAtlas.rows },
+    // o número no fim muda quando entra capa nova, pra ninguém ficar com a imagem velha guardada
+    hq: { src: 'img/hq.png?n=' + hqAtlas.kinds.length, cols: hqAtlas.cols, rows: hqAtlas.rows },
+    mcu: { src: 'img/mcu.png?n=' + mcuAtlas.kinds.length, cols: mcuAtlas.cols, rows: mcuAtlas.rows },
   },
   works: Object.fromEntries(workKeys.map((wk) => {
     const i = workHave.indexOf(wk)

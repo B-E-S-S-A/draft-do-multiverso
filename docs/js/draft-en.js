@@ -20,6 +20,8 @@ window.DRAFT_EN = {
     falcon: 'Captain America (Sam)', rocket: 'Rocket', 'ancient-one': 'Ancient One', taskmaster: 'Taskmaster', mandarin: 'Mandarin (Wenwu)',
     shuri: 'Black Panther (Shuri)', 'silver-surfer': 'Silver Surfer', yondu: 'Yondu', sylvie: 'Sylvie', grandmaster: 'Grandmaster', okoye: 'Okoye',
     ghost: 'Ghost', thena: 'Thena', zeus: 'Zeus', 'cassandra-nova': 'Cassandra Nova', 'red-hulk': 'Red Hulk', death: 'Death (Rio Vidal)',
+    mordo: 'Mordo', mj: 'MJ', 'ebony-maw': 'Ebony Maw', proxima: 'Proxima Midnight', 'he-who-remains': 'He Who Remains', 'aunt-may': 'Aunt May',
+    whiplash: 'Whiplash', 'iron-monger': 'Iron Monger', valentina: 'Valentina Allegra de Fontaine',
   },
   ids: {
     'Hércules': 'Hercules', sintozoide: 'synthezoid', 'entidade psiônica': 'psionic entity', 'o Titã Louco': 'the Mad Titan', 'Galan de Taa': 'Galan of Taa',

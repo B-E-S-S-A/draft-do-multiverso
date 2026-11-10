@@ -7,7 +7,7 @@
   const FIM = '2026-12-20' // o fim de semana da estreia; depois a banca volta ao normal
   const NOMES = {
     draft: ['Leilão de <em>Latvéria</em>', 'Latverian <em>Auction</em>'], impostor: ['Impostor de <em>Latvéria</em>', 'Latverian <em>Impostor</em>'], aposto: ['Aposto Que <em>Destino</em> Sabe', '<em>Doom</em> Bets He Knows'],
-    grade: ['Grade de <em>Latvéria</em>', 'Latverian <em>Grid</em>'], arquivo: ['Arquivo de <em>Latvéria</em>', 'Latverian <em>File</em>'], lab: ['Laboratório de <em>Destino</em>', '<em>Doom’s</em> Laboratory'], missao: ['Missão de <em>Destino</em>', '<em>Doom’s</em> Mission'],
+    grade: ['Grade de <em>Latvéria</em>', 'Latverian <em>Grid</em>'], arquivo: ['Arquivo de <em>Latvéria</em>', 'Latverian <em>File</em>'], lab: ['Laboratório de <em>Destino</em>', '<em>Doom’s</em> Laboratory'], identidade: ['Identidade de <em>Destino</em>', '<em>Doom’s</em> Identity'], missao: ['Missão de <em>Destino</em>', '<em>Doom’s</em> Mission'],
   }
   const dia = () => raiz.DestinoMotor.diaDe()
   const fase = () => { const d = dia(); return d < ORDEM[0][0] || d > FIM ? 'nada' : d >= ESTREIA ? 'total' : 'invadindo' }

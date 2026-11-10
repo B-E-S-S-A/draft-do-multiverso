@@ -29,14 +29,15 @@
   // os dias vão se alternando: ficha, grade, herói. O último, na estreia, é a ficha do Doutor Destino.
   const tipoDe = (i) => (i === TOTAL - 1 ? 'ficha' : ['ficha', 'grade', 'lab'][i % 3])
   let ordem = null
-  // personagens de ficha: só os bem conhecidos, cada um uma vez no período
+  // personagens de ficha: só os bem conhecidos, cada um uma vez no período (e só os de antes da terceira leva, pra agenda não mudar)
   function fichaDe(i) {
     if (i === TOTAL - 1) return 'doctor-doom'
-    if (!ordem) ordem = embaralha(A().candidatos('ambos').filter((k) => k !== 'doctor-doom' && A().conhecido(k)), aleatorio(semente('fichas-destino')))
+    if (!ordem) ordem = embaralha(A().candidatos('ambos').filter((k) => k !== 'doctor-doom' && A().conhecido(k) && G().antigos.has(k)), aleatorio(semente('fichas-destino')))
     return ordem[Math.floor(i / 3) % ordem.length]
   }
   // o grid desse dia já estava no ar quando chegaram os temas novos: continua igual pra quem já jogou
   const ULTIMO_GRID_ANTIGO = 1
+  const ULTIMO_LAB_ANTIGO = 2 // o herói do dia 10/11 já estava no ar quando chegaram os personagens novos
   const cache = {}
   function desafio(i) {
     if (cache[i]) return cache[i]
@@ -44,7 +45,7 @@
     const tipo = tipoDe(i)
     if (tipo === 'ficha') { const key = fichaDe(i); cache[i] = { tipo, key, pistas: A().montarPistas(key, 'ambos', rnd) } }
     if (tipo === 'grade') cache[i] = { tipo, ...GM().sortearGrade(3, 3, rnd, { versao: 'ambos', nivel: 6, soAntigos: i <= ULTIMO_GRID_ANTIGO }) }
-    if (tipo === 'lab') cache[i] = { tipo, baralho: embaralha(LE().chaves, rnd).slice(0, LM().PADRAO.length), topicos: LM().PADRAO }
+    if (tipo === 'lab') cache[i] = { tipo, baralho: embaralha(i <= ULTIMO_LAB_ANTIGO ? LE().antigas : LE().chaves, rnd).slice(0, LM().PADRAO.length), topicos: LM().PADRAO }
     return cache[i]
   }
 
