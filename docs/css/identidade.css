@@ -1,6 +1,6 @@
-/* Identidade Secreta: o tabuleiro de capas que viram, no mesmo visual da banca (papel, tinta grossa, sombra dura). */
+/* Identidade Secreta: cartas de colecionar que viram, no mesmo visual da banca (papel, tinta grossa, sombra dura). */
 .se-modos { grid-template-columns: repeat(2, minmax(0, 1fr)) }
-.se-jogo { display: grid; gap: 12px }
+.se-jogo { display: grid; gap: 14px }
 .se-mesa { display: grid; gap: 14px }
 .se-lado { display: grid; gap: 12px; min-width: 0; align-content: start }
 @media (min-width: 900px) {
@@ -8,119 +8,201 @@
   .se-lado { position: sticky; top: 12px }
 }
 
-/* placar: um de cada lado, quem está jogando fica amarelo */
-.se-barra { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; padding: 8px 10px }
-.se-jog { --cor: var(--p1); display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; padding: 4px 10px; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--cor) }
+/* ---------- placar: quem está na vez sobe e fica amarelo ---------- */
+.se-barra { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding-top: 8px }
+.se-jog { --cor: var(--p1); position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; align-items: center; padding: 8px 12px;
+  background: var(--paper); border: 3px solid var(--ink); border-left: 12px solid var(--cor); box-shadow: 4px 4px 0 var(--ink); transition: transform .2s, background .2s, box-shadow .2s }
 .se-jog.p2 { --cor: var(--p2) }
-.se-jog.vez { background: var(--sun) }
-.se-jog b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px }
+.se-jog.vez { background: var(--sun); transform: translateY(-3px); box-shadow: 4px 7px 0 var(--ink) }
+.se-vez-tag { position: absolute; top: -11px; left: 8px; padding: 1px 6px 2px; font-style: normal; font-family: var(--label); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--sun); background: var(--ink) }
+.se-jog b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px }
 .se-jog b small { font-weight: 400; color: var(--muted) }
 .se-jog > small { grid-column: 1; font-family: var(--label); font-size: 9px; color: var(--muted) }
-.se-jog.vez > small { color: var(--ink) }
-.se-jog em { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-style: normal; font-family: var(--display); font-size: 32px; line-height: 1 }
-.se-vs { font-style: normal; font-family: var(--display); font-size: 24px; color: var(--muted) }
+.se-jog.vez > small, .se-jog.vez b small { color: var(--ink) }
+.se-jog em { grid-column: 2; grid-row: 1 / span 2; font-style: normal; font-family: var(--display); font-size: 38px; line-height: 1 }
+.se-vs { font-style: normal; font-family: var(--display); font-size: 30px; line-height: 1; color: var(--ink); transform: rotate(-8deg) }
 
-/* o tabuleiro */
-.se-tab { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 10px 8px }
-.se-carta { display: grid; gap: 4px; padding: 0; margin: 0; background: none; border: 0; color: var(--ink); font: inherit; text-align: center; cursor: pointer; perspective: 700px }
+/* ---------- o tabuleiro ---------- */
+.se-tabuleiro { padding: 12px 14px 16px; transition: background .25s }
+.se-tab-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-height: 26px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 3px dashed #cfc9b8 }
+.se-tab-topo .lbl { margin: 0 }
+.se-conta { font-family: var(--label); font-size: 10px; color: var(--muted); white-space: nowrap }
+.se-conta b { margin-right: 3px; font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--ink) }
+.se-tab { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 10px }
+.se-tabuleiro.escolhendo { background: #fff6d6 }
+.se-tabuleiro.escolhendo .se-tab-topo .lbl { color: var(--ink); font-size: 12px; animation: se-chama 1.4s ease-in-out infinite }
+.se-tabuleiro.chutando { background: #ffece8 }
+.se-tabuleiro.chutando .se-tab-topo { border-bottom-color: #e6a497 }
+@keyframes se-chama { 50% { opacity: .45 } }
+
+/* ---------- a carta: frente com capa e nome, verso escuro com selo ---------- */
+.se-carta { position: relative; display: block; padding: 0; margin: 0; background: none; border: 0; color: var(--ink); font: inherit; cursor: pointer; perspective: 800px; -webkit-tap-highlight-color: transparent }
 .se-carta:disabled { cursor: default }
-.se-carta:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px }
-.se-gira { position: relative; display: block; aspect-ratio: 2 / 3; transform-style: preserve-3d; transition: transform .38s cubic-bezier(.3, .7, .3, 1.2) }
+.se-carta:focus-visible { outline: 3px solid var(--p2); outline-offset: 4px }
+.se-gira { position: relative; display: block; aspect-ratio: 5 / 8; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.3, .7, .25, 1.25) }
 .se-carta.caiu .se-gira { transform: rotateY(180deg) }
-.se-face { position: absolute; inset: 0; overflow: hidden; border: 3px solid var(--ink); background: #e4e1d8; box-shadow: 3px 3px 0 var(--ink); backface-visibility: hidden; -webkit-backface-visibility: hidden }
-.se-face .cv { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top }
-.se-verso { transform: rotateY(180deg); display: grid; place-items: center; background: var(--paper) radial-gradient(circle, #cfc9b8 1.6px, transparent 1.8px) 0 0 / 9px 9px; box-shadow: none }
-.se-verso i { font-style: normal; font-family: var(--display); font-size: 40px; color: #b9b19c }
-.se-nome { font-size: 12px; font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; min-height: 2.2em }
-.se-carta.caiu .se-nome { color: #b9b19c; text-decoration: line-through }
-@media (hover: hover) { .se-carta:not(:disabled):not(.caiu):hover .se-gira { transform: translateY(-3px) } }
-/* chutando: as que caíram somem um pouco e quem está em pé chama o dedo */
-.se-tab.chutando .se-carta.caiu { opacity: .35; cursor: default }
-.se-tab.chutando .se-carta:not(.caiu) .se-face { border-color: #c8321f }
-.se-carta.alvo .se-face { border-color: #c8321f; box-shadow: 0 0 0 4px var(--sun), 4px 4px 0 var(--ink) }
-.se-carta.alvo .se-gira { transform: translateY(-4px) }
+.se-face { position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden; background: #fff; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: box-shadow .2s, border-color .2s }
+.se-foto { display: block; min-height: 0; overflow: hidden; background: #e4e1d8; border-bottom: 3px solid var(--ink) }
+.se-foto .cv { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top }
+.se-nome { display: grid; place-items: center; min-height: 2.6em; padding: 2px 4px; font-size: 11px; font-weight: 700; line-height: 1.05; text-align: center; overflow-wrap: anywhere }
+.se-verso { transform: rotateY(180deg); background: repeating-linear-gradient(-45deg, #2b2836 0 7px, #24212d 7px 14px); box-shadow: 1px 1px 0 var(--ink) }
+.se-verso i { align-self: center; justify-self: center; display: grid; place-items: center; width: 50%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--sun);
+  font-style: normal; font-family: var(--display); font-size: 30px; line-height: 1; color: var(--sun); background: #1d1b25 }
+.se-verso .se-nome { color: #8c8799; background: #1d1b25; border-top: 3px solid #14131a; text-decoration: line-through }
+@media (hover: hover) {
+  .se-carta:not(:disabled):not(.caiu):hover .se-gira { transform: translateY(-5px) rotate(-1.5deg) }
+  .se-carta:not(:disabled):not(.caiu):hover .se-face { box-shadow: 5px 6px 0 var(--ink) }
+}
+.se-carta:not(:disabled):not(.caiu):active .se-gira { transform: translateY(1px) scale(.97) }
+/* a carta do seu personagem ganha um selo */
+.se-selo { position: absolute; top: -9px; right: -7px; z-index: 2; display: none; padding: 1px 6px 2px; font-family: var(--label); font-size: 9px; font-weight: 400; text-transform: uppercase;
+  background: var(--sun); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); transform: rotate(7deg) }
+.se-carta.eu:not(.caiu) .se-selo { display: block }
+/* marcada (escolhendo ou chutando) */
+.se-carta.alvo .se-gira { transform: translateY(-7px) }
+.se-carta.alvo .se-face { box-shadow: 0 0 0 4px var(--sun), 6px 6px 0 var(--ink) }
+.se-tabuleiro.chutando .se-carta.caiu { opacity: .3; pointer-events: none }
+.se-tabuleiro.chutando .se-carta:not(.caiu) .se-face { border-color: #c8321f }
+.se-tabuleiro.chutando .se-carta.alvo .se-face { box-shadow: 0 0 0 4px #c8321f, 6px 6px 0 var(--ink) }
 /* no fim, os dois segredos aparecem mesmo se estavam virados */
-.se-carta.segredo .se-gira { transform: none }
-.se-carta.segredo .se-face { border-color: #c8321f; box-shadow: 0 0 0 4px var(--sun), 4px 4px 0 var(--ink) }
+.se-carta.segredo .se-face { box-shadow: 0 0 0 4px var(--sun), 4px 4px 0 var(--ink) }
 
-/* seu personagem */
-.se-meu { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 12px }
-.se-meu-capa { display: block; width: 58px; aspect-ratio: 2 / 3; overflow: hidden; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); background: #e4e1d8 }
+/* ---------- a sua ficha ---------- */
+.se-meu { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 12px; overflow: hidden }
+.se-meu-capa { display: grid; place-items: center; width: 64px; aspect-ratio: 2 / 3; overflow: hidden; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); background: #e4e1d8 }
 .se-meu-capa .cv { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top }
+.se-meu-capa b { font-family: var(--display); font-weight: 400; font-size: 40px; color: #b9b19c }
 .se-meu .lbl { margin: 0 }
-.se-meu b { display: block; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: .95; overflow-wrap: anywhere }
+.se-meu div > b { display: block; padding-right: 54px; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: .95; overflow-wrap: anywhere }
+.se-meu.vazio div > b { font-size: 22px; color: var(--muted) }
 .se-meu small { font-family: var(--label); font-size: 9px; color: var(--muted) }
+.se-carimbo { position: absolute; top: 10px; right: 8px; padding: 2px 6px; font-style: normal; font-family: var(--label); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: #c8321f; border: 3px solid #c8321f; transform: rotate(9deg); opacity: .85 }
 
-/* o painel de ação */
-.se-acao { padding: 12px }
-.se-msg { display: grid; gap: 8px }
-.se-msg > b { font-size: 18px; line-height: 1.2 }
+/* ---------- o painel de ação ---------- */
+.se-acao { padding: 14px }
+.se-msg { display: grid; gap: 10px }
 .se-msg p { margin: 0 }
-.se-msg .lbl { margin: 0 }
+.se-titulo { font-family: var(--display); font-weight: 400; font-size: 30px; line-height: .95 }
 .se-botoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
-.se-mao { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px }
-.se-mao .btn { font-size: 15px; line-height: 1.15; padding: 8px 8px 10px; text-align: left; white-space: normal; min-height: 48px }
 .se-escreve input { flex: 1; min-width: 0 }
-.se-enviada { font-size: 17px }
-.se-msg .se-resp { justify-self: start; font-family: var(--display); font-weight: 400; font-size: 52px; line-height: .9; padding: 2px 14px 6px; border: 3px solid var(--ink); background: #fff; box-shadow: 3px 3px 0 var(--ink); animation: se-carimbo .25s ease-out }
-.se-resp.sim { background: #c9efd9 }
-.se-resp.nao { background: #ffd2c9 }
-@keyframes se-carimbo { from { transform: scale(1.5) rotate(-6deg); opacity: 0 } }
-.se-responde .btn { font-size: 22px; min-width: 88px }
-.se-sair { justify-self: start }
+.se-dica { font-weight: 700 }
+.se-espera { color: var(--muted); font-weight: 700 }
+.se-pontos::after { content: ''; animation: se-pontos 1.2s steps(1) infinite }
+@keyframes se-pontos { 0% { content: '' } 25% { content: '.' } 50% { content: '..' } 75% { content: '...' } }
 
-/* o fim */
+/* as perguntas prontas */
+.se-mao { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+.se-q { padding: 9px 10px 11px; min-height: 52px; text-align: left; font: inherit; font-size: 15px; font-weight: 700; line-height: 1.15; color: var(--ink);
+  background: #fff; border: 3px solid var(--ink); border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: transform .1s, background .1s, box-shadow .1s }
+.se-q:hover { background: var(--sun); transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink) }
+.se-q:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink) }
+
+/* o balão da pergunta */
+.se-balao { --cor: var(--p1); position: relative; justify-self: start; max-width: 100%; display: grid; gap: 2px; margin-bottom: 10px; padding: 8px 12px 10px;
+  background: #fff; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink) }
+.se-balao.p2 { --cor: var(--p2) }
+.se-balao::after { content: ''; position: absolute; left: 20px; bottom: -14px; width: 18px; height: 14px; background: var(--ink); clip-path: polygon(0 0, 100% 0, 0 100%) }
+.se-balao small { font-family: var(--label); font-size: 9px; color: var(--cor) }
+.se-balao span { font-size: 18px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere }
+
+/* a resposta: um estouro de quadrinho */
+.se-resposta { display: grid; justify-items: center; gap: 4px }
+.se-resposta small { font-family: var(--label); font-size: 9px; color: var(--muted) }
+.se-burst { --estrela: polygon(50% 0%, 61% 18%, 82% 7%, 79% 29%, 100% 32%, 85% 49%, 100% 66%, 78% 70%, 82% 93%, 61% 82%, 50% 100%, 39% 82%, 18% 93%, 22% 70%, 0% 66%, 15% 49%, 0% 32%, 21% 29%, 18% 7%, 39% 18%);
+  display: grid; width: 156px; aspect-ratio: 1.3; padding: 5px; font-style: normal; background: var(--ink); clip-path: var(--estrela); animation: se-pow .45s cubic-bezier(.3, .7, .3, 1.4) both }
+.se-burst span { display: grid; place-items: center; clip-path: var(--estrela); background: #e4e1d8; font-family: var(--display); font-weight: 400; font-size: 40px; line-height: 1; color: var(--ink) }
+.se-burst.sim span { background: #6fdc98 }
+.se-burst.nao span { background: #ff7a63 }
+.se-burst.naosei span { font-size: 26px }
+@keyframes se-pow { 0% { transform: scale(.2) rotate(-25deg) } 70% { transform: scale(1.12) rotate(5deg) } 100% { transform: scale(1) rotate(-4deg) } }
+
+/* responder: sim, não, não sei */
+.se-responde { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+.se-r { padding: 10px 8px 12px; font: inherit; font-family: var(--display); font-size: 32px; line-height: 1; color: var(--ink); background: #fff; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); cursor: pointer; transition: transform .1s, box-shadow .1s }
+.se-r.sim { background: #c9efd9 }
+.se-r.nao { background: #ffd2c9 }
+.se-r.naosei { grid-column: span 2; font-size: 22px; background: var(--paper) }
+.se-r:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink) }
+.se-r:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink) }
+
+/* ---------- o fim ---------- */
 .se-fim { justify-items: center; text-align: center }
-.se-fim-titulo { font-family: var(--display); font-weight: 400; font-size: clamp(38px, 8vw, 54px) !important; line-height: .95 !important }
+.se-fim-titulo { font-family: var(--display); font-weight: 400; font-size: clamp(42px, 8vw, 60px); line-height: .95; animation: se-pow .5s cubic-bezier(.3, .7, .3, 1.4) both }
 .se-fim.ganhou .se-fim-titulo { color: var(--banca) }
 .se-fim.perdeu .se-fim-titulo { color: #c8321f }
-.se-revelas { display: flex; gap: 14px; justify-content: center }
-.se-revela { --cor: var(--p1); margin: 0; display: grid; gap: 4px; width: 104px }
-.se-revela.p2 { --cor: var(--p2) }
-.se-revela .cv { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; object-position: top; border: 3px solid var(--ink); border-bottom: 8px solid var(--cor); box-shadow: 3px 3px 0 var(--ink); animation: aq-revela .4s ease-out }
+.se-revelas { display: flex; gap: 10px; align-items: center; justify-content: center; perspective: 800px }
+.se-revela { --cor: var(--p1); margin: 0; display: grid; gap: 4px; width: 104px; animation: se-entra .55s ease-out both }
+.se-revela.p2 { --cor: var(--p2); animation-delay: .2s }
+.se-revela .cv { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; object-position: top; border: 3px solid var(--ink); border-bottom: 8px solid var(--cor); box-shadow: 3px 3px 0 var(--ink) }
+.se-revela.venceu .cv { box-shadow: 0 0 0 4px var(--sun), 4px 4px 0 var(--ink) }
 .se-revela small { display: block; font-family: var(--label); font-size: 9px; color: var(--muted) }
 .se-revela b { display: block; font-size: 14px; line-height: 1.1 }
+@keyframes se-entra { from { opacity: 0; transform: rotateY(90deg) } }
 
-/* o histórico */
+/* ---------- o histórico ---------- */
 .se-log { padding: 10px 12px }
 .se-log .lbl { margin: 0 0 6px }
-.se-log ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 220px; overflow-y: auto }
-.se-log li { --cor: var(--p1); padding: 3px 8px; border-left: 6px solid var(--cor); background: var(--paper); font-size: 14px; line-height: 1.25 }
+.se-log ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 230px; overflow-y: auto }
+.se-log li { --cor: var(--p1); display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; align-items: center; padding: 4px 8px; border-left: 6px solid var(--cor); background: var(--paper); font-size: 14px; line-height: 1.2 }
 .se-log li.p2 { --cor: var(--p2) }
-.se-log em { font-style: normal; font-weight: 700 }
+.se-log li b { grid-column: 1 / -1; font-family: var(--label); font-size: 9px; font-weight: 400; color: var(--cor) }
+.se-log em { font-style: normal; font-family: var(--label); font-size: 9px; text-transform: uppercase; padding: 1px 5px; border: 2px solid currentColor }
 .se-log em.sim { color: var(--banca) }
 .se-log em.nao { color: #c8321f }
+.se-log em.naosei { color: var(--muted) }
+.se-sair { justify-self: start }
 
-/* a capa na tela inicial: cartas em pé e uma virada */
+/* ---------- a capa na tela inicial: cartas em pé e viradas ---------- */
 .capa-identidade { position: relative; justify-self: center; display: grid; grid-template-columns: repeat(3, 52px); gap: 6px; padding: 10px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink) }
 .capa-identidade i { display: block; aspect-ratio: 2 / 3; overflow: hidden; border: 2px solid var(--ink); background: #e4e1d8 }
 .capa-identidade i .cv { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top }
-.capa-identidade i.v { background: var(--paper) radial-gradient(circle, #cfc9b8 1.4px, transparent 1.6px) 0 0 / 7px 7px }
+.capa-identidade i.v { background: repeating-linear-gradient(-45deg, #2b2836 0 5px, #24212d 5px 10px) }
 .capa-identidade b { position: absolute; right: -10px; bottom: -12px; padding: 2px 8px 4px; font-family: var(--display); font-weight: 400; font-size: 26px; background: var(--sun); border: 3px solid var(--ink); transform: rotate(-6deg) }
 
-@media (max-width: 560px) {
-  .se-tab { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px 5px }
-  .se-nome { font-size: 9px }
-  .se-verso i { font-size: 28px }
-  .se-face { box-shadow: 2px 2px 0 var(--ink); border-width: 2px }
-  .se-barra { padding: 6px; gap: 6px }
-  .se-jog { padding: 3px 6px; border-left-width: 6px }
-  .se-jog b { font-size: 13px }
-  .se-jog em { font-size: 26px }
-  .se-vs { font-size: 18px }
-  .se-mao { grid-template-columns: minmax(0, 1fr) }
-  .se-mao .btn { min-height: 40px }
-  .se-msg .se-resp { font-size: 40px }
-  .se-meu { grid-template-columns: 44px minmax(0, 1fr); padding: 8px 10px }
-  .se-meu-capa { width: 44px }
-  .se-meu b { font-size: 24px }
-}
-/* no celular: quem você é e o que fazer vêm antes do tabuleiro; o histórico fica no fim */
+/* ---------- celular ---------- */
 @media (max-width: 899px) {
+  /* quem você é e o que fazer vêm antes do tabuleiro; o histórico fica no fim */
   .se-lado { display: contents }
   .se-meu { order: 1 }
   .se-acao { order: 2 }
   .se-lado-a { order: 3 }
-  .se-log { order: 4 }
-  .se-sair { order: 5 }
+  .se-log { order: 5 }
+  .se-sair { order: 6 }
+  /* hora de mexer no tabuleiro e depois apertar um botão: o painel vai pra baixo das cartas e gruda no pé da tela */
+  .se-acao.fixo { order: 4; position: sticky; bottom: 0; z-index: 6; padding: 10px 12px; box-shadow: 0 -6px 0 rgba(28, 27, 34, .12), 4px 4px 0 var(--ink) }
+  .se-acao.fixo .se-msg { grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center }
+  .se-acao.fixo .se-msg > * { grid-column: 1 / -1 }
+  .se-acao.fixo .se-msg > .se-resposta { grid-column: 1; grid-row: 1 }
+  .se-acao.fixo .se-msg > .se-balao { grid-column: 2; grid-row: 1; margin: 0 }
+  .se-acao.fixo .se-balao::after, .se-acao.fixo .se-resposta small, .se-acao.fixo .se-dica { display: none }
+  .se-acao.fixo .se-balao span { font-size: 15px }
+  .se-acao.fixo .se-burst { width: 92px }
+  .se-acao.fixo .se-burst span { font-size: 26px }
+  .se-acao.fixo .se-titulo { font-size: 24px }
+}
+@media (max-width: 560px) {
+  .se-tab { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 5px }
+  .se-tabuleiro { padding: 8px 8px 12px }
+  .se-face { border-width: 2px; box-shadow: 2px 2px 0 var(--ink) }
+  .se-foto { border-bottom-width: 2px }
+  .se-nome { min-height: 2.5em; padding: 1px 2px; font-size: 8.5px }
+  .se-verso i { font-size: 17px; border-width: 2px }
+  .se-verso .se-nome { border-top-width: 2px }
+  .se-selo { top: -7px; right: -4px; font-size: 7px; padding: 0 3px 1px }
+  .se-barra { gap: 6px }
+  .se-jog { padding: 5px 8px; border-left-width: 7px; box-shadow: 3px 3px 0 var(--ink) }
+  .se-jog b { font-size: 13px }
+  .se-jog em { font-size: 28px }
+  .se-vs { font-size: 20px }
+  .se-titulo { font-size: 25px }
+  .se-mao { gap: 6px }
+  .se-q { min-height: 44px; padding: 7px 8px 9px; font-size: 13px; border-radius: 10px }
+  .se-burst { width: 124px }
+  .se-burst span { font-size: 32px }
+  .se-meu { grid-template-columns: 46px minmax(0, 1fr); padding: 8px 10px }
+  .se-meu-capa { width: 46px }
+  .se-meu div > b { font-size: 24px }
+  .se-r { font-size: 26px }
 }

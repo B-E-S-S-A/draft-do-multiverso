@@ -24,8 +24,8 @@
     aoVisao: novaVisao,
     aoMudar: render,
     autoComecar: () => comecar(),
-    // caiu alguém: na lista pronta o computador assume; no clássico, espera a pessoa voltar
-    aoCair: (p, H) => { if (!H.J) return; if (H.J.modo === 'lista') H.J.js[p.j].bot = true; else H.caiu = p.nome },
+    // caiu alguém: na lista pronta o computador assume (e escolhe por ela, se ainda não escolheu); no clássico, espera a pessoa voltar
+    aoCair: (p, H) => { if (!H.J) return; if (H.J.modo === 'lista') { H.J.js[p.j].bot = true; M.escolherPorMim(H.J, p.j) } else H.caiu = p.nome },
     aoVoltar: (p, H) => { if (!H.J) return; H.J.js[p.j].bot = false; H.caiu = '' },
   })
 
@@ -82,6 +82,8 @@
     if (j === undefined || !J.js[j]) return
     if (msg.type === 'denovo') { if ((H.local || p === H.pessoas[0]) && J.fase === 'fim') comecar(); return }
     if (J.js[j].bot) return
+    if (msg.type === 'escolhe') M.escolher(J, j, String(msg.key || ''))
+    if (msg.type === 'sorteia') M.escolherPorMim(J, j)
     if (msg.type === 'pergunta') M.perguntar(J, j, String(msg.id || ''))
     if (msg.type === 'escreve') M.escrever(J, j, msg.txt)
     if (msg.type === 'responde') M.responder(J, j, String(msg.r || ''))
@@ -101,6 +103,7 @@
     const U = window.Uatu
     ui.caiu = v.caiu
     if (!a || a.fase === 'sala' || a.rodada !== v.rodada) { ui.chutando = false; ui.alvo = ''; som('draw'); return }
+    if (a.fase === 'escolher' && v.fase === 'jogo') { ui.alvo = ''; som('sold'); return }
     // chegou resposta nova
     if (v.log.length > a.log.length) {
       const x = v.log[v.log.length - 1]
@@ -130,24 +133,24 @@
     }
     // mesma partida: só vira as cartas que mudaram, troca o placar e, se precisar, o painel
     for (const b of tab.querySelectorAll('.se-carta')) {
-      const k = b.dataset.v
-      const caiu = v.meu.caidos.includes(k)
-      b.classList.toggle('caiu', caiu)
-      b.classList.toggle('alvo', ui.alvo === k)
-      b.classList.toggle('segredo', v.fase === 'fim' && v.res.segredos.includes(k))
-      b.setAttribute('aria-pressed', caiu)
+      b.className = T.classesCarta(v, b.dataset.v, ui)
       b.disabled = v.fase === 'fim'
     }
-    tab.classList.toggle('chutando', ui.chutando)
+    const caixaTab = document.getElementById('se-tabuleiro')
+    caixaTab.classList.toggle('escolhendo', v.fase === 'escolher')
+    caixaTab.classList.toggle('chutando', ui.chutando)
+    document.getElementById('se-tab-topo').innerHTML = T.topoTab(v)
     const barra = document.getElementById('se-barra')
     if (barra) barra.outerHTML = T.barra(v, v.placar)
     const forma = T.forma(v, ui)
     if (forma !== ui.forma) {
       ui.forma = forma
       const caixa = document.getElementById('se-acao')
-      if (caixa) caixa.innerHTML = T.acao(v, ui)
+      if (caixa) { caixa.innerHTML = T.acao(v, ui); caixa.classList.toggle('fixo', !!T.fixo(v, ui)) }
       const log = document.getElementById('se-log')
       if (log) log.outerHTML = T.log(v)
+      const ficha = document.getElementById('se-meu-card')
+      if (ficha) ficha.outerHTML = T.meu(v)
     }
   }
 
@@ -174,7 +177,10 @@
     comecar: () => { if (m.H && !m.H.J) comecar() },
     carta: (key, b) => {
       const v = m.vis
-      if (!v || v.fase !== 'jogo') return
+      if (!v) return
+      // escolhendo o personagem: marca a carta e espera confirmar
+      if (v.fase === 'escolher') { if (!v.meu.secreto) { ui.alvo = key; som('tick'); render() } return }
+      if (v.fase !== 'jogo') return
       if (ui.chutando) {
         if (b.classList.contains('caiu')) return
         ui.alvo = key
@@ -186,6 +192,8 @@
       som('tick')
       m.fazer({ type: 'vira', key })
     },
+    escolhe: () => { const k = ui.alvo; ui.alvo = ''; if (k) m.fazer({ type: 'escolhe', key: k }) },
+    sorteia: () => { ui.alvo = ''; m.fazer({ type: 'sorteia' }) },
     chutar: () => { ui.chutando = true; ui.alvo = ''; render() },
     volta: () => { ui.chutando = false; ui.alvo = ''; render() },
     confirma: () => { const k = ui.alvo; ui.chutando = false; ui.alvo = ''; if (k) m.fazer({ type: 'chute', key: k }) },

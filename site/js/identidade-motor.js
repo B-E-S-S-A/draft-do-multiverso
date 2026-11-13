@@ -1,8 +1,8 @@
 // Identidade Secreta: o jogo em si, sem tela. Testável no node (tests/identidade.test.mjs).
-// Os dois olham o mesmo tabuleiro e cada um tem um personagem secreto. Na sua vez, você faz uma pergunta de sim ou não,
-// tira do tabuleiro quem não bate e pode chutar quem é. Acertou, ganhou. Errou, perdeu na hora.
+// Os dois olham o mesmo tabuleiro e cada um escolhe um personagem secreto. Na sua vez, você faz uma pergunta de sim ou não,
+// vira as cartas de quem não bate e pode chutar quem é. Acertou, ganhou. Errou, perdeu na hora.
 // Dois jeitos de perguntar: 'falando' (o clássico: pergunta em voz alta ou escrevendo e a outra pessoa responde)
-// e 'lista' (toca numa pergunta pronta e o site responde e já vira quem não bate).
+// e 'lista' (toca numa pergunta pronta e o site responde). Nos dois, quem vira as cartas é a própria pessoa.
 (function (raiz) {
   const G = () => raiz.GradeDados
   const QTDS = [12, 16, 24, 32, 40]
@@ -11,14 +11,29 @@
   const POR_GRUPO = 2         // no máximo tantas perguntas do mesmo assunto na mesma vez
   const FORA = new Set(['nome']) // tema que não vira uma pergunta boa
   const RESPOSTAS = ['sim', 'nao', 'naosei']
+  // no modo Filmes só entra quem apareceu em filme ou série com gente de verdade (desenho não conta)
+  const AO_VIVO = ['mcu', 'xfox', 'netflix', 'sony', 'filme', 'deadwolv', 'vilaomorto', 'heroimorto', 'vilaofilme', 'oscar']
+  const SERIE_AO_VIVO = ['legion']
 
   const embaralha = (a, rnd) => { const v = [...a]; for (let i = v.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [v[i], v[j]] = [v[j], v[i]] } return v }
   const qtdValida = (n) => (QTDS.includes(Number(n)) ? Number(n) : CLASSICO)
   const modoValido = (m) => (m === 'lista' ? 'lista' : 'falando')
 
+  let aoVivo = null
+  function poolDa(versao) {
+    const pool = G().poolDa(versao)
+    if (versao !== 'tela') return pool
+    if (!aoVivo) {
+      const D = raiz.DRAFT_DATA
+      aoVivo = new Set([...SERIE_AO_VIVO, ...D.mcu.map((m) => m.key)])
+      for (const id of AO_VIVO) { const c = G().porId[id]; if (c) for (const k of G().membros(c, 'tela')) aoVivo.add(k) }
+    }
+    return pool.filter((k) => aoVivo.has(k))
+  }
+
   // o tabuleiro: dois terços de personagens bem conhecidos e o resto de qualquer um
   function montarTabuleiro(versao, qtd, rnd = Math.random) {
-    const pool = G().poolDa(versao)
+    const pool = poolDa(versao)
     const A = raiz.ArquivoMotor
     const famosos = versao !== 'tela' && A ? embaralha(pool.filter((k) => A.conhecido(k)), rnd).slice(0, Math.round((qtd * 2) / 3)) : []
     const resto = embaralha(pool.filter((k) => !famosos.includes(k)), rnd).slice(0, qtd - famosos.length)
@@ -57,35 +72,47 @@
   }
 
   // jogadores: dois { nome, bot }. comeca: quem joga primeiro (0 ou 1; sem isso, sorteia).
+  // A partida começa com cada um escolhendo o seu personagem secreto (o computador escolhe na hora).
   function novoJogo({ versao = 'ambos', qtd = CLASSICO, modo = 'falando', jogadores, comeca, rnd = Math.random }) {
     const v = G().versao(versao)
-    const q = qtdValida(qtd)
-    const tabuleiro = montarTabuleiro(v, q, rnd)
-    const segredos = embaralha(tabuleiro, rnd).slice(0, 2)
+    const tabuleiro = montarTabuleiro(v, qtdValida(qtd), rnd)
     const J = {
-      versao: v, qtd: tabuleiro.length, modo: modoValido(modo), tabuleiro, rnd, fase: 'jogo', etapa: 'perguntar', pergunta: '', mao: [], log: [], seq: 0, res: null,
+      versao: v, qtd: tabuleiro.length, modo: modoValido(modo), tabuleiro, rnd, fase: 'escolher', etapa: 'perguntar', pergunta: '', mao: [], log: [], seq: 0, res: null,
       vez: comeca === 0 || comeca === 1 ? comeca : Math.floor(rnd() * 2),
-      js: jogadores.slice(0, 2).map((p, i) => ({ nome: p.nome, bot: !!p.bot, secreto: segredos[i], caidos: new Set(), usadas: [] })),
+      js: jogadores.slice(0, 2).map((p) => ({ nome: p.nome, bot: !!p.bot, secreto: null, caidos: new Set(), usadas: [] })),
     }
-    comecaVez(J)
+    J.js.forEach((p, j) => { if (p.bot) escolher(J, j, tabuleiro[Math.floor(rnd() * tabuleiro.length)]) })
     return J
   }
 
   // ---------- as jogadas: cada uma devolve null se não pode ----------
+  // escolhe o personagem secreto; quando os dois escolheram, a partida começa
+  function escolher(J, j, key) {
+    if (J.fase !== 'escolher' || !J.js[j] || J.js[j].secreto || !J.tabuleiro.includes(key)) return null
+    J.js[j].secreto = key
+    J.seq += 1
+    if (J.js.every((p) => p.secreto)) { J.fase = 'jogo'; comecaVez(J) }
+    return true
+  }
+  // quem caiu da sala antes de escolher ganha um personagem sorteado, pra ninguém ficar esperando
+  function escolherPorMim(J, j) {
+    if (J.fase !== 'escolher' || !J.js[j] || J.js[j].secreto) return null
+    return escolher(J, j, J.tabuleiro[Math.floor(J.rnd() * J.tabuleiro.length)])
+  }
+
   const naVez = (J, j) => J.fase === 'jogo' && j === J.vez
 
-  // lista pronta: o site responde e já tira do tabuleiro quem não bate
+  // lista pronta: o site responde; quem vira as cartas é a pessoa (o computador vira as dele sozinho)
   function perguntar(J, j, id) {
     if (!naVez(J, j) || J.modo !== 'lista' || J.etapa !== 'perguntar' || !J.mao.includes(id)) return null
     const sim = vale(J, id, J.js[outro(j)].secreto)
     const eu = J.js[j]
-    let caiu = 0
-    for (const k of J.tabuleiro) if (vale(J, id, k) !== sim && !eu.caidos.has(k)) { eu.caidos.add(k); caiu += 1 }
+    if (eu.bot) for (const k of J.tabuleiro) if (vale(J, id, k) !== sim) eu.caidos.add(k)
     eu.usadas.push(id)
-    J.log.push({ j, id, r: sim ? 'sim' : 'nao', caiu })
+    J.log.push({ j, id, r: sim ? 'sim' : 'nao' })
     J.etapa = 'virar'
     J.seq += 1
-    return { sim, caiu }
+    return { sim }
   }
 
   // falando: quem pergunta pode escrever, e quem responde aperta sim, não ou não sei
@@ -103,7 +130,7 @@
     return true
   }
 
-  // vira ou desvira uma carta do próprio tabuleiro, a qualquer momento
+  // vira ou desvira uma carta do próprio tabuleiro, a qualquer momento da partida
   function virar(J, j, key) {
     if (J.fase !== 'jogo' || !J.js[j] || !J.tabuleiro.includes(key)) return null
     const c = J.js[j].caidos
@@ -148,12 +175,12 @@
   function visaoDe(J, j) {
     return {
       fase: J.fase, modo: J.modo, versao: J.versao, qtd: J.qtd, tabuleiro: J.tabuleiro, eu: j, vez: J.vez, etapa: J.etapa, seq: J.seq,
-      js: J.js.map((p) => ({ nome: p.nome, bot: p.bot, restam: J.qtd - p.caidos.size })),
+      js: J.js.map((p) => ({ nome: p.nome, bot: p.bot, restam: J.qtd - p.caidos.size, escolheu: !!p.secreto })),
       meu: { secreto: J.js[j].secreto, caidos: [...J.js[j].caidos] },
-      mao: j === J.vez && J.etapa === 'perguntar' ? [...J.mao] : [],
+      mao: J.fase === 'jogo' && j === J.vez && J.etapa === 'perguntar' ? [...J.mao] : [],
       pergunta: J.pergunta, podePassar: podePassar(J, j), log: J.log.slice(-40), res: J.res,
     }
   }
 
-  raiz.IdentidadeMotor = { QTDS, CLASSICO, TAM_MAO, qtdValida, modoValido, montarTabuleiro, novoJogo, candidatos, perguntar, escrever, responder, virar, podePassar, passar, chutar, botAcao, visaoDe }
+  raiz.IdentidadeMotor = { QTDS, CLASSICO, TAM_MAO, qtdValida, modoValido, poolDa, montarTabuleiro, novoJogo, escolher, escolherPorMim, candidatos, perguntar, escrever, responder, virar, podePassar, passar, chutar, botAcao, visaoDe }
 })(typeof window !== 'undefined' ? window : globalThis)

@@ -16,26 +16,27 @@
 
   // a pergunta pronta na língua de quem olha: o tema com interrogação
   const pergunta = (id, versao) => { const c = GD().porId[id]; return c ? GD().textos(c, versao)[en() ? 'en' : 'pt'][0].replace(/[.!?]+$/, '') + '?' : '' }
-  const RESP = { sim: ['Sim', 'Yes'], nao: ['Não', 'No'], naosei: ['Não sei', 'Not sure'] }
+  const RESP = { sim: ['Sim!', 'Yes!'], nao: ['Não!', 'No!'], naosei: ['Não sei', 'Not sure'] }
   const resp = (r) => t(RESP[r][0], RESP[r][1])
+  const BOTAO = { sim: ['Sim', 'Yes'], nao: ['Não', 'No'], naosei: ['Não sei', 'Not sure'] }
 
   function como() {
     return `<ol class="how">${t(`
-      <li>Os dois olham o mesmo tabuleiro de personagens, e cada um recebe um deles em segredo.</li>
+      <li>Os dois olham o mesmo tabuleiro de personagens, e cada um escolhe um deles em segredo.</li>
       <li>Na sua vez, faça uma pergunta de sim ou não: "voa?", "é vilão?", "tem barba?". Depois vire as cartas de quem não bate.</li>
       <li>Achou que sabe? Chute na sua vez. Acertou, ganhou. Errou, perdeu na hora.</li>
-      <li>No clássico vocês perguntam falando (ou escrevendo, se estiverem longe). Na lista pronta, o site responde e já vira as cartas.</li>`, `
-      <li>You both look at the same board of characters, and each gets one of them in secret.</li>
+      <li>No clássico vocês perguntam falando (ou escrevendo, se estiverem longe). Na lista pronta, o site responde por vocês.</li>`, `
+      <li>You both look at the same board of characters, and each secretly picks one of them.</li>
       <li>On your turn, ask a yes-or-no question: "can they fly?", "villain?", "beard?". Then flip down whoever doesn’t fit.</li>
       <li>Think you know? Guess on your turn. Right, you win. Wrong, you lose on the spot.</li>
-      <li>In the classic mode you ask out loud (or type, if you are apart). With the ready-made list, the site answers and flips the cards for you.</li>`)}
+      <li>In the classic mode you ask out loud (or type, if you are apart). With the ready-made list, the site answers for you.</li>`)}
     </ol>`
   }
 
   // ---------- as regras: personagens, quantos e como perguntar ----------
   const MODOS = [
     { id: 'falando', pt: 'Clássico', en: 'Classic', ps: 'pergunta falando ou escrevendo, e o outro responde', es: 'ask out loud or by typing, and the other answers' },
-    { id: 'lista', pt: 'Lista pronta', en: 'Ready-made list', ps: 'toca numa pergunta, o site responde e vira as cartas', es: 'tap a question, the site answers and flips the cards' },
+    { id: 'lista', pt: 'Lista pronta', en: 'Ready-made list', ps: 'toca numa pergunta e o site responde', es: 'tap a question and the site answers' },
   ]
   function regras(o, pode, contraPc) {
     const dis = pode ? '' : ' disabled'
@@ -91,98 +92,145 @@
   }
 
   // ---------- a partida ----------
-  // uma carta do tabuleiro: frente com a capa, verso quando cai
-  function carta(v, key, ui) {
-    const caiu = v.meu.caidos.includes(key)
+  // uma carta: a frente com a capa e o nome; o verso quando cai. Sua própria carta ganha um selo.
+  function classesCarta(v, key, ui) {
     const fim = v.fase === 'fim'
-    const segredo = fim && v.res.segredos.includes(key)
-    const cls = ['se-carta', caiu ? 'caiu' : '', ui.alvo === key ? 'alvo' : '', segredo ? 'segredo' : ''].filter(Boolean).join(' ')
-    return `<button class="${cls}" type="button" data-q="carta" data-v="${key}" aria-pressed="${caiu}" aria-label="${esc(nome(key))}"${fim ? ' disabled' : ''}>
-      <span class="se-gira"><span class="se-face se-frente">${capa(key)}</span><span class="se-face se-verso"><i>?</i></span></span>
-      <span class="se-nome">${esc(nome(key))}</span></button>`
+    return ['se-carta',
+      v.fase !== 'escolher' && v.meu.caidos.includes(key) && !(fim && v.res.segredos.includes(key)) ? 'caiu' : '',
+      ui.alvo === key ? 'alvo' : '',
+      v.meu.secreto === key ? 'eu' : '',
+      fim && v.res.segredos.includes(key) ? 'segredo' : ''].filter(Boolean).join(' ')
   }
-  const tabuleiro = (v, ui) => `<div class="se-tab${ui.chutando ? ' chutando' : ''}" id="se-tab" style="--n:${v.qtd}">${v.tabuleiro.map((k) => carta(v, k, ui)).join('')}</div>`
+  function carta(v, key, ui) {
+    const n = esc(nome(key))
+    return `<button class="${classesCarta(v, key, ui)}" type="button" data-q="carta" data-v="${key}" aria-label="${n}"${v.fase === 'fim' ? ' disabled' : ''}>
+      <span class="se-gira">
+        <span class="se-face se-frente"><span class="se-foto">${capa(key)}</span><span class="se-nome">${n}</span></span>
+        <span class="se-face se-verso"><i>?</i><span class="se-nome">${n}</span></span>
+      </span><b class="se-selo">${t('você', 'you')}</b></button>`
+  }
+  function topoTab(v) {
+    if (v.fase === 'escolher') return `<span class="lbl">${t('Escolha o seu personagem secreto', 'Pick your secret character')}</span>`
+    const em = v.js[v.eu].restam
+    return `<span class="lbl">${t('Seu tabuleiro', 'Your board')}</span><span class="se-conta"><b>${em}</b> ${t(`em pé de ${v.qtd}`, `standing of ${v.qtd}`)}</span>`
+  }
+  const tabuleiro = (v, ui) => `<div class="panel se-tabuleiro${v.fase === 'escolher' ? ' escolhendo' : ''}${ui.chutando ? ' chutando' : ''}" id="se-tabuleiro">
+    <div class="se-tab-topo" id="se-tab-topo">${topoTab(v)}</div>
+    <div class="se-tab" id="se-tab">${v.tabuleiro.map((k) => carta(v, k, ui)).join('')}</div></div>`
 
   // o placar e de quem é a vez
   function barra(v, placar) {
-    const marca = (j) => (j === v.eu && !/^(você|you)$/i.test(v.js[j].nome) ? ` <small>(${t('você', 'you')})</small>` : '')
-    const quem = (j) => `<span class="se-jog ${COR[j]}${v.fase === 'jogo' && v.vez === j ? ' vez' : ''}"><b>${esc(v.js[j].nome)}${marca(j)}</b>
-      <small>${t('em pé', 'standing')}: ${v.js[j].restam}</small><em>${placar ? placar[j] : 0}</em></span>`
-    return `<div class="panel se-barra" id="se-barra">${quem(0)}<i class="se-vs">VS</i>${quem(1)}</div>`
+    const nomeDe = (j) => v.js[j].nome
+    const marca = (j) => (j === v.eu && !/^(você|you)$/i.test(nomeDe(j)) ? ` <small>(${t('você', 'you')})</small>` : '')
+    const vez = (j) => v.fase === 'jogo' && v.vez === j
+    const sub = (j) => (v.fase === 'escolher' ? (v.js[j].escolheu ? t('já escolheu', 'has picked') : t('escolhendo…', 'picking…')) : t(`${v.js[j].restam} em pé`, `${v.js[j].restam} standing`))
+    const quem = (j) => `<span class="se-jog ${COR[j]}${vez(j) ? ' vez' : ''}">${vez(j) ? `<i class="se-vez-tag">${t('na vez', 'turn')}</i>` : ''}
+      <b>${esc(nomeDe(j))}${marca(j)}</b><small>${sub(j)}</small><em>${placar ? placar[j] : 0}</em></span>`
+    return `<div class="se-barra" id="se-barra">${quem(0)}<i class="se-vs">VS</i>${quem(1)}</div>`
   }
 
-  // o painel de ação: muda conforme a etapa e de quem é a vez
+  // o balão da pergunta e o estouro da resposta
+  const balao = (quem, txt, cor) => `<div class="se-balao ${cor}"><small>${esc(quem)}</small><span>${txt}</span></div>`
+  const textoPergunta = (v, x) => (x.id ? esc(pergunta(x.id, v.versao)) : x.txt ? `“${esc(x.txt)}”` : `<i>${t('perguntou em voz alta', 'asked out loud')}</i>`)
+  const estouro = (r) => `<b class="se-burst ${r}"><span>${resp(r)}</span></b>`
+
+  // o painel de ação: muda conforme a fase, a etapa e de quem é a vez
   function acao(v, ui) {
+    if (v.fase === 'fim') return fimDeJogo(v)
+    if (ui.caiu) return `<div class="se-msg"><b>${t(`${esc(ui.caiu)} caiu.`, `${esc(ui.caiu)} dropped.`)}</b><p>${t('Esperando voltar…', 'Waiting for them to come back…')}</p></div>`
+    if (v.fase === 'escolher') return escolha(v, ui)
     const eu = v.eu
     const minha = v.vez === eu
     const outro = v.js[1 - eu].nome
     const quemJoga = v.js[v.vez].nome
     const chutar = `<button class="btn red" type="button" data-q="chutar">${t('Chutar quem é', 'Guess who it is')}</button>`
-    if (v.fase === 'fim') return fimDeJogo(v)
-    if (ui.caiu) return `<div class="se-msg"><b>${t(`${esc(ui.caiu)} caiu.`, `${esc(ui.caiu)} dropped.`)}</b><p>${t('Esperando voltar…', 'Waiting for them to come back…')}</p></div>`
     if (minha && ui.chutando) {
-      if (!ui.alvo) return `<div class="se-msg"><b>${t('Toque em quem você acha que é.', 'Tap who you think it is.')}</b><p>${t('Errou, perdeu.', 'Miss, and you lose.')}</p>
+      if (!ui.alvo) return `<div class="se-msg"><b class="se-titulo">${t('Quem é?', 'Who is it?')}</b><p>${t('Toque na carta. Se errar, você perde.', 'Tap the card. If you miss, you lose.')}</p>
         <div class="se-botoes"><button class="btn paper" type="button" data-q="volta">${t('Voltar', 'Back')}</button></div></div>`
-      return `<div class="se-msg"><b>${t(`É ${esc(nome(ui.alvo))}?`, `Is it ${esc(nome(ui.alvo))}?`)}</b><p>${t('Se errar, você perde na hora.', 'If you miss, you lose on the spot.')}</p>
+      return `<div class="se-msg"><b class="se-titulo">${t(`É ${esc(nome(ui.alvo))}?`, `Is it ${esc(nome(ui.alvo))}?`)}</b><p>${t('Se errar, você perde na hora.', 'If you miss, you lose on the spot.')}</p>
         <div class="se-botoes"><button class="btn red big" type="button" data-q="confirma">${t('Chutar!', 'Guess!')}</button><button class="btn paper" type="button" data-q="volta">${t('Voltar', 'Back')}</button></div></div>`
     }
     const ultima = v.log[v.log.length - 1]
     if (v.etapa === 'virar') {
-      const r = ultima ? resp(ultima.r) : ''
+      const pergunta = balao(minha ? t('Você perguntou', 'You asked') : t(`${quemJoga} perguntou`, `${quemJoga} asked`), textoPergunta(v, ultima), COR[v.vez])
       if (minha) {
-        const dica = v.modo === 'lista' ? t(`Caíram ${ultima.caiu} ${ultima.caiu === 1 ? 'personagem' : 'personagens'}.`, `${ultima.caiu} ${ultima.caiu === 1 ? 'character' : 'characters'} went down.`) : t('Toque em quem não bate pra virar.', 'Tap whoever doesn’t fit to flip them.')
-        return `<div class="se-msg"><span class="lbl">${t(`${esc(outro)} respondeu`, `${esc(outro)} answered`)}</span><b class="se-resp ${ultima.r}">${r}</b><p>${dica}</p>
-          <div class="se-botoes"><button class="btn big" type="button" data-q="passa">${t('Passar a vez', 'End turn')}</button>${chutar}</div></div>`
+        const quem = v.modo === 'lista' ? t('O site respondeu', 'The site answered') : t(`${esc(outro)} respondeu`, `${esc(outro)} answered`)
+        return `<div class="se-msg">${pergunta}<div class="se-resposta"><small>${quem}</small>${estouro(ultima.r)}</div>
+          <p class="se-dica">${t('Agora vire as cartas de quem não bate.', 'Now flip down whoever doesn’t fit.')}</p>
+          <div class="se-botoes"><button class="btn big" type="button" data-q="passa">${t('Pronto, passar a vez', 'Done, end turn')}</button>${chutar}</div></div>`
       }
-      const quemRespondeu = v.modo === 'lista' ? t('O site respondeu por você', 'The site answered for you') : t('Você respondeu', 'You answered')
-      return `<div class="se-msg"><span class="lbl">${quemRespondeu}</span><b class="se-resp ${ultima.r}">${r}</b><p>${t(`${esc(quemJoga)} está virando as cartas.`, `${esc(quemJoga)} is flipping cards.`)}</p></div>`
+      const quem = v.modo === 'lista' ? t('O site respondeu por você', 'The site answered for you') : t('Você respondeu', 'You answered')
+      return `<div class="se-msg">${pergunta}<div class="se-resposta"><small>${quem}</small>${estouro(ultima.r)}</div>
+        <p class="se-espera">${t(`${esc(quemJoga)} está virando as cartas`, `${esc(quemJoga)} is flipping cards`)}<i class="se-pontos"></i></p></div>`
     }
     // perguntar
     if (minha && v.modo === 'lista') {
-      if (!v.mao.length) return `<div class="se-msg"><b>${t('Nenhuma pergunta separa quem sobrou.', 'No question splits who is left.')}</b><p>${t('Hora de chutar (ou passar a vez).', 'Time to guess (or end your turn).')}</p>
+      if (!v.mao.length) return `<div class="se-msg"><b class="se-titulo">${t('Nenhuma pergunta separa quem sobrou.', 'No question splits who is left.')}</b><p>${t('Hora de chutar (ou passar a vez).', 'Time to guess (or end your turn).')}</p>
         <div class="se-botoes">${chutar}${v.podePassar ? `<button class="btn paper" type="button" data-q="passa">${t('Passar a vez', 'End turn')}</button>` : ''}</div></div>`
-      return `<div class="se-msg"><b>${t('Sua vez. Escolha uma pergunta:', 'Your turn. Pick a question:')}</b>
-        <div class="se-mao">${v.mao.map((id) => `<button class="btn paper" type="button" data-q="pergunta" data-v="${id}">${esc(pergunta(id, v.versao))}</button>`).join('')}</div>
+      return `<div class="se-msg"><b class="se-titulo">${t('Sua vez! Escolha uma pergunta', 'Your turn! Pick a question')}</b>
+        <div class="se-mao">${v.mao.map((id) => `<button class="se-q" type="button" data-q="pergunta" data-v="${id}">${esc(pergunta(id, v.versao))}</button>`).join('')}</div>
         <div class="se-botoes">${chutar}</div></div>`
     }
     if (minha) {
-      const enviada = v.pergunta ? `<p class="se-enviada">${t('Você perguntou', 'You asked')}: <b>${esc(v.pergunta)}</b></p><p class="note">${t(`Esperando ${esc(outro)} responder…`, `Waiting for ${esc(outro)} to answer…`)}</p>` : ''
-      return `<div class="se-msg"><b>${t('Sua vez. Faça uma pergunta de sim ou não.', 'Your turn. Ask a yes-or-no question.')}</b>
+      const enviada = v.pergunta ? `${balao(t('Você perguntou', 'You asked'), `“${esc(v.pergunta)}”`, COR[eu])}<p class="se-espera">${t(`Esperando ${esc(outro)} responder`, `Waiting for ${esc(outro)} to answer`)}<i class="se-pontos"></i></p>` : ''
+      return `<div class="se-msg"><b class="se-titulo">${t('Sua vez! Faça uma pergunta de sim ou não', 'Your turn! Ask a yes-or-no question')}</b>
         <p>${t(`Fale em voz alta, ou escreva aqui se ${esc(outro)} estiver longe.`, `Say it out loud, or type it here if ${esc(outro)} is far away.`)}</p>
         <div class="online-row se-escreve"><input id="se-perg" maxlength="120" autocomplete="off" placeholder="${t('Ex.: é mutante?', 'E.g. is it a mutant?')}"><button class="btn paper" type="button" data-q="escreve">${t('Enviar', 'Send')}</button></div>
         ${enviada}<div class="se-botoes">${chutar}</div></div>`
     }
-    if (v.modo === 'lista') return `<div class="se-msg"><b>${t(`Vez de ${esc(quemJoga)}.`, `${esc(quemJoga)}’s turn.`)}</b><p>${t('O site responde por você.', 'The site answers for you.')}</p></div>`
-    return `<div class="se-msg"><b>${t(`Vez de ${esc(quemJoga)}. Responda a pergunta:`, `${esc(quemJoga)}’s turn. Answer the question:`)}</b>
-      ${v.pergunta ? `<p class="se-enviada">“${esc(v.pergunta)}”</p>` : `<p>${t('Se ainda não ouviu a pergunta, espere.', 'If you have not heard the question yet, wait.')}</p>`}
+    if (v.modo === 'lista') return `<div class="se-msg"><b class="se-titulo">${t(`Vez de ${esc(quemJoga)}`, `${esc(quemJoga)}’s turn`)}</b><p class="se-espera">${t('Escolhendo a pergunta', 'Picking a question')}<i class="se-pontos"></i></p><p class="note">${t('O site responde por você.', 'The site answers for you.')}</p></div>`
+    return `<div class="se-msg"><b class="se-titulo">${t(`${esc(quemJoga)} vai perguntar`, `${esc(quemJoga)} is asking`)}</b>
+      ${v.pergunta ? balao(t(`${quemJoga} perguntou`, `${quemJoga} asked`), `“${esc(v.pergunta)}”`, COR[v.vez]) : `<p>${t('Ouça a pergunta e responda pelo seu personagem:', 'Listen to the question and answer for your character:')}</p>`}
       <p class="note">${t(`Lembre: você é ${esc(nome(v.meu.secreto))}.`, `Remember: you are ${esc(nome(v.meu.secreto))}.`)}</p>
-      <div class="se-botoes se-responde">${['sim', 'nao', 'naosei'].map((r) => `<button class="btn ${r === 'sim' ? 'green' : r === 'nao' ? 'red' : 'paper'}" type="button" data-q="responde" data-v="${r}">${resp(r)}</button>`).join('')}</div></div>`
+      <div class="se-responde">${['sim', 'nao', 'naosei'].map((r) => `<button class="se-r ${r}" type="button" data-q="responde" data-v="${r}">${t(BOTAO[r][0], BOTAO[r][1])}</button>`).join('')}</div></div>`
+  }
+
+  // escolher o personagem: toca numa carta e confirma, ou sorteia
+  function escolha(v, ui) {
+    const outro = v.js[1 - v.eu]
+    if (v.meu.secreto) {
+      return `<div class="se-msg"><b class="se-titulo">${t(`Você é ${esc(nome(v.meu.secreto))}`, `You are ${esc(nome(v.meu.secreto))}`)}</b>
+        <p class="se-espera">${outro.escolheu ? t('Começando', 'Starting') : t(`Esperando ${esc(outro.nome)} escolher`, `Waiting for ${esc(outro.nome)} to pick`)}<i class="se-pontos"></i></p></div>`
+    }
+    if (!ui.alvo) {
+      return `<div class="se-msg"><b class="se-titulo">${t('Quem você vai ser?', 'Who will you be?')}</b>
+        <p>${t('Toque numa carta do tabuleiro. Ninguém vai ver qual você escolheu.', 'Tap a card on the board. Nobody will see which one you picked.')}</p>
+        <div class="se-botoes"><button class="btn paper" type="button" data-q="sorteia">${t('Sortear pra mim', 'Pick one for me')}</button></div></div>`
+    }
+    return `<div class="se-msg"><b class="se-titulo">${t(`Ser ${esc(nome(ui.alvo))}?`, `Be ${esc(nome(ui.alvo))}?`)}</b>
+      <p>${t('Depois não dá pra trocar.', 'You cannot change it later.')}</p>
+      <div class="se-botoes"><button class="btn big" type="button" data-q="escolhe">${t('Esse é o meu', 'That’s mine')}</button><button class="btn paper" type="button" data-q="sorteia">${t('Sortear', 'Random')}</button></div></div>`
   }
 
   function fimDeJogo(v) {
     const r = v.res
     const venceu = r.vencedor === v.eu
     const quem = v.js[r.quem].nome
-    const titulo = r.certo ? t(`${esc(quem)} acertou!`, `${esc(quem)} got it!`) : t(`${esc(quem)} errou!`, `${esc(quem)} missed!`)
-    const frase = r.certo ? t(`Era ${esc(nome(r.key))} mesmo.`, `It was ${esc(nome(r.key))} indeed.`) : t(`Chutou ${esc(nome(r.key))}, mas era ${esc(nome(r.segredos[1 - r.quem]))}.`, `Guessed ${esc(nome(r.key))}, but it was ${esc(nome(r.segredos[1 - r.quem]))}.`)
-    const segredo = (j) => `<figure class="se-revela ${COR[j]}">${capa(r.segredos[j])}<figcaption><small>${esc(v.js[j].nome)}</small><b>${esc(nome(r.segredos[j]))}</b></figcaption></figure>`
+    const titulo = venceu ? t('Você venceu!', 'You won!') : t(`${esc(v.js[r.vencedor].nome)} venceu!`, `${esc(v.js[r.vencedor].nome)} won!`)
+    const frase = r.certo ? t(`${esc(quem)} acertou: era ${esc(nome(r.key))}.`, `${esc(quem)} got it: it was ${esc(nome(r.key))}.`)
+      : t(`${esc(quem)} chutou ${esc(nome(r.key))}, mas era ${esc(nome(r.segredos[1 - r.quem]))}.`, `${esc(quem)} guessed ${esc(nome(r.key))}, but it was ${esc(nome(r.segredos[1 - r.quem]))}.`)
+    const segredo = (j) => `<figure class="se-revela ${COR[j]}${r.vencedor === j ? ' venceu' : ''}">${capa(r.segredos[j])}<figcaption><small>${esc(v.js[j].nome)}</small><b>${esc(nome(r.segredos[j]))}</b></figcaption></figure>`
     return `<div class="se-msg se-fim ${venceu ? 'ganhou' : 'perdeu'}"><b class="se-fim-titulo">${titulo}</b><p>${frase}</p>
-      <div class="se-revelas">${segredo(0)}${segredo(1)}</div>
+      <div class="se-revelas">${segredo(0)}<i class="se-vs">VS</i>${segredo(1)}</div>
       <div class="se-botoes">${v.local || v.dono ? `<button class="btn big" type="button" data-q="denovo">${t('Jogar de novo', 'Play again')}</button>` : `<p class="hint">${t('Esperando quem criou a sala…', 'Waiting for the host…')}</p>`}
         <button class="linkish" type="button" data-q="sair">${t('sair', 'leave')}</button></div></div>`
   }
 
   // o histórico de perguntas
   function log(v) {
-    const linhas = [...v.log].reverse().map((x) => {
-      const q = x.id ? esc(pergunta(x.id, v.versao)) : x.txt ? `“${esc(x.txt)}”` : `<i>${t('pergunta em voz alta', 'asked out loud')}</i>`
-      return `<li class="${COR[x.j]}"><b>${esc(v.js[x.j].nome)}</b> <span>${q}</span> <em class="${x.r}">${resp(x.r)}</em></li>`
-    }).join('')
+    const linhas = [...v.log].reverse().map((x) => `<li class="${COR[x.j]}"><b>${esc(v.js[x.j].nome)}</b><span>${textoPergunta(v, x)}</span><em class="${x.r}">${resp(x.r).replace('!', '')}</em></li>`).join('')
     return `<div class="panel se-log" id="se-log"><span class="lbl">${t('Perguntas', 'Questions')}</span>${linhas ? `<ol>${linhas}</ol>` : `<p class="note">${t('Nenhuma ainda.', 'None yet.')}</p>`}</div>`
   }
 
-  const meu = (v) => `<div class="panel se-meu" id="se-meu-card"><span class="se-meu-capa">${capa(v.meu.secreto)}</span>
-    <div><span class="lbl">${t('Você é', 'You are')}</span><b>${esc(nome(v.meu.secreto))}</b><small>${t('não deixe ninguém ver', 'don’t let anyone see')}</small></div></div>`
+  // o seu personagem, numa ficha com carimbo
+  const meu = (v) => (v.meu.secreto
+    ? `<div class="panel se-meu" id="se-meu-card"><span class="se-meu-capa">${capa(v.meu.secreto)}</span>
+      <div><span class="lbl">${t('Você é', 'You are')}</span><b>${esc(nome(v.meu.secreto))}</b><small>${t('não deixe ninguém ver', 'don’t let anyone see')}</small></div><i class="se-carimbo">${t('Secreto', 'Secret')}</i></div>`
+    : `<div class="panel se-meu vazio" id="se-meu-card"><span class="se-meu-capa"><b>?</b></span>
+      <div><span class="lbl">${t('Você é', 'You are')}</span><b>${t('Escolha no tabuleiro', 'Pick on the board')}</b></div></div>`)
+
+  // no celular, o painel gruda embaixo quando a pessoa precisa mexer no tabuleiro e depois apertar um botão
+  const fixo = (v, ui) => (v.fase === 'escolher' && !v.meu.secreto && ui.alvo) || (v.fase === 'jogo' && v.vez === v.eu && (v.etapa === 'virar' || ui.chutando))
 
   function jogo(v, ui) {
     return `<section class="se-jogo">
@@ -191,7 +239,7 @@
         <div class="se-lado-a">${tabuleiro(v, ui)}</div>
         <aside class="se-lado">
           ${meu(v)}
-          <div class="panel se-acao" id="se-acao">${acao(v, ui)}</div>
+          <div class="panel se-acao${fixo(v, ui) ? ' fixo' : ''}" id="se-acao">${acao(v, ui)}</div>
           ${log(v)}
           ${v.local ? '' : `<button class="linkish se-sair" type="button" data-q="sair">${t('sair da partida', 'leave the match')}</button>`}
         </aside>
@@ -200,7 +248,7 @@
   }
 
   // o que, mudando, pede pra redesenhar o painel de ação (fora isso, só as cartas e o placar mudam)
-  const forma = (v, ui) => [v.fase, v.vez, v.etapa, v.pergunta, v.mao.join(), v.log.length, ui.chutando, ui.alvo, ui.caiu].join('|')
+  const forma = (v, ui) => [v.fase, v.vez, v.etapa, v.pergunta, v.mao.join(), v.log.length, v.meu.secreto, v.js.map((p) => p.escolheu).join(), ui.chutando, ui.alvo, ui.caiu].join('|')
 
-  window.IdentidadeTelas = { entrada, sala, jogo, barra, acao, log, carta, forma, pergunta }
+  window.IdentidadeTelas = { entrada, sala, jogo, barra, acao, log, meu, topoTab, classesCarta, fixo, forma, pergunta }
 })()
