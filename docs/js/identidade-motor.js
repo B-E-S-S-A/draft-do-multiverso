@@ -79,7 +79,7 @@
     const J = {
       versao: v, qtd: tabuleiro.length, modo: modoValido(modo), tabuleiro, rnd, fase: 'escolher', etapa: 'perguntar', pergunta: '', mao: [], log: [], seq: 0, res: null,
       vez: comeca === 0 || comeca === 1 ? comeca : Math.floor(rnd() * 2),
-      js: jogadores.slice(0, 2).map((p) => ({ nome: p.nome, bot: !!p.bot, secreto: null, caidos: new Set(), usadas: [] })),
+      js: jogadores.slice(0, 2).map((p) => ({ nome: p.nome, bot: !!p.bot, ia: p.ia || '', nivel: Number(p.nivel) || 4, secreto: null, caidos: new Set(), usadas: [] })),
     }
     J.js.forEach((p, j) => { if (p.bot) escolher(J, j, tabuleiro[Math.floor(rnd() * tabuleiro.length)]) })
     return J
@@ -107,7 +107,9 @@
     if (!naVez(J, j) || J.modo !== 'lista' || J.etapa !== 'perguntar' || !J.mao.includes(id)) return null
     const sim = vale(J, id, J.js[outro(j)].secreto)
     const eu = J.js[j]
-    if (eu.bot) for (const k of J.tabuleiro) if (vale(J, id, k) !== sim) eu.caidos.add(k)
+    // o computador vira as dele sozinho; as IAs mais fracas às vezes esquecem uma carta em pé
+    const cuidado = Math.min(1, 0.55 + eu.nivel * 0.08)
+    if (eu.bot) for (const k of J.tabuleiro) if (vale(J, id, k) !== sim && !eu.caidos.has(k) && J.rnd() < cuidado) eu.caidos.add(k)
     eu.usadas.push(id)
     J.log.push({ j, id, r: sim ? 'sim' : 'nao' })
     J.etapa = 'virar'
@@ -159,15 +161,18 @@
   }
 
   // ---------- o computador (só joga com a lista pronta) ----------
+  // nível 1 a 6 (as IAs da Marvel): as fracas chutam cedo e escolhem qualquer pergunta; as fortes só a que mais divide
+  const ARRISCA = [0, 0.6, 0.5, 0.4, 0.3, 0.15, 0]
   function botAcao(J, j) {
+    const n = J.js[j].nivel || 4
     const quem = candidatos(J, j)
     if (quem.length === 1) return { tipo: 'chute', key: quem[0] }
     if (J.etapa === 'virar') return { tipo: 'passa' }
-    if (quem.length === 2 && J.rnd() < 0.35) return { tipo: 'chute', key: quem[Math.floor(J.rnd() * 2)] }
+    if (quem.length <= (n <= 2 ? 3 : 2) && J.rnd() < ARRISCA[n]) return { tipo: 'chute', key: quem[Math.floor(J.rnd() * quem.length)] }
     if (!J.mao.length) return J.rnd() < 0.5 ? { tipo: 'passa' } : { tipo: 'chute', key: quem[Math.floor(J.rnd() * quem.length)] }
-    // pega uma das três perguntas que mais dividem quem sobrou
     const nota = (id) => Math.abs(quem.filter((k) => vale(J, id, k)).length * 2 - quem.length)
-    const melhores = [...J.mao].sort((a, b) => nota(a) - nota(b)).slice(0, 3)
+    const quantas = n >= 6 ? 1 : n >= 5 ? 2 : n >= 3 ? 3 : J.mao.length
+    const melhores = [...J.mao].sort((a, b) => nota(a) - nota(b)).slice(0, quantas)
     return { tipo: 'pergunta', id: melhores[Math.floor(J.rnd() * melhores.length)] }
   }
 
@@ -175,7 +180,7 @@
   function visaoDe(J, j) {
     return {
       fase: J.fase, modo: J.modo, versao: J.versao, qtd: J.qtd, tabuleiro: J.tabuleiro, eu: j, vez: J.vez, etapa: J.etapa, seq: J.seq,
-      js: J.js.map((p) => ({ nome: p.nome, bot: p.bot, restam: J.qtd - p.caidos.size, escolheu: !!p.secreto })),
+      js: J.js.map((p) => ({ nome: p.nome, bot: p.bot, ia: p.ia, restam: J.qtd - p.caidos.size, escolheu: !!p.secreto })),
       meu: { secreto: J.js[j].secreto, caidos: [...J.js[j].caidos] },
       mao: J.fase === 'jogo' && j === J.vez && J.etapa === 'perguntar' ? [...J.mao] : [],
       pergunta: J.pergunta, podePassar: podePassar(J, j), log: J.log.slice(-40), res: J.res,

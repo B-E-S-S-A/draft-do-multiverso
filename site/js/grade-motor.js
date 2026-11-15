@@ -165,7 +165,7 @@
     const g = grade || sortearGrade(m.L, m.C, rnd, { versao, nivel })
     return {
       L: m.L, C: m.C, K: m.K, roubar: !!roubar, versao, nivel, linhas: g.linhas, colunas: g.colunas, casas: Array(m.L * m.C).fill(null), usados: [],
-      js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, nivel: p.nivel || 0.75 })),
+      js: jogadores.map((p) => ({ nome: p.nome, bot: !!p.bot, nivel: p.nivel || 0.75, esperto: p.esperto === undefined ? 1 : p.esperto, ia: p.ia || '' })),
       vez: comeca, fase: 'jogo', ultimo: null, seq: 0, semJogar: 0, fim: null,
     }
   }
@@ -253,7 +253,8 @@
   function botJogada(J, j, rnd = Math.random) {
     const abertas = J.casas.map((_, i) => i).filter((i) => aberta(J, j, i) && sobra(J, i).length)
     if (!abertas.length) return { passar: true }
-    const casa = abertas.sort((a, b) => notaCasa(J, j, b, rnd) - notaCasa(J, j, a, rnd))[0]
+    // as IAs mais fracas às vezes nem olham a melhor casa
+    const casa = rnd() > J.js[j].esperto ? abertas[Math.floor(rnd() * abertas.length)] : abertas.sort((a, b) => notaCasa(J, j, b, rnd) - notaCasa(J, j, a, rnd))[0]
     if (rnd() < J.js[j].nivel) {
       const certas = sobra(J, casa)
       return { casa, key: certas[Math.floor(rnd() * certas.length)] }

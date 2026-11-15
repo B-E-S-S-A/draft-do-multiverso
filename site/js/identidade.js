@@ -13,7 +13,6 @@
   const ui = { versao: GD.versao(salvo.versao), qtd: M.qtdValida(salvo.qtd), modo: M.modoValido(salvo.modo), meuNome: guarda('mvd-imp-nome'), codigo: '', msg: '',
     chutando: false, alvo: '', caiu: '', rodada: 0, forma: '' }
   const salvar = () => guarda('mvd-identidade', JSON.stringify({ versao: ui.versao, qtd: ui.qtd, modo: ui.modo }))
-  const BOTS = ['JARVIS', 'Ultron', 'F.R.I.D.A.Y.', 'Visão', 'E.D.I.T.H.']
 
   const m = window.Mesa.nova({
     prefixo: 'mvidentidade-v1-', chave: 'identidade', max: 2,
@@ -40,7 +39,7 @@
     H.contou = false
     H.caiu = ''
     // quem começa vai alternando a cada partida
-    H.J = M.novoJogo({ versao: H.versao, qtd: H.qtd, modo: jogam.some((p) => p.bot) ? 'lista' : H.modo, jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot })), comeca: H.rodada === 1 ? undefined : 1 - H.primeiro })
+    H.J = M.novoJogo({ versao: H.versao, qtd: H.qtd, modo: jogam.some((p) => p.bot) ? 'lista' : H.modo, jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, ia: p.ia, nivel: p.nivel })), comeca: H.rodada === 1 ? undefined : 1 - H.primeiro })
     H.primeiro = H.J.vez
     H.sig = ''
     H.botSig = ''
@@ -99,10 +98,14 @@
     render()
   }
 
+  // a IA adversária (num jogo local contra uma das IAs da Marvel)
+  const iaDe = (v) => { const j = v.local ? v.js.findIndex((p) => p.bot && p.ia) : -1; return j >= 0 ? { j, id: v.js[j].ia } : null }
   function novidades(a, v) {
     const U = window.Uatu
+    const ia = iaDe(v)
     ui.caiu = v.caiu
-    if (!a || a.fase === 'sala' || a.rodada !== v.rodada) { ui.chutando = false; ui.alvo = ''; som('draw'); return }
+    if (!a || a.fase === 'sala' || a.rodada !== v.rodada) { ui.chutando = false; ui.alvo = ''; som('draw'); if (ia) setTimeout(() => window.IAs.falar(ia.id, 'oi'), 600); return }
+    if (ia && v.fase === 'jogo' && a.fase === 'jogo' && v.vez === ia.j && a.vez !== ia.j) window.IAs.falar(ia.id, 'vez', 0.3)
     if (a.fase === 'escolher' && v.fase === 'jogo') { ui.alvo = ''; som('sold'); return }
     // chegou resposta nova
     if (v.log.length > a.log.length) {
@@ -115,7 +118,10 @@
       ui.alvo = ''
       const r = v.res
       setTimeout(() => som(r.vencedor === v.eu ? 'win' : 'undo'), 150)
-      if (U) U.momento(r.certo ? 'identidade-acertou' : 'identidade-errou', { nome: v.js[r.quem].nome })
+      if (ia) {
+        window.IAs.falar(ia.id, r.quem === ia.j ? (r.certo ? 'ganhou' : 'errou') : r.certo ? 'perdeu' : 'voceErrou')
+        if (r.vencedor !== ia.j) window.IAs.venceu('identidade', ia.id)
+      } else if (U) U.momento(r.certo ? 'identidade-acertou' : 'identidade-errou', { nome: v.js[r.quem].nome })
       if (!v.local && r.vencedor === v.eu && window.Conquistas) window.Conquistas.vitoria('identidade')
     }
   }
@@ -167,8 +173,11 @@
     versao: (v) => regra('versao', v),
     qtd: (v) => regra('qtd', v),
     modo: (v) => regra('modo', v),
+    // contra uma das IAs da Marvel (a escolhida no seletor)
+    ia: (id) => { window.IAs.escolher(id); render() },
     bots: () => {
-      m.host(true, [{ id: 'l0', nome: ui.meuNome || t('Você', 'You'), on: true }, { id: 'b0', nome: BOTS[Math.floor(Math.random() * BOTS.length)], bot: true, on: true }], { versao: ui.versao, qtd: ui.qtd, modo: 'lista' })
+      const ia = window.IAs.atual()
+      m.host(true, [{ id: 'l0', nome: ui.meuNome || t('Você', 'You'), on: true }, { id: 'b0', nome: window.IAs.nomeDe(ia), bot: true, on: true, ia: ia.id, nivel: ia.nivel }], { versao: ui.versao, qtd: ui.qtd, modo: 'lista' })
       comecar()
     },
     criar: () => { m.meuNome = ui.meuNome; m.criar(ui.meuNome || t('Jogador 1', 'Player 1'), { versao: ui.versao, qtd: ui.qtd, modo: ui.modo }) },

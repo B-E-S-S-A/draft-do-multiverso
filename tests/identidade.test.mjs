@@ -162,5 +162,17 @@ for (let s = 1; s <= 40; s++) {
     turnos += passos
   }
   assert(acertos / N > 0.6, `computador chuta errado demais (${acertos}/${N})`)
-  console.log(`ok · ${N} partidas do computador · ${(turnos / N).toFixed(1)} jogadas em média · ${acertos} acertaram o chute · ${M.poolDa('tela').length} no modo Filmes`)
+  // as IAs: a mais forte (Ultron, 6) ganha bem mais vezes da mais fraca (H.E.R.B.I.E., 1)
+  let forte = 0
+  const P = 200
+  for (let s = 0; s < P; s++) {
+    const J = M.novoJogo({ modo: 'lista', qtd: M.CLASSICO, comeca: s % 2, jogadores: [{ nome: 'H', bot: true, nivel: 1 }, { nome: 'U', bot: true, nivel: 6 }], rnd: aleatorio(900 + s) })
+    while (J.fase === 'jogo') {
+      const b = M.botAcao(J, J.vez)
+      if (b.tipo === 'pergunta') M.perguntar(J, J.vez, b.id); else if (b.tipo === 'passa') M.passar(J, J.vez); else M.chutar(J, J.vez, b.key)
+    }
+    if (J.res.vencedor === 1) forte++
+  }
+  assert(forte / P > 0.65, `o Ultron devia ganhar mais (${forte}/${P})`)
+  console.log(`ok · ${N} partidas do computador · ${(turnos / N).toFixed(1)} jogadas em média · ${acertos} acertaram o chute · ${M.poolDa('tela').length} no modo Filmes · Ultron venceu ${forte} de ${P} contra o H.E.R.B.I.E.`)
 }

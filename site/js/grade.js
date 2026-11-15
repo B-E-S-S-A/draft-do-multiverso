@@ -43,16 +43,21 @@
 
   // ---------- anfitrião ----------
   function novoHost(local, pessoas) { H = { local, pessoas, L: ui.L, C: ui.C, K: ui.K, roubar: ui.roubar, relogio: ui.relogio, versao: ui.versao, nivel: ui.nivel, J: null, comeca: Math.round(Math.random()), vitorias: [0, 0], prazo: 0, dur: 0, botEm: 0, fs: '', sig: '', laco: 0, contou: false } }
-  const poeBot = () => H.pessoas.push({ id: 'bot-' + Math.random().toString(36).slice(2, 7), nome: 'JARVIS', bot: true, on: true })
+  // o bot é uma das IAs da Marvel (a escolhida no seletor)
+  const poeBot = () => { const ia = window.IAs.atual(); H.pessoas.push({ id: 'bot-' + Math.random().toString(36).slice(2, 7), nome: window.IAs.nomeDe(ia), bot: true, on: true, ia: ia.id }) }
+  // quanto cada IA acerta (nível 1 a 6) e o quanto ela pensa antes de escolher a casa
+  const ACERTO = [0, 0.5, 0.62, 0.72, 0.8, 0.88, 0.95]
+  const ESPERTO = [0, 0.35, 0.55, 0.7, 0.85, 0.95, 1]
 
   function comecar() {
     const jogam = H.pessoas.filter((p) => p.on).slice(0, 2)
     if (jogam.length < 2) return
     H.pessoas.forEach((p) => { p.j = jogam.indexOf(p) })
     // o bot acerta menos nos níveis difíceis (como gente)
-    const acerto = 0.8 - (H.nivel - 1) * 0.03
+    const nivelIa = (p) => (window.IAs.porId[p.ia] || {}).nivel || 4
+    const acerto = (p) => ACERTO[nivelIa(p)] - (H.nivel - 1) * 0.02
     H.J = M.novoJogo({ L: H.L, C: H.C, K: H.K, roubar: H.roubar, versao: H.versao, nivel: H.nivel, comeca: H.comeca,
-      jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: acerto })) })
+      jogadores: jogam.map((p) => ({ nome: p.nome, bot: p.bot, nivel: acerto(p), esperto: ESPERTO[nivelIa(p)], ia: p.ia })) })
     H.comeca = 1 - H.comeca // na próxima, começa o outro
     H.fs = ''
     H.contou = false
@@ -92,7 +97,7 @@
 
       casas: J.casas.map((c) => c && { ...c }), usados: [...J.usados], vez: J.vez, ultimo: J.ultimo && { ...J.ultimo, falhou: J.ultimo.falhou && [...J.ultimo.falhou] },
       fim: J.fim && { ...J.fim }, vitorias: [...H.vitorias],
-      js: J.js.map((x, i) => ({ nome: x.nome, bot: x.bot, casas: M.contaCasas(J, i) })),
+      js: J.js.map((x, i) => ({ nome: x.nome, bot: x.bot, ia: x.ia, casas: M.contaCasas(J, i) })),
       resta: H.prazo ? Math.max(0, H.prazo - Date.now()) : 0, dur: H.dur }
   }
 
@@ -181,13 +186,18 @@
     render()
   }
   function estoura(txt) { ui.estouro = txt; clearTimeout(ui._e); ui._e = setTimeout(() => { ui.estouro = ''; render() }, 1300) }
+  // a IA adversária, num jogo local contra uma das IAs da Marvel
+  const iaDe = (v) => { const j = v.local ? v.js.findIndex((p) => p.bot && p.ia) : -1; return j >= 0 ? { j, id: v.js[j].ia } : null }
   function novidades(a, v) {
     const u = v.ultimo
+    const ia = iaDe(v)
     if (!a || a.fase === 'sala' || (a.fase === 'fim' && v.fase === 'jogo')) {
       ui.casa = -1; ui.busca = ''; ui.revela = -1; ui.visto = u ? u.seq : 0; som('draw')
-      if (v.fase === 'jogo' && !u && window.Uatu) window.Uatu.momento('grade-comeco', { nivel: v.nivel })
+      if (v.fase === 'jogo' && !u && ia) setTimeout(() => window.IAs.falar(ia.id, 'oi'), 600)
+      else if (v.fase === 'jogo' && !u && window.Uatu) window.Uatu.momento('grade-comeco', { nivel: v.nivel })
       return
     }
+    if (ia && u && u.seq !== ui.visto && !u.passou) window.IAs.falar(ia.id, u.j === ia.j ? (u.ok ? 'acertou' : 'errou') : u.ok ? 'vez' : 'voceErrou', u.j === ia.j ? (u.ok ? 0.35 : 0.8) : u.ok ? 0.2 : 0.6)
     if (u && u.seq !== ui.visto) {
       ui.visto = u.seq
       ui.aviso = ''
@@ -214,7 +224,10 @@
       setTimeout(() => som('win'), 350)
       if (v.fim.motivo === 'linha') estoura(t('LINHA!', 'LINE!'))
       if (!v.local && v.fim.ganhou === v.eu && window.Conquistas) window.Conquistas.vitoria('grade')
-      if (window.Uatu) window.Uatu.momento(v.fim.ganhou >= 0 ? 'grade-fim' : v.fim.motivo === 'travou' ? 'grade-travou' : 'grade-empate', { nome: v.fim.ganhou >= 0 ? v.js[v.fim.ganhou].nome : '' })
+      if (ia) {
+        window.IAs.falar(ia.id, v.fim.ganhou < 0 ? 'empate' : v.fim.ganhou === ia.j ? 'ganhou' : 'perdeu')
+        if (v.fim.ganhou >= 0 && v.fim.ganhou !== ia.j) window.IAs.venceu('grade', ia.id)
+      } else if (window.Uatu) window.Uatu.momento(v.fim.ganhou >= 0 ? 'grade-fim' : v.fim.motivo === 'travou' ? 'grade-travou' : 'grade-empate', { nome: v.fim.ganhou >= 0 ? v.js[v.fim.ganhou].nome : '' })
     }
   }
 
@@ -317,6 +330,7 @@
     bot: () => { novoHost(true, [{ id: 'l0', nome: ui.meuNome || (ui.nomes[0] || '').trim() || t('Você', 'You'), on: true }]); poeBot(); comecar() },
     criar: () => { novoHost(false, [{ id: MEU_ID, conn: null, nome: ui.meuNome || t('Jogador 1', 'Player 1'), on: true }]); ui.erro = ''; sala.criar() },
     entrar: () => { ui.codigo = valor('gd-codigo'); ui.erro = ''; sala.entrar(ui.codigo) },
+    ia: (id) => { window.IAs.escolher(id); render() },
     'poe-bot': () => { if (H && !H.J && H.pessoas.length < 2) { poeBot(); enviarTudo() } },
     'tira-bot': (v) => { if (H && !H.J && H.pessoas[v] && H.pessoas[v].bot) { H.pessoas.splice(Number(v), 1); enviarTudo() } },
     convite: () => {

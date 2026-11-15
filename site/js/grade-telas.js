@@ -124,10 +124,12 @@
               <input id="gd-nome-${p}" maxlength="14" autocomplete="off" placeholder="${t('Jogador', 'Player')} ${p + 1}" value="${esc(ui.nomes[p] || '')}"></label>`).join('<b class="gd-vs">VS</b>')}
           </div></div>
           ${opcoes(ui, true, 'g')}
-          <div class="go-row"><button class="linkish" type="button" data-g="bot">${t('testar sozinho contra o bot', 'try it alone against the bot')}</button>
-            <button class="btn big" type="button" data-g="local">${t('Começar', 'Start')}</button></div>
+          <div class="go-row"><button class="btn big" type="button" data-g="local">${t('Começar', 'Start')}</button></div>
         </div>
         <div class="ap-coluna">
+          <div class="panel"><h2>${t('Contra uma IA da Marvel', 'Against a Marvel AI')}</h2>${window.IAs.escolha('g', 'grade')}
+            <p class="note">${t('Usa o tamanho e a dificuldade escolhidos ao lado.', 'Uses the size and difficulty chosen on the side.')}</p>
+            <div class="go-row"><button class="btn big" type="button" data-g="bot">${t(`Jogar contra ${esc(window.IAs.nomeDe(window.IAs.atual()))}`, `Play against ${esc(window.IAs.nomeDe(window.IAs.atual()))}`)}</button></div></div>
           <div class="panel"><h2>${t('Como jogar', 'How to play')}</h2>${como()}</div>
           <div class="panel"><h2>${t('Cada um no seu celular', 'Each on their own phone')}</h2>
             <button class="btn green fila-btn" type="button" data-fila="grade">${t('Procurar partida', 'Find a match')}</button>

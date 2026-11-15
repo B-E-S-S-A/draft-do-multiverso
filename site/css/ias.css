@@ -1,0 +1,36 @@
+/* As IAs da Marvel: o seletor de adversário e o balão de fala. */
+.ias-escolha { display: grid; gap: 8px }
+.ias-escada { margin: 0; font-size: 14px; color: var(--muted) }
+.ias-escada b { color: var(--ink) }
+.ias { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+.ia { --ia: var(--p2); position: relative; display: grid; justify-items: center; gap: 3px; padding: 10px 6px 9px; text-align: center; font: inherit; color: var(--ink);
+  background: #fff; border: 3px solid var(--ink); border-top: 8px solid var(--ia); box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: transform .12s, box-shadow .12s, background .12s }
+.ia:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink) }
+.ia[aria-pressed="true"] { background: var(--sun); transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink) }
+.ia b { font-family: var(--display); font-weight: 400; font-size: 22px; line-height: .95 }
+.ia small { font-family: var(--label); font-size: 8px; line-height: 1.3; color: var(--muted) }
+.ia[aria-pressed="true"] small { color: var(--ink) }
+.ia-rosto { display: block; width: 46px; height: 46px; flex: none }
+.ia-nivel { display: flex; gap: 2px }
+.ia-nivel i { width: 7px; height: 7px; border: 1.5px solid var(--ink); background: #fff }
+.ia-nivel i.on { background: var(--ia) }
+.ia-ok { position: absolute; top: -12px; right: -6px; padding: 1px 5px 2px; font-style: normal; font-family: var(--label); font-size: 8px; text-transform: uppercase;
+  color: #fff; background: var(--banca); border: 2px solid var(--ink); transform: rotate(6deg) }
+
+/* o balão: desce do alto, fica uns segundos e some (tocar fecha) */
+.ia-fala { --ia: var(--p2); position: fixed; top: 10px; left: 50%; z-index: 80; display: flex; gap: 10px; align-items: center; width: max-content; max-width: min(92vw, 440px);
+  padding: 8px 14px 8px 8px; background: var(--paper); border: 3px solid var(--ink); border-left: 10px solid var(--ia); box-shadow: 4px 4px 0 var(--ink);
+  transform: translate(-50%, -140%); transition: transform .35s cubic-bezier(.3, .7, .3, 1.3); cursor: pointer; pointer-events: none }
+.ia-fala.on { transform: translate(-50%, 0); pointer-events: auto }
+.ia-fala .ia-rosto { width: 40px; height: 40px }
+.ia-fala small { display: block; font-family: var(--label); font-size: 9px; color: var(--muted) }
+.ia-fala p { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.2 }
+/* o rostinho ao lado do nome, no placar */
+.se-jog .ia-rosto { width: 26px; height: 26px; display: inline-block; vertical-align: middle; margin: -4px 4px 0 0 }
+
+@media (max-width: 560px) {
+  .ias { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .ia b { font-size: 20px }
+  .ia-fala p { font-size: 14px }
+  .se-jog .ia-rosto { width: 20px; height: 20px }
+}

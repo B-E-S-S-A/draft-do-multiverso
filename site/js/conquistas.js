@@ -28,6 +28,8 @@
     B('ale1', 'comum', 'estrela', 'Porta do Multiverso', 'Multiverse Door', 'Jogue uma partida aleatória', 'Play a random match', (c) => c.ale >= 1),
     B('alew', 'rara', 'garras', 'Caçador de Estranhos', 'Stranger Hunter', 'Vença alguém numa partida aleatória', 'Beat someone in a random match', (c) => c.w_ale >= 1),
     B('ale10', 'lendaria', 'garras', 'Terror da Fila', 'Terror of the Queue', 'Vença 10 partidas aleatórias', 'Win 10 random matches', (c) => c.w_ale >= 10),
+    B('ultron', 'lendaria', 'caveira', 'Desligou o Ultron', 'Shut Down Ultron', 'Vença o Ultron na Grade ou na Identidade Secreta', 'Beat Ultron in the Grid or Secret Identity', (c) => c.ultron >= 1),
+    B('ias', 'epica', 'raio', 'Domador de IAs', 'AI Tamer', 'Vença as 6 IAs da Marvel', 'Beat all 6 Marvel AIs', (c) => c.ias >= 6),
     B('cobra', 'rara', 'aranha', 'Hail Hidra', 'Hail Hydra', 'Faça 30 pontos na Cobra da Hidra', 'Score 30 in Hydra’s Snake', (c) => c.cobra >= 30),
     // segredos
     B('uatu', 'rara', 'olho', 'Invocador', 'Summoner', 'Segredo: chame o Vigia', 'Secret: summon the Watcher', (c) => c.uatu >= 1),

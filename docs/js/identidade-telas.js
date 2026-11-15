@@ -45,7 +45,7 @@
     return `${GT().blocoVersao(o, pode, 'q', t('De onde vêm os personagens', 'Where the characters come from'))}
       <div class="field"><span class="lbl">${t('Quantos personagens no tabuleiro', 'Characters on the board')}</span><div class="presets">${qtds}</div></div>
       <div class="field"><span class="lbl">${t('Como perguntar', 'How to ask')}</span><div class="modes se-modos">${modos}</div>
-      ${contraPc && o.modo === 'falando' ? `<p class="note">${t('Contra o computador é sempre com a lista pronta.', 'Against the computer it is always the ready-made list.')}</p>` : ''}</div>`
+      ${contraPc && o.modo === 'falando' ? `<p class="note">${t('Contra as IAs é sempre com a lista pronta.', 'Against the AIs it is always the ready-made list.')}</p>` : ''}</div>`
   }
 
   function entrada(ui, m) {
@@ -54,7 +54,8 @@
         <div class="panel rules">
           <h2>${t('Regras', 'Rules')}</h2>
           ${regras(ui, true, true)}
-          <div class="go-row"><button class="btn big" type="button" data-q="bots">${t('Jogar contra o computador', 'Play against the computer')}</button></div>
+          <div class="field"><span class="lbl">${t('Contra qual IA da Marvel', 'Against which Marvel AI')}</span>${window.IAs.escolha('q', 'identidade')}</div>
+          <div class="go-row"><button class="btn big" type="button" data-q="bots">${t(`Jogar contra ${esc(window.IAs.nomeDe(window.IAs.atual()))}`, `Play against ${esc(window.IAs.nomeDe(window.IAs.atual()))}`)}</button></div>
         </div>
         <div class="ap-coluna">
           <div class="panel"><h2>${t('Como jogar', 'How to play')}</h2>${como()}</div>
@@ -125,7 +126,7 @@
     const vez = (j) => v.fase === 'jogo' && v.vez === j
     const sub = (j) => (v.fase === 'escolher' ? (v.js[j].escolheu ? t('já escolheu', 'has picked') : t('escolhendo…', 'picking…')) : t(`${v.js[j].restam} em pé`, `${v.js[j].restam} standing`))
     const quem = (j) => `<span class="se-jog ${COR[j]}${vez(j) ? ' vez' : ''}">${vez(j) ? `<i class="se-vez-tag">${t('na vez', 'turn')}</i>` : ''}
-      <b>${esc(nomeDe(j))}${marca(j)}</b><small>${sub(j)}</small><em>${placar ? placar[j] : 0}</em></span>`
+      <b>${v.js[j].ia ? window.IAs.avatar(v.js[j].ia) : ''}${esc(nomeDe(j))}${marca(j)}</b><small>${sub(j)}</small><em>${placar ? placar[j] : 0}</em></span>`
     return `<div class="se-barra" id="se-barra">${quem(0)}<i class="se-vs">VS</i>${quem(1)}</div>`
   }
 
